@@ -1,0 +1,7 @@
+.gitignore
+.docusaurus
+.idea
+compose*.yaml
+compose-*.yaml
+Makefile
+.dockerignore
