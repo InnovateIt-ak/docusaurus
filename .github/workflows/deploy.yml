@@ -39,7 +39,7 @@ jobs:
 
   docker-build-push:
     needs: build-and-test
-    runs-on: [self-hosted]
+    runs-on: [self-hosted, ubuntu-latest]
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     permissions:
       contents: read
@@ -84,7 +84,7 @@ jobs:
   # Optionnel: Déploiement sur GitHub Pages
   deploy-github-pages:
     needs: build-and-test
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, ubuntu-latest]
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     permissions:
       contents: read
