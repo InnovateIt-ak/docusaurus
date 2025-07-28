@@ -40,7 +40,7 @@ jobs:
   docker-build-push:
     needs: build-and-test
     runs-on: [self-hosted]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     permissions:
       contents: read
       packages: write
@@ -85,7 +85,7 @@ jobs:
   deploy-github-pages:
     needs: build-and-test
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     permissions:
       contents: read
       pages: write
