@@ -2,6 +2,9 @@
 
 This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
 
+make dev
+
+make prod
 ## Installation
 
 ```bash
