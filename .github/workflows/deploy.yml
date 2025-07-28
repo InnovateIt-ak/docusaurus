@@ -3,10 +3,10 @@ name: Build and Deploy Docusaurus
 on:
   push:
     branches:
-      - main  # ou master selon votre branche principale
+      - master  # ou master selon votre branche principale
   pull_request:
     branches:
-      - main
+      - master
 
 env:
   REGISTRY: ghcr.io
