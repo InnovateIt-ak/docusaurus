@@ -5,3 +5,4 @@ compose*.yaml
 compose-*.yaml
 Makefile
 .dockerignore
+src/components/likec4/*

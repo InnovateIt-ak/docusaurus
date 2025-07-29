@@ -1,5 +1,6 @@
 import React, { lazy, Suspense } from 'react';
 import BrowserOnly from '@docusaurus/BrowserOnly';
+import Layout from "@theme/Layout";
 
 const Tldraw = lazy(async () => {
     try {
@@ -14,8 +15,13 @@ const Tldraw = lazy(async () => {
 
 const TlDraw = () => {
     return (
+        <Layout
+            title="Tldraw"
+            description="Tldraw"
+        >
         <BrowserOnly fallback={<div>Loading Editor...</div>}>
             {() => (
+
                 <div
                     style={{
                         display: 'flex',
@@ -31,6 +37,7 @@ const TlDraw = () => {
                 </div>
             )}
         </BrowserOnly>
+        </Layout>
     );
 };
 

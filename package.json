@@ -12,7 +12,10 @@
     "serve": "docusaurus serve",
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "build-likec4": "likec4 build ./likec4 -o ./static/likec4 --base /likec4/",
+    "build-likec4-react": "likec4 codegen react --outfile ./src/components/likec4/likec4.generated.js"
+
   },
   "dependencies": {
     "@docusaurus/core": "3.8.1",
@@ -28,6 +31,7 @@
     "@docusaurus/module-type-aliases": "3.8.1",
     "@docusaurus/tsconfig": "3.8.1",
     "@docusaurus/types": "3.8.1",
+    "likec4": "^1.34.2",
     "typescript": "~5.6.2"
   },
   "browserslist": {

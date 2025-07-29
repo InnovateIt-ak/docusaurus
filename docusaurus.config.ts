@@ -18,7 +18,7 @@ const config: Config = {
   url: 'https://github.com',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/docusaurus',
+  baseUrl: process.env.BASE_URL??'/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
@@ -87,6 +87,7 @@ const config: Config = {
         },
         {to: '/blog', label: 'Blog', position: 'left'},
         {to: '/tldraw', label: 'TlDraw', position: 'left'},
+        {to: '/likec4', label: 'Architecture', position: 'left'},
         {
           href: 'https://github.com/InnovateIt-ak/docusaurus',
           label: 'GitHub',

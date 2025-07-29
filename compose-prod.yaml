@@ -4,5 +4,7 @@ services:
       dockerfile: Dockerfile
       context: .
       target: prod
+      args:
+          BASE_URL: "/"
     ports:
       - "80:80"
