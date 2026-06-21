@@ -51,8 +51,12 @@ RUN mkdir -p /mnt/rootfs \
 # ---------------------------------------------------------------- runtime ----
 FROM registry.access.redhat.com/hi/python:3.12 AS weasyprint
 
-# Native libraries + fonts, then the Python virtual environment.
-COPY --from=builder /mnt/rootfs/ /
+# Native libraries + fonts (copied selectively to avoid clobbering runtime
+# directories such as /etc/ssl/certs), then the Python virtual environment.
+COPY --from=builder /mnt/rootfs/usr/lib64/ /usr/lib64/
+COPY --from=builder /mnt/rootfs/usr/share/fonts/ /usr/share/fonts/
+COPY --from=builder /mnt/rootfs/usr/share/fontconfig/ /usr/share/fontconfig/
+COPY --from=builder /mnt/rootfs/etc/fonts/ /etc/fonts/
 COPY --from=builder /opt/venv /opt/venv
 
 ENV PATH="/opt/venv/bin:${PATH}" \
