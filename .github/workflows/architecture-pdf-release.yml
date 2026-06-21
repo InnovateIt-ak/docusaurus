@@ -1,0 +1,102 @@
+name: Architecture PDF (release)
+
+# On every version tag (vX.Y.Z) — or on a manual run where you type the
+# version — build the architecture documentation PDF and open a pull request
+# that adds it under docs/architecture/releases/, keeping one PDF per version.
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag to label the PDF (e.g. v1.2.0)'
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  architecture-pdf-pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve version
+        id: ver
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            tag="${{ github.event.inputs.version }}"
+          else
+            tag="${GITHUB_REF_NAME}"
+          fi
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Docusaurus
+        run: BASE_URL="/" npm run build
+
+      - name: Generate PDF with WeasyPrint
+        run: |
+          docker build -f docker/weasyprint/Dockerfile -t docusaurus-weasyprint .
+          docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" docusaurus-weasyprint \
+            --build-dir /data/build \
+            --output /data/build/documentation.pdf \
+            --base-url / \
+            --title "My Site — Architecture" \
+            --eyebrow "Software Architecture" \
+            --subtitle "arc42 / MADR architecture documentation" \
+            --toc-title "Table of Contents" \
+            --include /docs/architecture/
+
+      - name: Stage PDF into the repo
+        run: |
+          mkdir -p docs/architecture/releases
+          cp build/documentation.pdf \
+             "docs/architecture/releases/architecture-${{ steps.ver.outputs.tag }}.pdf"
+
+      - name: Open pull request with the architecture PDF
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="${{ steps.ver.outputs.tag }}"
+          branch="docs/architecture-pdf-${tag}"
+          file="docs/architecture/releases/architecture-${tag}.pdf"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git checkout -b "$branch"
+          git add "$file"
+          if git diff --cached --quiet; then
+            echo "PDF unchanged for ${tag}; nothing to propose."
+            exit 0
+          fi
+
+          git commit -m "docs(architecture): architecture PDF for ${tag}"
+          git push -u origin "$branch" --force
+
+          gh pr create \
+            --base master \
+            --head "$branch" \
+            --title "docs: architecture PDF for ${tag}" \
+            --body "Automated architecture documentation PDF generated for **${tag}**.
+
+          Source: \`docs/architecture/\` rendered with the hardened WeasyPrint image.
+          File: \`${file}\`" \
+          || gh pr edit "$branch" \
+            --title "docs: architecture PDF for ${tag}"
