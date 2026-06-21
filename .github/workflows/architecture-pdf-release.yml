@@ -69,9 +69,15 @@ jobs:
           cp build/documentation.pdf \
              "docs/architecture/releases/architecture-${{ steps.ver.outputs.tag }}.pdf"
 
+      # The org disables "Allow GitHub Actions to create and approve pull
+      # requests", so the default GITHUB_TOKEN cannot open a PR. The branch is
+      # pushed with the default token, and the PR is opened with a PAT exposed
+      # as the RELEASE_PR_TOKEN secret (scopes: contents + pull-requests write).
+      # If the secret is absent the branch is still pushed and the manual
+      # "create PR" link is printed instead of failing the job.
       - name: Open pull request with the architecture PDF
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.RELEASE_PR_TOKEN }}
         run: |
           tag="${{ steps.ver.outputs.tag }}"
           branch="docs/architecture-pdf-${tag}"
@@ -89,6 +95,12 @@ jobs:
 
           git commit -m "docs(architecture): architecture PDF for ${tag}"
           git push -u origin "$branch" --force
+
+          if [ -z "${GH_TOKEN}" ]; then
+            echo "::warning::RELEASE_PR_TOKEN secret is not set — branch pushed but PR not opened."
+            echo "Open it manually: https://github.com/${GITHUB_REPOSITORY}/pull/new/${branch}"
+            exit 0
+          fi
 
           gh pr create \
             --base master \
