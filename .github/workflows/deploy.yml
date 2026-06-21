@@ -44,7 +44,7 @@ jobs:
       - name: Generate PDF with WeasyPrint
         run: |
           docker build -f docker/weasyprint/Dockerfile -t docusaurus-weasyprint .
-          docker run --rm -v "$PWD:/data" docusaurus-weasyprint \
+          docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" docusaurus-weasyprint \
             --build-dir /data/build \
             --output /data/build/documentation.pdf \
             --base-url /docusaurus \
@@ -93,7 +93,7 @@ jobs:
       - name: Generate PDF with WeasyPrint
         run: |
           docker build -f docker/weasyprint/Dockerfile -t docusaurus-weasyprint .
-          docker run --rm -v "$PWD:/data" docusaurus-weasyprint \
+          docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" docusaurus-weasyprint \
             --build-dir /data/build \
             --output /data/build/documentation.pdf \
             --base-url / \
