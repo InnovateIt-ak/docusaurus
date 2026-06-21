@@ -47,7 +47,8 @@ jobs:
           docker run --rm -v "$PWD:/data" docusaurus-weasyprint \
             --build-dir /data/build \
             --output /data/build/documentation.pdf \
-            --base-url /docusaurus
+            --base-url /docusaurus \
+            --exclude /docs/tutorial-basics/architecture/
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -90,7 +91,8 @@ jobs:
           docker run --rm -v "$PWD:/data" docusaurus-weasyprint \
             --build-dir /data/build \
             --output /data/build/documentation.pdf \
-            --base-url /
+            --base-url / \
+            --exclude /docs/tutorial-basics/architecture/
 
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v4

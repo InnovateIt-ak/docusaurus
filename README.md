@@ -65,7 +65,9 @@ docker compose --profile pdf run --rm weasyprint
 
 The converter serves the `build/` folder locally, renders every page under
 `build/docs/` (stripping the navbar/sidebar/footer via `docker/weasyprint/print.css`)
-and merges them into one PDF. Use `--base-url` to match the Docusaurus `baseUrl`.
+and merges them into one PDF. Use `--base-url` to match the Docusaurus `baseUrl`,
+and `--exclude` (comma-separated route substrings) to skip interactive pages that
+cannot be rendered to PDF, e.g. the LikeC4 diagram page.
 
 ### In CI/CD
 

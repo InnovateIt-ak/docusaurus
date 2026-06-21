@@ -1,5 +1,7 @@
-/* Print stylesheet applied by WeasyPrint to strip the Docusaurus chrome
-   (navbar, sidebar, footer, TOC...) and keep only the article content. */
+/* Print stylesheet applied by WeasyPrint to turn a Docusaurus page into a
+   clean PDF: hide the site chrome and neutralise the flex-based layout that
+   WeasyPrint cannot paginate (long pages would otherwise collapse to a single
+   truncated page). */
 
 @page {
   size: A4;
@@ -22,25 +24,44 @@
 .pagination-nav,
 .theme-edit-this-page,
 .theme-last-updated,
-.clean-btn,
+.announcementBar,
 footer,
+[class*="skipToContent"],
+[class*="announcementBar"],
 [class*="tableOfContents"],
 [class*="backToTopButton"],
 [class*="docItemCol"] aside {
   display: none !important;
 }
 
-/* Let the article use the full page width. */
+/* WeasyPrint's flexbox support is partial: the Docusaurus doc layout uses
+   nested flex containers that break pagination. Force normal block flow so the
+   article content flows across pages correctly. */
+html,
+body,
+#__docusaurus,
 .main-wrapper,
 main,
-article,
-[class*="docItemContainer"],
+.container,
+.container-fluid,
+.row,
+[class*="docRoot"],
+[class*="docPage"],
 [class*="docMainContainer"],
+[class*="docItemContainer"],
 [class*="docItemCol"] {
+  display: block !important;
+  flex: none !important;
   width: 100% !important;
   max-width: 100% !important;
+  height: auto !important;
   margin: 0 !important;
   padding: 0 !important;
+}
+
+article {
+  width: 100% !important;
+  max-width: 100% !important;
 }
 
 a {

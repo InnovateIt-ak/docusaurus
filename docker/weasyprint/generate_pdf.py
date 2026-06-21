@@ -47,7 +47,7 @@ def make_handler(build_dir: str, base_prefix: str):
     return functools.partial(Handler, directory=build_dir)
 
 
-def discover_doc_routes(build_dir: str, base_prefix: str) -> list[str]:
+def discover_doc_routes(build_dir: str, base_prefix: str, exclude: list[str]) -> list[str]:
     """Return ordered HTTP paths for every documentation page."""
     docs_dir = os.path.join(build_dir, "docs")
     routes: list[str] = []
@@ -64,6 +64,9 @@ def discover_doc_routes(build_dir: str, base_prefix: str) -> list[str]:
     if not routes and os.path.exists(os.path.join(build_dir, "index.html")):
         routes.append(f"{base_prefix}/")
 
+    if exclude:
+        routes = [r for r in routes if not any(pat in r for pat in exclude)]
+
     routes.sort()
     return routes
 
@@ -75,7 +78,15 @@ def main() -> int:
     parser.add_argument("--base-url", default="/", help="Docusaurus baseUrl used at build time.")
     parser.add_argument("--stylesheet", default=os.path.join(os.path.dirname(__file__), "print.css"))
     parser.add_argument("--port", type=int, default=8765, help="Local HTTP port.")
+    parser.add_argument(
+        "--exclude",
+        default="",
+        help="Comma-separated route substrings to skip (e.g. interactive pages "
+        "that cannot be rendered to PDF).",
+    )
     args = parser.parse_args()
+
+    exclude = [p.strip() for p in args.exclude.split(",") if p.strip()]
 
     build_dir = os.path.abspath(args.build_dir)
     if not os.path.isdir(build_dir):
@@ -86,7 +97,7 @@ def main() -> int:
     from weasyprint import CSS, HTML
 
     base_prefix = normalize_base_url(args.base_url)
-    routes = discover_doc_routes(build_dir, base_prefix)
+    routes = discover_doc_routes(build_dir, base_prefix, exclude)
     if not routes:
         log("No pages found to render.")
         return 1

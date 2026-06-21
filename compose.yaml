@@ -23,3 +23,5 @@ services:
       - "--build-dir=/data/build"
       - "--output=/data/build/documentation.pdf"
       - "--base-url=/"
+      # Skip interactive pages (LikeC4 diagram) that cannot be rendered to PDF.
+      - "--exclude=/docs/tutorial-basics/architecture/"
