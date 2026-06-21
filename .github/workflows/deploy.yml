@@ -41,13 +41,8 @@ jobs:
       - name: Build Docusaurus
         run: BASE_URL="/docusaurus" npm run build
 
-      - name: Install cosign
-        uses: sigstore/cosign-installer@v3
-
       - name: Generate PDF with WeasyPrint
         run: |
-          cosign verify --insecure-ignore-tlog registry.access.redhat.com/hi/python:3.12
-          cosign verify --insecure-ignore-tlog registry.access.redhat.com/hi/python:3.12-builder
           docker build -f docker/weasyprint/Dockerfile -t docusaurus-weasyprint .
           docker run --rm -v "$PWD:/data" docusaurus-weasyprint \
             --build-dir /data/build \
@@ -95,13 +90,8 @@ jobs:
       - name: Build Docusaurus
         run: BASE_URL="/" npm run build
 
-      - name: Install cosign
-        uses: sigstore/cosign-installer@v3
-
       - name: Generate PDF with WeasyPrint
         run: |
-          cosign verify --insecure-ignore-tlog registry.access.redhat.com/hi/python:3.12
-          cosign verify --insecure-ignore-tlog registry.access.redhat.com/hi/python:3.12-builder
           docker build -f docker/weasyprint/Dockerfile -t docusaurus-weasyprint .
           docker run --rm -v "$PWD:/data" docusaurus-weasyprint \
             --build-dir /data/build \

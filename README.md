@@ -81,13 +81,7 @@ Useful options (see `generate_pdf.py --help`):
 The converter image is built on Red Hat **hardened images** (`hi/python`) using a
 multi-stage build: the `hi/python:3.12-builder` stage builds the Python virtual
 environment and stages the native libraries and fonts, which are copied into the
-minimal `hi/python:3.12` runtime. In CI the base images are signature-verified
-with cosign before the build:
-
-```bash
-cosign verify --insecure-ignore-tlog registry.access.redhat.com/hi/python:3.12
-cosign verify --insecure-ignore-tlog registry.access.redhat.com/hi/python:3.12-builder
-```
+minimal `hi/python:3.12` runtime.
 
 > Pulling `registry.access.redhat.com/hi/...` may require Red Hat registry
 > authentication in your CI environment.
