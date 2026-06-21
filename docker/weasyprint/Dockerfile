@@ -48,6 +48,15 @@ RUN mkdir -p /mnt/rootfs \
  && dnf clean all --installroot=/mnt/rootfs \
  && rm -rf /mnt/rootfs/var/cache/dnf
 
+# Drop glibc and the dynamic linker from the staged root: the hardened runtime
+# already provides a newer glibc, and overwriting it would break its Python.
+# The UBI libraries (built against an older glibc) run fine on the newer one.
+RUN cd /mnt/rootfs/usr/lib64 \
+ && rm -f libc.so.6 libm.so.6 libmvec.so.1 libdl.so.2 libpthread.so.0 \
+          librt.so.1 libresolv.so.2 libutil.so.1 libanl.so.1 \
+          libBrokenLocale.so.1 libthread_db.so.1 libnss_*.so.2 \
+          ld-linux-x86-64.so.2
+
 # ---------------------------------------------------------------- runtime ----
 FROM registry.access.redhat.com/hi/python:3.12 AS weasyprint
 
