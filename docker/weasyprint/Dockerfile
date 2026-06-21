@@ -22,14 +22,29 @@ RUN python3 -m venv --copies /opt/venv \
 
 # 2) Stage native libraries (Pango / cairo / harfbuzz / gdk-pixbuf / fontconfig)
 #    and fonts into /mnt/rootfs so they can be copied into the minimal runtime.
+#    The hardened base only ships a minimal curated repository which does not
+#    include Pango/cairo/etc, so pull them from the public UBI 9 repositories.
+RUN printf '%s\n' \
+      '[ubi9-baseos]' \
+      'name=ubi9-baseos' \
+      'baseurl=https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/' \
+      'enabled=1' \
+      'gpgcheck=0' \
+      '' \
+      '[ubi9-appstream]' \
+      'name=ubi9-appstream' \
+      'baseurl=https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/os/' \
+      'enabled=1' \
+      'gpgcheck=0' \
+      > /etc/yum.repos.d/ubi.repo
+
 RUN mkdir -p /mnt/rootfs \
- && dnf install -y --installroot=/mnt/rootfs --use-host-config --enablerepo=* \
+ && dnf install -y --installroot=/mnt/rootfs --use-host-config --releasever=9 \
+        --repo=ubi9-baseos --repo=ubi9-appstream --skip-unavailable \
         --setopt=install_weak_deps=0 --setopt=tsflags=nodocs \
         pango cairo gdk-pixbuf2 harfbuzz fontconfig freetype libffi \
- && dnf install -y --installroot=/mnt/rootfs --use-host-config --enablerepo=* \
-        --skip-unavailable --setopt=tsflags=nodocs \
         dejavu-sans-fonts dejavu-sans-mono-fonts \
-        liberation-fonts liberation-mono-fonts google-noto-sans-fonts \
+        liberation-fonts google-noto-sans-fonts \
  && dnf clean all --installroot=/mnt/rootfs \
  && rm -rf /mnt/rootfs/var/cache/dnf
 
