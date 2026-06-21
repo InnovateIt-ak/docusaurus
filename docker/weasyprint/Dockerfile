@@ -21,7 +21,7 @@ COPY docker/weasyprint/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY docker/weasyprint/generate_pdf.py ./generate_pdf.py
-COPY docker/weasyprint/print.css ./print.css
+COPY docker/weasyprint/report.css ./report.css
 
 # Mount the repository at /data and the build/ folder will be read from there.
 WORKDIR /data
