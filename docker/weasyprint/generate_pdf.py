@@ -55,7 +55,7 @@ def make_handler(build_dir: str, base_prefix: str):
     return functools.partial(Handler, directory=build_dir)
 
 
-def discover_doc_routes(build_dir: str, base_prefix: str, exclude: list[str]) -> list[str]:
+def discover_doc_routes(build_dir, base_prefix, exclude, include) -> list[str]:
     """Return ordered HTTP paths for every documentation page."""
     docs_dir = os.path.join(build_dir, "docs")
     routes: list[str] = []
@@ -71,6 +71,8 @@ def discover_doc_routes(build_dir: str, base_prefix: str, exclude: list[str]) ->
     if not routes and os.path.exists(os.path.join(build_dir, "index.html")):
         routes.append(f"{base_prefix}/")
 
+    if include:
+        routes = [r for r in routes if any(pat in r for pat in include)]
     if exclude:
         routes = [r for r in routes if not any(pat in r for pat in exclude)]
 
@@ -95,8 +97,12 @@ def extract_stylesheets(page_html: str):
     return hrefs
 
 
-def extract_article(page_html: str):
-    """Return (title, inner_html) for the main content of a Docusaurus page."""
+def extract_article(page_html: str, index: int):
+    """Return (title, inner_html, headings) for a Docusaurus page.
+
+    headings is a list of (level, text, id) for h2/h3, with unique ids injected
+    so the table of contents can link to them.
+    """
     from bs4 import BeautifulSoup
 
     soup = BeautifulSoup(page_html, "html.parser")
@@ -105,8 +111,14 @@ def extract_article(page_html: str):
         or soup.select_one("article")
         or soup.select_one("main")
     )
+    if node is None:
+        return "Document", "", []
 
-    heading = node.find(["h1"]) if node else None
+    # Drop the hover anchor links Docusaurus injects into headings.
+    for anchor in node.select("a.hash-link"):
+        anchor.decompose()
+
+    heading = node.find("h1")
     if heading:
         title = heading.get_text(strip=True)
     elif soup.title and soup.title.string:
@@ -114,7 +126,32 @@ def extract_article(page_html: str):
     else:
         title = "Document"
 
-    return title, (node.decode_contents() if node else "")
+    headings = []
+    for count, tag in enumerate(node.find_all(["h2", "h3"])):
+        hid = f"c{index}-s{count}"
+        tag["id"] = hid
+        headings.append((int(tag.name[1]), tag.get_text(strip=True), hid))
+
+    return title, node.decode_contents(), headings
+
+
+def build_toc_items(chapters):
+    """Build numbered, multi-level TOC entries: (level, number, text, anchor)."""
+    items = []
+    for ci, (title, _content, headings) in enumerate(chapters):
+        top = ci + 1
+        items.append((1, str(top), title, f"chapter-{ci}"))
+        h2 = 0
+        h3 = 0
+        for level, text, hid in headings:
+            if level == 2:
+                h2 += 1
+                h3 = 0
+                items.append((2, f"{top}.{h2}", text, hid))
+            else:  # h3
+                h3 += 1
+                items.append((3, f"{top}.{h2}.{h3}", text, hid))
+    return items
 
 
 def build_document(server_url, css_hrefs, chapters, meta):
@@ -122,13 +159,15 @@ def build_document(server_url, css_hrefs, chapters, meta):
         f'<link rel="stylesheet" href="{html.escape(h)}">' for h in css_hrefs
     )
     toc_items = "\n".join(
-        f'<li><a href="#chapter-{i}">{html.escape(title)}</a></li>'
-        for i, (title, _) in enumerate(chapters)
+        f'<li class="toc-l{level}"><a href="#{anchor}">'
+        f'<span class="toc-num">{html.escape(number)}</span>'
+        f'<span class="toc-text">{html.escape(text)}</span></a></li>'
+        for level, number, text, anchor in build_toc_items(chapters)
     )
     chapter_blocks = "\n".join(
         f'<section class="chapter" id="chapter-{i}">'
         f'<div class="markdown">{content}</div></section>'
-        for i, (_, content) in enumerate(chapters)
+        for i, (_, content, _headings) in enumerate(chapters)
     )
 
     eyebrow = html.escape(meta.get("eyebrow", ""))
@@ -158,9 +197,9 @@ def build_document(server_url, css_hrefs, chapters, meta):
 </section>
 <section id="toc">
   <h1>{html.escape(meta.get('toc_title', 'Table of contents'))}</h1>
-  <ol class="toc">
+  <ul class="toc">
 {toc_items}
-  </ol>
+  </ul>
 </section>
 {chapter_blocks}
 </body>
@@ -176,6 +215,7 @@ def main() -> int:
     parser.add_argument("--stylesheet", default=os.path.join(os.path.dirname(__file__), "report.css"))
     parser.add_argument("--port", type=int, default=8765, help="Local HTTP port.")
     parser.add_argument("--exclude", default="", help="Comma-separated route substrings to skip.")
+    parser.add_argument("--include", default="", help="Comma-separated route substrings to keep (others are skipped).")
     parser.add_argument("--title", default="Documentation", help="Cover title.")
     parser.add_argument("--subtitle", default="", help="Cover subtitle.")
     parser.add_argument("--eyebrow", default="Documentation", help="Small label above the cover title.")
@@ -185,6 +225,7 @@ def main() -> int:
     args = parser.parse_args()
 
     exclude = [p.strip() for p in args.exclude.split(",") if p.strip()]
+    include = [p.strip() for p in args.include.split(",") if p.strip()]
 
     build_dir = os.path.abspath(args.build_dir)
     if not os.path.isdir(build_dir):
@@ -194,7 +235,7 @@ def main() -> int:
     from weasyprint import CSS, HTML
 
     base_prefix = normalize_base_url(args.base_url)
-    routes = discover_doc_routes(build_dir, base_prefix, exclude)
+    routes = discover_doc_routes(build_dir, base_prefix, exclude, include)
     if not routes:
         log("No pages found to render.")
         return 1
@@ -211,9 +252,9 @@ def main() -> int:
             page_html = fetch(f"{server_url}{route}")
             if not css_hrefs:
                 css_hrefs = extract_stylesheets(page_html)
-            title, content = extract_article(page_html)
+            title, content, headings = extract_article(page_html, len(chapters))
             if content.strip():
-                chapters.append((title, content))
+                chapters.append((title, content, headings))
                 log(f"Added '{title}' ({route})")
             else:
                 log(f"Skipped empty page {route}")

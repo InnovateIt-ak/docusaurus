@@ -48,11 +48,12 @@ jobs:
             --build-dir /data/build \
             --output /data/build/documentation.pdf \
             --base-url /docusaurus \
-            --title "My Site" \
-            --eyebrow "Documentation" \
-            --subtitle "Dinosaurs are cool" \
+            --title "My Site — Architecture" \
+            --eyebrow "Software Architecture" \
+            --subtitle "arc42 / MADR architecture documentation" \
+            --toc-title "Table of Contents" \
             --source "https://innovateit-ak.github.io/docusaurus" \
-            --exclude /docs/category/,/docs/tutorial-basics/architecture/
+            --include /docs/architecture/
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -96,10 +97,11 @@ jobs:
             --build-dir /data/build \
             --output /data/build/documentation.pdf \
             --base-url / \
-            --title "My Site" \
-            --eyebrow "Documentation" \
-            --subtitle "Dinosaurs are cool" \
-            --exclude /docs/category/,/docs/tutorial-basics/architecture/
+            --title "My Site — Architecture" \
+            --eyebrow "Software Architecture" \
+            --subtitle "arc42 / MADR architecture documentation" \
+            --toc-title "Table of Contents" \
+            --include /docs/architecture/
 
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v4

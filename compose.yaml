@@ -23,9 +23,10 @@ services:
       - "--build-dir=/data/build"
       - "--output=/data/build/documentation.pdf"
       - "--base-url=/"
-      - "--title=My Site"
-      - "--eyebrow=Documentation"
-      - "--subtitle=Dinosaurs are cool"
-      # Skip the auto-generated category index pages (already covered by the
-      # table of contents) and the interactive LikeC4 diagram page.
-      - "--exclude=/docs/category/,/docs/tutorial-basics/architecture/"
+      - "--title=My Site — Architecture"
+      - "--eyebrow=Software Architecture"
+      - "--subtitle=arc42 / MADR architecture documentation"
+      - "--toc-title=Table of Contents"
+      # Render only the architecture section (arc42). Remove --include to build
+      # a PDF of the whole documentation instead.
+      - "--include=/docs/architecture/"
