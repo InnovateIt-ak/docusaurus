@@ -158,10 +158,18 @@ def build_document(server_url, css_hrefs, chapters, meta):
     links = "\n".join(
         f'<link rel="stylesheet" href="{html.escape(h)}">' for h in css_hrefs
     )
+    # Only the title is a link (small click area, so the PDF viewer's hover
+    # highlight does not cover the whole row). The dotted leader is a plain
+    # filler and the page number is generated via target-counter on a non-link
+    # element carrying the href attribute.
     toc_items = "\n".join(
-        f'<li class="toc-l{level}"><a href="#{anchor}">'
+        f'<li class="toc-l{level}">'
+        f'<a class="toc-link" href="#{anchor}">'
         f'<span class="toc-num">{html.escape(number)}</span>'
-        f'<span class="toc-text">{html.escape(text)}</span></a></li>'
+        f'<span class="toc-text">{html.escape(text)}</span></a>'
+        f'<span class="toc-dots"></span>'
+        f'<span class="toc-pg" data-href="#{anchor}"></span>'
+        f'</li>'
         for level, number, text, anchor in build_toc_items(chapters)
     )
     chapter_blocks = "\n".join(

@@ -1,30 +1,50 @@
-# WeasyPrint converter image: turns the built Docusaurus site into a PDF.
-FROM python:3.12-slim AS weasyprint
+# WeasyPrint converter image, built on Red Hat hardened images (hi/python).
+#
+# The hardened runtime image is minimal and ships without a package manager, so
+# we use the matching "-builder" image to (1) build the Python virtual
+# environment and (2) stage the native runtime libraries + fonts into a separate
+# root that is then copied into the runtime image.
+#
+# The base images are signature-verified in CI before the build, e.g.:
+#   cosign verify --insecure-ignore-tlog registry.access.redhat.com/hi/python:3.12
+#   cosign verify --insecure-ignore-tlog registry.access.redhat.com/hi/python:3.12-builder
 
-# System libraries required by WeasyPrint (Pango / cairo / harfbuzz) + fonts.
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        libpango-1.0-0 \
-        libpangocairo-1.0-0 \
-        libpangoft2-1.0-0 \
-        libharfbuzz-subset0 \
-        libgdk-pixbuf-2.0-0 \
-        libffi-dev \
-        shared-mime-info \
-        fonts-ibm-plex \
-        fonts-dejavu \
-        fonts-liberation \
-        fonts-lato \
-        fonts-symbola \
-    && rm -rf /var/lib/apt/lists/*
+# ---------------------------------------------------------------- builder ----
+FROM registry.access.redhat.com/hi/python:3.12-builder AS builder
 
-WORKDIR /opt/weasyprint
-COPY docker/weasyprint/requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+USER root
 
-COPY docker/weasyprint/generate_pdf.py ./generate_pdf.py
-COPY docker/weasyprint/report.css ./report.css
+# 1) Python virtual environment with WeasyPrint and its dependencies.
+COPY docker/weasyprint/requirements.txt /tmp/requirements.txt
+RUN python3 -m venv --copies /opt/venv \
+ && /opt/venv/bin/pip install --no-cache-dir --upgrade pip \
+ && /opt/venv/bin/pip install --no-cache-dir -r /tmp/requirements.txt
 
-# Mount the repository at /data and the build/ folder will be read from there.
+# 2) Stage native libraries (Pango / cairo / harfbuzz / gdk-pixbuf / fontconfig)
+#    and fonts into /mnt/rootfs so they can be copied into the minimal runtime.
+RUN mkdir -p /mnt/rootfs \
+ && dnf install -y --installroot=/mnt/rootfs --releasever=9 \
+        --setopt=install_weak_deps=0 --setopt=tsflags=nodocs \
+        pango cairo gdk-pixbuf2 harfbuzz fontconfig freetype libffi \
+        dejavu-sans-fonts dejavu-sans-mono-fonts \
+        liberation-fonts google-noto-sans-fonts \
+ && dnf clean all --installroot=/mnt/rootfs \
+ && rm -rf /mnt/rootfs/var/cache/dnf
+
+# ---------------------------------------------------------------- runtime ----
+FROM registry.access.redhat.com/hi/python:3.12 AS weasyprint
+
+# Native libraries + fonts, then the Python virtual environment.
+COPY --from=builder /mnt/rootfs/ /
+COPY --from=builder /opt/venv /opt/venv
+
+ENV PATH="/opt/venv/bin:${PATH}" \
+    PYTHONUNBUFFERED=1 \
+    XDG_CACHE_HOME=/tmp/.cache
+
+COPY docker/weasyprint/generate_pdf.py /opt/weasyprint/generate_pdf.py
+COPY docker/weasyprint/report.css /opt/weasyprint/report.css
+
 WORKDIR /data
 
 ENTRYPOINT ["python", "/opt/weasyprint/generate_pdf.py"]
