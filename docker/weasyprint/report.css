@@ -3,9 +3,11 @@
    clean typography on top of the Docusaurus article content. */
 
 :root {
-  --accent: #2e8555;
-  --accent-dark: #205d3b;
-  --ink: #1c1e21;
+  /* EEAS / European Union brand colours. */
+  --accent: #004494;       /* EU blue */
+  --accent-dark: #003399;  /* EU flag blue */
+  --accent-2: #ffd617;     /* EU yellow */
+  --ink: #1a1a2e;
   --muted: #6b7280;
 }
 
@@ -16,8 +18,8 @@
 
   @top-left {
     content: counter(page);
-    color: #fff;
-    background: var(--accent);
+    color: var(--accent-dark);
+    background: var(--accent-2);
     font: 700 9pt/1 "Lato", sans-serif;
     padding: 1.6mm 2.6mm;
   }
@@ -92,7 +94,7 @@ body {
   letter-spacing: 0.35em;
   font-size: 10pt;
   font-weight: 700;
-  opacity: 0.85;
+  color: var(--accent-2);
   margin: 0 0 10mm;
 }
 .cover-title {

@@ -26,5 +26,6 @@ services:
       - "--title=My Site"
       - "--eyebrow=Documentation"
       - "--subtitle=Dinosaurs are cool"
-      # Skip interactive pages (LikeC4 diagram) that cannot be rendered to PDF.
-      - "--exclude=/docs/tutorial-basics/architecture/"
+      # Skip the auto-generated category index pages (already covered by the
+      # table of contents) and the interactive LikeC4 diagram page.
+      - "--exclude=/docs/category/,/docs/tutorial-basics/architecture/"

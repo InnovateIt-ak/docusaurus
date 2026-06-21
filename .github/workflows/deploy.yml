@@ -52,7 +52,7 @@ jobs:
             --eyebrow "Documentation" \
             --subtitle "Dinosaurs are cool" \
             --source "https://innovateit-ak.github.io/docusaurus" \
-            --exclude /docs/tutorial-basics/architecture/
+            --exclude /docs/category/,/docs/tutorial-basics/architecture/
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -99,7 +99,7 @@ jobs:
             --title "My Site" \
             --eyebrow "Documentation" \
             --subtitle "Dinosaurs are cool" \
-            --exclude /docs/tutorial-basics/architecture/
+            --exclude /docs/category/,/docs/tutorial-basics/architecture/
 
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v4

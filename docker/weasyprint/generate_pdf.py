@@ -141,7 +141,6 @@ def build_document(server_url, css_hrefs, chapters, meta):
 <html lang="{html.escape(meta.get('lang', 'en'))}">
 <head>
 <meta charset="utf-8">
-<base href="{html.escape(server_url)}/">
 {links}
 <title>{title}</title>
 </head>
