@@ -26,7 +26,10 @@ RUN mkdir -p /mnt/rootfs \
  && dnf install -y --installroot=/mnt/rootfs --use-host-config --enablerepo=* \
         --setopt=install_weak_deps=0 --setopt=tsflags=nodocs \
         pango cairo gdk-pixbuf2 harfbuzz fontconfig freetype libffi \
+ && dnf install -y --installroot=/mnt/rootfs --use-host-config --enablerepo=* \
+        --skip-unavailable --setopt=tsflags=nodocs \
         dejavu-sans-fonts dejavu-sans-mono-fonts \
+        liberation-fonts liberation-mono-fonts google-noto-sans-fonts \
  && dnf clean all --installroot=/mnt/rootfs \
  && rm -rf /mnt/rootfs/var/cache/dnf
 
