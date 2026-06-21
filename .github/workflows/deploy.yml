@@ -41,6 +41,14 @@ jobs:
       - name: Build Docusaurus
         run: BASE_URL="/docusaurus" npm run build
 
+      - name: Generate PDF with WeasyPrint
+        run: |
+          docker build -f docker/weasyprint/Dockerfile -t docusaurus-weasyprint .
+          docker run --rm -v "$PWD:/data" docusaurus-weasyprint \
+            --build-dir /data/build \
+            --output /data/build/documentation.pdf \
+            --base-url /docusaurus
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
@@ -52,3 +60,40 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  # Generate the PDF on every push and pull request and expose it as an
+  # artifact (useful for review before anything is deployed).
+  build-pdf:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Docusaurus
+        run: BASE_URL="/" npm run build
+
+      - name: Generate PDF with WeasyPrint
+        run: |
+          docker build -f docker/weasyprint/Dockerfile -t docusaurus-weasyprint .
+          docker run --rm -v "$PWD:/data" docusaurus-weasyprint \
+            --build-dir /data/build \
+            --output /data/build/documentation.pdf \
+            --base-url /
+
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation-pdf
+          path: build/documentation.pdf

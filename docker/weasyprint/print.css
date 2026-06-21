@@ -1,0 +1,68 @@
+/* Print stylesheet applied by WeasyPrint to strip the Docusaurus chrome
+   (navbar, sidebar, footer, TOC...) and keep only the article content. */
+
+@page {
+  size: A4;
+  margin: 1.6cm 1.4cm;
+  @bottom-center {
+    content: counter(page) " / " counter(pages);
+    font-size: 9px;
+    color: #888;
+  }
+}
+
+/* Hide everything that is not the document body. */
+.navbar,
+.navbar-sidebar,
+.theme-doc-sidebar-container,
+.theme-doc-toc-desktop,
+.theme-doc-toc-mobile,
+.theme-doc-breadcrumbs,
+.breadcrumbs,
+.pagination-nav,
+.theme-edit-this-page,
+.theme-last-updated,
+.clean-btn,
+footer,
+[class*="tableOfContents"],
+[class*="backToTopButton"],
+[class*="docItemCol"] aside {
+  display: none !important;
+}
+
+/* Let the article use the full page width. */
+.main-wrapper,
+main,
+article,
+[class*="docItemContainer"],
+[class*="docMainContainer"],
+[class*="docItemCol"] {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+pre,
+code {
+  white-space: pre-wrap !important;
+  word-wrap: break-word;
+}
+
+img {
+  max-width: 100% !important;
+  height: auto;
+}
+
+h1, h2, h3 {
+  break-after: avoid;
+}
+
+table, figure, pre {
+  break-inside: avoid;
+}
