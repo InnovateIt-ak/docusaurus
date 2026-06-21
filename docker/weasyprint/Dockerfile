@@ -23,11 +23,10 @@ RUN python3 -m venv --copies /opt/venv \
 # 2) Stage native libraries (Pango / cairo / harfbuzz / gdk-pixbuf / fontconfig)
 #    and fonts into /mnt/rootfs so they can be copied into the minimal runtime.
 RUN mkdir -p /mnt/rootfs \
- && dnf install -y --installroot=/mnt/rootfs --releasever=9 \
+ && dnf install -y --installroot=/mnt/rootfs --use-host-config \
         --setopt=install_weak_deps=0 --setopt=tsflags=nodocs \
         pango cairo gdk-pixbuf2 harfbuzz fontconfig freetype libffi \
         dejavu-sans-fonts dejavu-sans-mono-fonts \
-        liberation-fonts google-noto-sans-fonts \
  && dnf clean all --installroot=/mnt/rootfs \
  && rm -rf /mnt/rootfs/var/cache/dnf
 
