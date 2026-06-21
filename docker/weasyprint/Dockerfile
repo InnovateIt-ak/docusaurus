@@ -31,11 +31,11 @@ RUN python3 -m venv --copies /opt/venv \
 FROM registry.access.redhat.com/ubi9/ubi AS ubi-libs
 
 RUN mkdir -p /mnt/rootfs \
- && dnf install -y --installroot=/mnt/rootfs --releasever=9 \
+ && dnf install -y --installroot=/mnt/rootfs --releasever=9 --skip-unavailable \
         --setopt=install_weak_deps=0 --setopt=tsflags=nodocs \
         pango cairo gdk-pixbuf2 harfbuzz fontconfig freetype libffi \
         dejavu-sans-fonts dejavu-sans-mono-fonts \
-        liberation-fonts google-noto-sans-fonts \
+        liberation-sans-fonts liberation-mono-fonts google-noto-sans-vf-fonts \
  && dnf clean all --installroot=/mnt/rootfs \
  && rm -rf /mnt/rootfs/var/cache/dnf
 
