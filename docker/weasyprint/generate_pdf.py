@@ -1,20 +1,29 @@
 #!/usr/bin/env python3
-"""Generate a single PDF from a built Docusaurus site using WeasyPrint.
+"""Generate a polished, single PDF from a built Docusaurus site using WeasyPrint.
 
-The script serves the static ``build/`` directory over a local HTTP server so
-that absolute asset URLs (which depend on Docusaurus' ``baseUrl``) resolve
-correctly, then renders every documentation page and merges them into one PDF.
+The script serves the static ``build/`` directory over a local HTTP server (so
+asset URLs resolve), extracts the article content of every documentation page
+and assembles a single HTML document made of:
+
+  * a branded cover page,
+  * an automatic table of contents (with real page numbers),
+  * one chapter per documentation page,
+
+which WeasyPrint renders with running headers, page numbers and PDF bookmarks.
 
 Usage:
     python generate_pdf.py --build-dir build --output build/documentation.pdf \
-        --base-url /docusaurus
+        --base-url / --title "My Site" --subtitle "Documentation"
 """
 
 import argparse
+import datetime
 import functools
+import html
 import os
 import sys
 import threading
+import urllib.request
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 
@@ -27,8 +36,7 @@ def normalize_base_url(base_url: str) -> str:
     base = (base_url or "/").strip()
     if not base.startswith("/"):
         base = "/" + base
-    base = base.rstrip("/")
-    return base  # '' when base_url was '/'
+    return base.rstrip("/")  # '' when base_url was '/'
 
 
 def make_handler(build_dir: str, base_prefix: str):
@@ -60,7 +68,6 @@ def discover_doc_routes(build_dir: str, base_prefix: str, exclude: list[str]) ->
             rel_url = "" if rel == "." else "/" + rel.replace(os.sep, "/")
             routes.append(f"{base_prefix}{rel_url}/")
 
-    # Fallback: no docs folder -> render the homepage so we still emit a PDF.
     if not routes and os.path.exists(os.path.join(build_dir, "index.html")):
         routes.append(f"{base_prefix}/")
 
@@ -71,19 +78,111 @@ def discover_doc_routes(build_dir: str, base_prefix: str, exclude: list[str]) ->
     return routes
 
 
+def fetch(url: str) -> str:
+    with urllib.request.urlopen(url) as response:
+        return response.read().decode("utf-8")
+
+
+def extract_stylesheets(page_html: str):
+    from bs4 import BeautifulSoup
+
+    soup = BeautifulSoup(page_html, "html.parser")
+    hrefs = []
+    for link in soup.find_all("link"):
+        rel = link.get("rel") or []
+        if "stylesheet" in rel and link.get("href"):
+            hrefs.append(link["href"])
+    return hrefs
+
+
+def extract_article(page_html: str):
+    """Return (title, inner_html) for the main content of a Docusaurus page."""
+    from bs4 import BeautifulSoup
+
+    soup = BeautifulSoup(page_html, "html.parser")
+    node = (
+        soup.select_one(".theme-doc-markdown")
+        or soup.select_one("article")
+        or soup.select_one("main")
+    )
+
+    heading = node.find(["h1"]) if node else None
+    if heading:
+        title = heading.get_text(strip=True)
+    elif soup.title and soup.title.string:
+        title = soup.title.string.split("|")[0].strip()
+    else:
+        title = "Document"
+
+    return title, (node.decode_contents() if node else "")
+
+
+def build_document(server_url, css_hrefs, chapters, meta):
+    links = "\n".join(
+        f'<link rel="stylesheet" href="{html.escape(h)}">' for h in css_hrefs
+    )
+    toc_items = "\n".join(
+        f'<li><a href="#chapter-{i}">{html.escape(title)}</a></li>'
+        for i, (title, _) in enumerate(chapters)
+    )
+    chapter_blocks = "\n".join(
+        f'<section class="chapter" id="chapter-{i}">'
+        f'<div class="markdown">{content}</div></section>'
+        for i, (_, content) in enumerate(chapters)
+    )
+
+    eyebrow = html.escape(meta.get("eyebrow", ""))
+    title = html.escape(meta["title"])
+    subtitle = html.escape(meta.get("subtitle", ""))
+    date = html.escape(meta.get("date", ""))
+    source = html.escape(meta.get("source", ""))
+
+    return f"""<!DOCTYPE html>
+<html lang="{html.escape(meta.get('lang', 'en'))}">
+<head>
+<meta charset="utf-8">
+<base href="{html.escape(server_url)}/">
+{links}
+<title>{title}</title>
+</head>
+<body>
+<section id="cover">
+  <div class="cover-top">
+    <p class="cover-eyebrow">{eyebrow}</p>
+    <h1 class="cover-title">{title}</h1>
+    <p class="cover-subtitle">{subtitle}</p>
+  </div>
+  <div class="cover-meta">
+    <span>{date}</span>
+    <span>{source}</span>
+  </div>
+</section>
+<section id="toc">
+  <h1>{html.escape(meta.get('toc_title', 'Table of contents'))}</h1>
+  <ol class="toc">
+{toc_items}
+  </ol>
+</section>
+{chapter_blocks}
+</body>
+</html>
+"""
+
+
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Build a PDF from a Docusaurus site.")
+    parser = argparse.ArgumentParser(description="Build a polished PDF from a Docusaurus site.")
     parser.add_argument("--build-dir", default="build", help="Path to the built site.")
     parser.add_argument("--output", default="build/documentation.pdf", help="Output PDF path.")
     parser.add_argument("--base-url", default="/", help="Docusaurus baseUrl used at build time.")
-    parser.add_argument("--stylesheet", default=os.path.join(os.path.dirname(__file__), "print.css"))
+    parser.add_argument("--stylesheet", default=os.path.join(os.path.dirname(__file__), "report.css"))
     parser.add_argument("--port", type=int, default=8765, help="Local HTTP port.")
-    parser.add_argument(
-        "--exclude",
-        default="",
-        help="Comma-separated route substrings to skip (e.g. interactive pages "
-        "that cannot be rendered to PDF).",
-    )
+    parser.add_argument("--exclude", default="", help="Comma-separated route substrings to skip.")
+    parser.add_argument("--title", default="Documentation", help="Cover title.")
+    parser.add_argument("--subtitle", default="", help="Cover subtitle.")
+    parser.add_argument("--eyebrow", default="Documentation", help="Small label above the cover title.")
+    parser.add_argument("--source", default="", help="Source URL shown on the cover.")
+    parser.add_argument("--toc-title", default="Table of contents", help="Table-of-contents heading.")
+    parser.add_argument("--lang", default="en", help="Document language code.")
     args = parser.parse_args()
 
     exclude = [p.strip() for p in args.exclude.split(",") if p.strip()]
@@ -93,7 +192,6 @@ def main() -> int:
         log(f"Build directory not found: {build_dir} (run the Docusaurus build first).")
         return 1
 
-    # Import here so '--help' works even without the native libs installed.
     from weasyprint import CSS, HTML
 
     base_prefix = normalize_base_url(args.base_url)
@@ -103,22 +201,45 @@ def main() -> int:
         return 1
 
     server = ThreadingHTTPServer(("127.0.0.1", args.port), make_handler(build_dir, base_prefix))
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    log(f"Serving {build_dir} on http://127.0.0.1:{args.port} (base '{base_prefix or '/'}')")
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    server_url = f"http://127.0.0.1:{args.port}"
+    log(f"Serving {build_dir} on {server_url} (base '{base_prefix or '/'}')")
 
     try:
-        stylesheets = [CSS(filename=args.stylesheet)] if os.path.exists(args.stylesheet) else []
-        documents = []
+        chapters = []
+        css_hrefs = []
         for route in routes:
-            url = f"http://127.0.0.1:{args.port}{route}"
-            log(f"Rendering {route}")
-            documents.append(HTML(url=url).render(stylesheets=stylesheets))
+            page_html = fetch(f"{server_url}{route}")
+            if not css_hrefs:
+                css_hrefs = extract_stylesheets(page_html)
+            title, content = extract_article(page_html)
+            if content.strip():
+                chapters.append((title, content))
+                log(f"Added '{title}' ({route})")
+            else:
+                log(f"Skipped empty page {route}")
 
-        all_pages = [page for doc in documents for page in doc.pages]
+        if not chapters:
+            log("No content extracted.")
+            return 1
+
+        meta = {
+            "title": args.title,
+            "subtitle": args.subtitle,
+            "eyebrow": args.eyebrow,
+            "source": args.source,
+            "toc_title": args.toc_title,
+            "lang": args.lang,
+            "date": datetime.date.today().isoformat(),
+        }
+        document_html = build_document(server_url, css_hrefs, chapters, meta)
+
+        stylesheets = [CSS(filename=args.stylesheet)] if os.path.exists(args.stylesheet) else []
         os.makedirs(os.path.dirname(os.path.abspath(args.output)) or ".", exist_ok=True)
-        documents[0].copy(all_pages).write_pdf(args.output)
-        log(f"Wrote {args.output} ({len(all_pages)} pages from {len(routes)} documents).")
+        HTML(string=document_html, base_url=f"{server_url}/").write_pdf(
+            args.output, stylesheets=stylesheets
+        )
+        log(f"Wrote {args.output} ({len(chapters)} chapters).")
     finally:
         server.shutdown()
 

@@ -23,5 +23,8 @@ services:
       - "--build-dir=/data/build"
       - "--output=/data/build/documentation.pdf"
       - "--base-url=/"
+      - "--title=My Site"
+      - "--eyebrow=Documentation"
+      - "--subtitle=Dinosaurs are cool"
       # Skip interactive pages (LikeC4 diagram) that cannot be rendered to PDF.
       - "--exclude=/docs/tutorial-basics/architecture/"

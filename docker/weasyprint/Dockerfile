@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         shared-mime-info \
         fonts-dejavu \
         fonts-liberation \
+        fonts-lato \
         fonts-symbola \
     && rm -rf /var/lib/apt/lists/*
 

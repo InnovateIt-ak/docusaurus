@@ -45,8 +45,10 @@ If you are using GitHub pages for hosting, this command is a convenient way to b
 
 ## PDF generation (WeasyPrint)
 
-The documentation can be exported to a single PDF using [WeasyPrint](https://weasyprint.org/),
-packaged as a dedicated Docker image (`docker/weasyprint/`).
+The documentation can be exported to a single, professionally styled PDF using
+[WeasyPrint](https://weasyprint.org/), packaged as a dedicated Docker image
+(`docker/weasyprint/`). The output includes a branded cover page, an automatic
+table of contents with real page numbers, running headers and PDF bookmarks.
 
 ### With Docker / docker-compose
 
@@ -63,11 +65,16 @@ Equivalent compose command (the site must already be built in `build/`):
 docker compose --profile pdf run --rm weasyprint
 ```
 
-The converter serves the `build/` folder locally, renders every page under
-`build/docs/` (stripping the navbar/sidebar/footer via `docker/weasyprint/print.css`)
-and merges them into one PDF. Use `--base-url` to match the Docusaurus `baseUrl`,
-and `--exclude` (comma-separated route substrings) to skip interactive pages that
-cannot be rendered to PDF, e.g. the LikeC4 diagram page.
+The converter serves the `build/` folder locally, extracts the article content of
+every page under `build/docs/`, and assembles a single document (cover + table of
+contents + one chapter per page) styled by `docker/weasyprint/report.css`.
+
+Useful options (see `generate_pdf.py --help`):
+
+- `--base-url` — match the Docusaurus `baseUrl` (e.g. `/docusaurus`);
+- `--title` / `--subtitle` / `--eyebrow` / `--source` — cover page text;
+- `--exclude` — comma-separated route substrings to skip (e.g. the interactive
+  LikeC4 diagram page, which cannot be rendered to PDF).
 
 ### In CI/CD
 
