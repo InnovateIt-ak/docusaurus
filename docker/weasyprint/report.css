@@ -21,8 +21,8 @@
   --ifm-color-primary-lightest: #4d83c4;
   --ifm-link-color: #004494;
   --ifm-font-color-base: #1a1a2e;
-  --ifm-font-family-base: "IBM Plex Sans", "Noto Sans", "Lato", sans-serif;
-  --ifm-font-family-monospace: "IBM Plex Mono", "Noto Sans Mono", monospace;
+  --ifm-font-family-base: "IBM Plex Sans", "DejaVu Sans", sans-serif;
+  --ifm-font-family-monospace: "IBM Plex Mono", "DejaVu Sans Mono", "Liberation Mono", monospace;
 }
 
 /* ---------------------------------------------------------------- pages ---- */
@@ -86,7 +86,7 @@ html {
   string-set: doctitle "";
 }
 body {
-  font-family: "IBM Plex Sans", "Lato", "DejaVu Sans", sans-serif;
+  font-family: "IBM Plex Sans", "DejaVu Sans", sans-serif;
   font-size: 10.5pt;
   line-height: 1.55;
   color: var(--ink);
