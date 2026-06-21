@@ -8,3 +8,25 @@ services:
       - "3000:3000"
     volumes:
       - .:/srv/app
+
+  # PDF generation with WeasyPrint. Started only with the "pdf" profile, e.g.
+  #   docker compose --profile pdf run --rm weasyprint
+  # It reads ./build and writes ./build/documentation.pdf
+  weasyprint:
+    profiles: ["pdf"]
+    build:
+      dockerfile: docker/weasyprint/Dockerfile
+      context: .
+    volumes:
+      - .:/data
+    command:
+      - "--build-dir=/data/build"
+      - "--output=/data/build/documentation.pdf"
+      - "--base-url=/"
+      - "--title=My Site — Architecture"
+      - "--eyebrow=Software Architecture"
+      - "--subtitle=arc42 / MADR architecture documentation"
+      - "--toc-title=Table of Contents"
+      # Render only the architecture section (arc42). Remove --include to build
+      # a PDF of the whole documentation instead.
+      - "--include=/docs/architecture/"
