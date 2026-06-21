@@ -48,6 +48,24 @@ RUN mkdir -p /mnt/rootfs \
  && dnf clean all --installroot=/mnt/rootfs \
  && rm -rf /mnt/rootfs/var/cache/dnf
 
+# 3) IBM Plex (the brand typeface referenced by report.css). It is not packaged
+#    in the UBI repositories, so fetch the exact weights we use from the pinned
+#    upstream release and stage them alongside the other fonts. Python (present
+#    in the builder image) is used to download so we don't depend on curl/wget.
+ARG IBM_PLEX_REF=v6.4.0
+RUN mkdir -p /mnt/rootfs/usr/share/fonts/ibm-plex \
+ && base="https://github.com/IBM/plex/raw/${IBM_PLEX_REF}" \
+ && for f in \
+      "IBM-Plex-Sans/fonts/complete/ttf/IBMPlexSans-Light.ttf" \
+      "IBM-Plex-Sans/fonts/complete/ttf/IBMPlexSans-Regular.ttf" \
+      "IBM-Plex-Sans/fonts/complete/ttf/IBMPlexSans-Bold.ttf" \
+      "IBM-Plex-Mono/fonts/complete/ttf/IBMPlexMono-Regular.ttf" \
+      "IBM-Plex-Mono/fonts/complete/ttf/IBMPlexMono-Bold.ttf" \
+    ; do \
+      python3 -c "import sys, urllib.request; urllib.request.urlretrieve(sys.argv[1], sys.argv[2])" \
+        "${base}/${f}" "/mnt/rootfs/usr/share/fonts/ibm-plex/$(basename "$f")" ; \
+    done
+
 # Drop glibc and the dynamic linker from the staged root: the hardened runtime
 # already provides a newer glibc, and overwriting it would break its Python.
 # The UBI libraries (built against an older glibc) run fine on the newer one.
