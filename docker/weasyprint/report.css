@@ -257,6 +257,20 @@ ul.toc li {
   max-width: 100% !important;
   height: auto;
 }
+
+/* Mermaid diagrams are baked to an <img> at build time (see
+   src/remark/mermaidToImage.mjs). Centre them and keep each diagram on a
+   single page. */
+.markdown p.mermaid-diagram {
+  text-align: center;
+  break-inside: avoid;
+  margin: 6mm 0;
+}
+.markdown p.mermaid-diagram img {
+  max-width: 100% !important;
+  max-height: 240mm; /* never overflow a single A4 page */
+  height: auto;
+}
 pre, code {
   white-space: pre-wrap !important;
   word-wrap: break-word;

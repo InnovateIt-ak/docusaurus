@@ -38,6 +38,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install Chromium runtime libraries (build-time Mermaid rendering)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libnss3 libatk1.0-0t64 libatk-bridge2.0-0t64 libcups2t64 libdrm2 \
+            libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 \
+            libgbm1 libasound2t64 libatspi2.0-0t64 libgtk-3-0t64 libxshmfence1 \
+            fonts-liberation
+
       - name: Build Docusaurus
         run: BASE_URL="/docusaurus" npm run build
 
@@ -86,6 +95,15 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Install Chromium runtime libraries (build-time Mermaid rendering)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libnss3 libatk1.0-0t64 libatk-bridge2.0-0t64 libcups2t64 libdrm2 \
+            libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 \
+            libgbm1 libasound2t64 libatspi2.0-0t64 libgtk-3-0t64 libxshmfence1 \
+            fonts-liberation
 
       - name: Build Docusaurus
         run: BASE_URL="/" npm run build

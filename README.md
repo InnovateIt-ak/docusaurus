@@ -76,6 +76,21 @@ Useful options (see `generate_pdf.py --help`):
 - `--exclude` — comma-separated route substrings to skip (e.g. the interactive
   LikeC4 diagram page, which cannot be rendered to PDF).
 
+### Mermaid diagrams
+
+Mermaid diagrams (fenced `mermaid` code blocks) are **rendered to SVG at build
+time** by a remark plugin (`src/remark/mermaidToImage.mjs`) and inlined as
+`<img>` data URIs. That is what makes them show up both on the website and in
+the PDF — WeasyPrint cannot execute the client-side mermaid.js, so a raw
+`mermaid` block would otherwise appear as plain source text. Rendering uses a
+headless Chromium (via `@mermaid-js/mermaid-cli` + Puppeteer), so the build
+environment needs Chromium available: the Docker images install the distro
+package, and in CI the required libraries are installed while Puppeteer
+downloads the browser. HTML labels are disabled so Mermaid emits plain SVG
+`<text>` (WeasyPrint does not support `<foreignObject>`). If a diagram fails to
+render, the build keeps the original code block and emits a warning instead of
+failing.
+
 ### Base image
 
 The converter image is built on Red Hat **hardened images** (`hi/python`) using a
