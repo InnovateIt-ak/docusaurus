@@ -1,3 +1,4 @@
+import path from 'node:path';
 import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
@@ -57,6 +58,30 @@ const config: Config = {
         },
       } satisfies Preset.Options,
     ],
+  ],
+
+  plugins: [
+    // Dev : recompile la page quand un fichier inclus via `#include` change.
+    // Déclare les fichiers inclus comme dépendances webpack (hot reload).
+    function remarkIncludeWatchPlugin() {
+      return {
+        name: 'remark-include-watch',
+        configureWebpack() {
+          return {
+            module: {
+              rules: [
+                {
+                  test: /\.mdx?$/,
+                  include: [path.resolve('docs')],
+                  enforce: 'pre',
+                  use: [path.resolve('src/remark/include-watch-loader.cjs')],
+                },
+              ],
+            },
+          };
+        },
+      };
+    },
   ],
 
   themeConfig: {
