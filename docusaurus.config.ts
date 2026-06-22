@@ -14,6 +14,19 @@ const config: Config = {
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
     v4: true, // Improve compatibility with the upcoming Docusaurus v4
+    // Depuis Docusaurus 3.10, `v4: true` active Docusaurus Faster (rspack)
+    // par défaut, ce qui exige le paquet `@docusaurus/faster`. On garde le
+    // bundler webpack classique en désactivant Faster explicitement.
+    faster: false,
+  },
+
+  markdown: {
+    // `.md` => CommonMark (autorise les commentaires HTML <!-- -->, comme le
+    // marqueur de troncature des billets de blog) ; `.mdx` => MDX.
+    format: 'detect',
+    hooks: {
+      onBrokenMarkdownLinks: 'warn',
+    },
   },
 
   // Set the production url of your site here
@@ -28,7 +41,6 @@ const config: Config = {
   projectName: 'docusaurus', // Usually your repo name.
 
   onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
 
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you
