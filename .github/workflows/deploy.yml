@@ -12,10 +12,18 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
+# Un seul déploiement Pages à la fois (évite que push master et PR se télescopent).
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
 jobs:
   deploy-github-pages:
     runs-on: [ubuntu-latest]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    # Publie sur GitHub Pages aussi bien sur push master que sur une pull request.
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/master')
+      || github.event_name == 'pull_request'
     permissions:
       contents: read
       pages: write
