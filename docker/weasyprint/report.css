@@ -186,8 +186,8 @@ ul.toc {
 ul.toc li {
   display: flex;
   align-items: flex-end;
-  padding: 1.3mm 0;
-  font-size: 10.5pt;
+  padding: 0.5mm 0;
+  font-size: 10pt;
 }
 /* The clickable area is limited to the title only. */
 .toc-link {
@@ -215,7 +215,7 @@ ul.toc li {
   content: target-counter(attr(data-href), page);
 }
 .toc-l1 {
-  margin-top: 4mm;
+  margin-top: 2mm;
   font-weight: 700;
   font-size: 11.5pt;
 }
@@ -233,25 +233,25 @@ ul.toc li {
 .chapter > .markdown > h1:first-child,
 .chapter h1 {
   string-set: chapter content(text);
-  font-size: 24pt;
+  font-size: 16pt;
   font-weight: 700;
-  line-height: 1.12;
+  line-height: 1.15;
   color: var(--ink);
-  margin: 0 0 7mm;
-  padding-bottom: 3mm;
+  margin: 0 0 6mm;
+  padding-bottom: 2.5mm;
   border-bottom: 3px solid var(--accent);
 }
 .markdown h2 {
-  font-size: 16pt;
-  font-weight: 700;
-  color: var(--accent-dark);
-  margin-top: 9mm;
-}
-.markdown h3 {
   font-size: 13pt;
   font-weight: 700;
+  color: var(--accent-dark);
+  margin-top: 8mm;
+}
+.markdown h3 {
+  font-size: 11.5pt;
+  font-weight: 700;
   color: var(--ink);
-  margin-top: 7mm;
+  margin-top: 6mm;
 }
 .markdown a {
   color: var(--accent) !important;
@@ -362,40 +362,36 @@ pre {
   break-inside: auto;
 }
 
-/* Docusaurus wraps every code block in flex/relative containers
-   (.codeBlockContainer / .codeBlockContent) sized for an on-screen scroll box.
-   WeasyPrint mis-measures those, computing a box shorter than the code it holds,
-   so the following section is painted on top of the overflow. Flatten the chrome
-   to plain, auto-height blocks so the code occupies real flow space and the next
-   section starts below it. */
-[class*="codeBlockContainer"],
-[class*="codeBlockContent"],
-[class*="codeBlockLines"],
-.theme-code-block,
-.markdown pre.prism-code {
-  display: block !important;
-  position: static !important;
-  height: auto !important;
-  max-height: none !important;
-  overflow: visible !important;
+/* Docusaurus floats the code lines — `.codeBlockLines { float: left }` — and
+   relies on the on-screen scroll container's block-formatting context to
+   contain them. A PDF has no scroll container, so the float escaped its grey
+   box: the container collapsed to an empty bar and the code spilled out below
+   it (and over the next section — the original "overlap" bug). Un-float the
+   lines so they sit in normal flow and the grey code box wraps them again. */
+.markdown [class*="codeBlockLines"] {
+  float: none !important;
+  min-width: 0 !important;
+}
+/* Drop the on-screen drop shadow and let a tall code block paginate instead of
+   overflowing the page. */
+.markdown [class*="codeBlockContainer"] {
   box-shadow: none !important;
-  margin: 0 0 4mm !important;
+  break-inside: auto;
 }
 .markdown pre.prism-code {
-  background: #f6f8fa !important;
-  border: 1px solid #d5d9e0;
-  padding: 2.5mm 3mm !important;
   font-size: 8.5pt;
-  line-height: 1.45;
+  line-height: 1.4;
 }
-/* The Prism token lines render as block rows; keep them in normal flow. */
-.markdown pre.prism-code .token-line {
-  display: block !important;
-  position: static !important;
+/* Each code line is a block <div class="token-line"> that ALSO ends in a <br>.
+   Under `white-space: pre-wrap` both the block and the <br> break the line, so
+   every line came out double-spaced. Make the line boxes inline so only the
+   <br> breaks them (blank lines are preserved by their own <br>). */
+.markdown .token-line {
+  display: inline;
 }
 /* Hide the floating "copy" button that has no meaning on paper. */
-[class*="copyButton"],
-[class*="buttonGroup"] {
+.markdown [class*="copyButton"],
+.markdown [class*="buttonGroup"] {
   display: none !important;
 }
 h1, h2, h3, h4 {
