@@ -47,11 +47,14 @@ def _table_column_count(table) -> int:
     return widest
 
 
-def tag_wide_tables(node) -> bool:
-    """Add the ``wide-table`` class to any table wider than the threshold.
+def tag_wide_tables(soup, node) -> bool:
+    """Mark wide tables and wrap each one in a landscape block.
 
-    Returns True if at least one wide table was found, so the caller can render
-    the whole chapter in landscape.
+    A table with too many columns to fit a portrait page is given the
+    ``wide-table`` class (compact, fixed layout) and wrapped in a
+    ``landscape-block`` element. The CSS renders only that block on a landscape
+    page, so the surrounding text returns to portrait once the table is done.
+    Returns True if at least one wide table was found.
     """
     found = False
     for table in node.find_all("table"):
@@ -60,6 +63,9 @@ def tag_wide_tables(node) -> bool:
             if "wide-table" not in classes:
                 classes.append("wide-table")
             table["class"] = classes
+            wrapper = soup.new_tag("div")
+            wrapper["class"] = ["landscape-block"]
+            table.wrap(wrapper)
             found = True
     return found
 
@@ -151,9 +157,9 @@ def extract_article(page_html: str, index: int):
     for anchor in node.select("a.hash-link"):
         anchor.decompose()
 
-    # Flag wide tables so the CSS can lay them out to fit (and the chapter can
-    # switch to landscape). Generic: based on the table's column count.
-    tag_wide_tables(node)
+    # Flag wide tables and wrap them in a landscape block so they fit the page
+    # while the surrounding text stays portrait. Generic: based on column count.
+    tag_wide_tables(soup, node)
 
     heading = node.find("h1")
     if heading:
@@ -209,11 +215,11 @@ def build_document(server_url, css_hrefs, chapters, meta):
         f'</li>'
         for level, number, text, anchor in build_toc_items(chapters)
     )
-    # Chapters that contain a wide table (tagged "wide-table" during extraction)
-    # are rendered in landscape so every column fits the page; the CSS keys off
-    # the "landscape" class on the chapter section.
+    # Wide tables are wrapped in a ".landscape-block" during extraction, which
+    # the CSS renders on a landscape page on its own; the rest of each chapter
+    # stays portrait.
     chapter_blocks = "\n".join(
-        f'<section class="chapter{" landscape" if "wide-table" in content else ""}" id="chapter-{i}">'
+        f'<section class="chapter" id="chapter-{i}">'
         f'<div class="markdown">{content}</div></section>'
         for i, (_, content, _headings) in enumerate(chapters)
     )

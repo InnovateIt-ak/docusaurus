@@ -208,11 +208,11 @@ handles these generically — **no special markup is needed in the Markdown**. A
 page that hits the same cases is fixed automatically:
 
 1. **Wide tables** — the exporter counts each table's columns; any table past a
-   threshold (currently seven) is tagged `wide-table` and its chapter is rendered
-   in **landscape**, so every column fits. Infima renders wide tables as a
-   horizontally scrolling `display: block` element; since a PDF cannot scroll,
-   wide tables are also forced into a fixed `table` layout instead of being
-   clipped on the right.
+   threshold (currently seven) is wrapped in a **landscape** block, so every
+   column fits. Only that block is rotated — the text before and after the table
+   stays in portrait. Infima renders wide tables as a horizontally scrolling
+   `display: block` element; since a PDF cannot scroll, wide tables are also
+   forced into a fixed `table` layout instead of being clipped on the right.
 2. **Pagination & repeating header** — long tables break across pages and their
    header row repeats on each one (this applies to every table). Wide-table
    headers are sized to stay on a single line, which avoids a WeasyPrint quirk

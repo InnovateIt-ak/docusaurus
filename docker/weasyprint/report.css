@@ -233,7 +233,10 @@ ul.toc li {
 .chapter > .markdown > h1:first-child,
 .chapter h1 {
   string-set: chapter content(text);
-  font-size: 16pt;
+  /* !important: this stylesheet is applied as a user sheet, so a plain
+     declaration would lose to Infima's author rule `h1 { font-size: var(...) }`.
+     The same applies to the h2/h3 sizes below. */
+  font-size: 14pt !important;
   font-weight: 700;
   line-height: 1.15;
   color: var(--ink);
@@ -242,16 +245,16 @@ ul.toc li {
   border-bottom: 3px solid var(--accent);
 }
 .markdown h2 {
-  font-size: 13pt;
+  font-size: 12pt !important;
   font-weight: 700;
   color: var(--accent-dark);
-  margin-top: 8mm;
+  margin-top: 7mm;
 }
 .markdown h3 {
-  font-size: 11.5pt;
+  font-size: 11pt !important;
   font-weight: 700;
   color: var(--ink);
-  margin-top: 6mm;
+  margin-top: 5.5mm;
 }
 .markdown a {
   color: var(--accent) !important;
@@ -292,12 +295,19 @@ ul.toc li {
 }
 
 /* Wide tables (tagged `wide-table` by the exporter when a table has more
-   columns than fit an A4 portrait page) are rendered in landscape — the
-   generator also adds the `landscape` class to their chapter — and laid out so
-   every column fits. Nothing here is specific to a particular table: it keys
-   off the table's column count, detected in generate_pdf.py. */
-.chapter.landscape {
+   columns than fit an A4 portrait page) are wrapped in a `.landscape-block` and
+   laid out so every column fits. Only that block is rendered on a landscape
+   page; the surrounding text returns to portrait once the table is done.
+   Nothing here is specific to a particular table: it keys off the table's
+   column count, detected in generate_pdf.py. */
+.landscape-block {
   page: matrix;
+  /* Isolate the table on its own landscape page(s): break before so it does not
+     share a page with the preceding portrait text, and break after so the text
+     that follows the table returns to a fresh portrait page instead of flowing
+     onto the leftover space of the landscape page. */
+  break-before: page;
+  break-after: page;
 }
 .markdown table.wide-table {
   /* Infima renders wide markdown tables as `display: block; overflow-x: auto`
