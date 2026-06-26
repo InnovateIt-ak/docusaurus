@@ -410,12 +410,15 @@ pre {
 }
 /* "Snappify"-style code card: a dark rounded panel with a window title bar and
    three traffic-light dots, plus a One Dark syntax palette (defined below).
-   Replaces the on-screen grey box and its drop shadow. break-inside: auto lets
-   a tall block paginate; the title bar (::before) only renders on the first
-   fragment and the panel keeps its dark background across page breaks. */
+   Replaces the on-screen grey box and its drop shadow. break-inside: avoid keeps
+   a block that fits on one page from being split across a page boundary; a block
+   taller than a page is still fragmented by the renderer (avoid is best-effort),
+   and the inner <pre> stays break-inside: auto so that split is clean. The title
+   bar (::before) only renders on the first fragment and the panel keeps its dark
+   background across page breaks. */
 .markdown [class*="codeBlockContainer"] {
   box-shadow: none !important;
-  break-inside: auto;
+  break-inside: avoid;
   margin: 1.3rem 0;
   padding: 0 !important;
   background: #282c34 !important;
