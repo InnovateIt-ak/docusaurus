@@ -1,0 +1,58 @@
+@startuml C4_System_Landscape
+!include <C4/C4_Context>
+
+title System Landscape - EU Delegations Guide (Level 1)
+
+Person(admin, "EEAS Admin", "Manages users, sections, and system configuration")
+Person(user, "EEAS User", "Views and uses policies")
+Person(external, "External Expert", "Consults policies with limited access")
+
+System_Boundary(app, "EU Delegations Guide") {
+    System(webapp, "Web Application", "")
+    SystemDb(oracleDb, "Oracle Database", "Business data: rules, chapters, permissions")
+    SystemDb(mysqlDb, "MySQL Database", "Laravel tables: users, sessions, audits")
+    System(aiChat, "AI Chat", "Open WebUI API integration")
+}
+
+System_Ext(cas, "ECAS", "European Commission Authentication Service")
+System_Ext(sentry, "SENTRY", "EEAS Permission System")
+System_Ext(easrefn, "EASREFN", "EEAS HR Database")
+System_Ext(openwebui, "Open WebUI", "Knowledge Base & AI")
+
+Rel(admin, webapp, "Manages via web interface", "HTTPS")
+Rel(user, webapp, "Views policies, uses AI chat", "HTTPS")
+Rel(external, webapp, "Limited access policies", "HTTPS")
+
+Rel(webapp, oracleDb, "Reads/writes business data", "Oracle Instant Client")
+Rel(webapp, mysqlDb, "Laravel operations", "MySQL")
+Rel(webapp, cas, "Authenticates users", "HTTPS/CAS")
+Rel(webapp, sentry, "Checks permissions", "HTTPS/API")
+Rel(webapp, easrefn, "Fetches user details", "HTTPS/API")
+Rel(webapp, openwebui, "Syncs knowledge base", "HTTPS/API")
+Rel(webapp, aiChat, "Chat proxy", "Internal")
+
+Rel(aiChat, openwebui, "Chat requests", "HTTPS")
+
+note right of cas
+  - Single Sign-On (SSO)
+  - Proxy validation
+  - Two-way SSL support
+  - Group membership
+end note
+
+note right of sentry
+  - Centralized permissions
+  - Org-specific access
+  - Permission caching
+  - Audit trail
+end note
+
+UpdateElementStyle(admin, $bgColor="grey", $fontColor="white")
+UpdateElementStyle(user, $bgColor="blue", $fontColor="white")
+UpdateElementStyle(external, $bgColor="green", $fontColor="white")
+
+UpdateRelStyle(admin, webapp, $lineColor="grey")
+UpdateRelStyle(user, webapp, $lineColor="blue")
+UpdateRelStyle(external, webapp, $lineColor="green")
+
+@enduml
