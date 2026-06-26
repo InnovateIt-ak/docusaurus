@@ -21,8 +21,8 @@
   --ifm-color-primary-lightest: #4d83c4;
   --ifm-link-color: #004494;
   --ifm-font-color-base: #1a1a2e;
-  --ifm-font-family-base: "IBM Plex Sans", "DejaVu Sans", sans-serif;
-  --ifm-font-family-monospace: "IBM Plex Mono", "DejaVu Sans Mono", "Liberation Mono", monospace;
+  --ifm-font-family-base: "IBM Plex Sans", "DejaVu Sans", "Noto Emoji", sans-serif;
+  --ifm-font-family-monospace: "IBM Plex Mono", "DejaVu Sans Mono", "Liberation Mono", "Noto Emoji", monospace;
 }
 
 /* ---------------------------------------------------------------- pages ---- */
@@ -111,7 +111,7 @@ html {
   string-set: doctitle "";
 }
 body {
-  font-family: "IBM Plex Sans", "DejaVu Sans", sans-serif;
+  font-family: "IBM Plex Sans", "DejaVu Sans", "Noto Emoji", sans-serif;
   font-size: 9.5pt;
   line-height: 1.45;
   color: var(--ink);
@@ -124,7 +124,7 @@ body {
 .markdown h4,
 .markdown h5,
 .markdown h6 {
-  font-family: "IBM Plex Sans", "DejaVu Sans", sans-serif !important;
+  font-family: "IBM Plex Sans", "DejaVu Sans", "Noto Emoji", sans-serif !important;
 }
 
 /* ---------------------------------------------------------------- cover ---- */
@@ -277,7 +277,7 @@ ul.toc li {
 }
 .markdown code,
 .markdown pre {
-  font-family: "IBM Plex Mono", monospace;
+  font-family: "IBM Plex Mono", "DejaVu Sans Mono", "Noto Emoji", monospace;
 }
 
 /* Tables: give them an EU-blue header for a professional look. */

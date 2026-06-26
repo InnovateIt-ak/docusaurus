@@ -35,6 +35,7 @@ RUN mkdir -p /mnt/rootfs \
         --setopt=install_weak_deps=0 --setopt=tsflags=nodocs \
         pango cairo gdk-pixbuf2 harfbuzz fontconfig freetype libffi \
         dejavu-sans-fonts dejavu-sans-mono-fonts liberation-mono-fonts \
+        google-noto-emoji-fonts \
  && dnf clean all --installroot=/mnt/rootfs \
  && rm -rf /mnt/rootfs/var/cache/dnf
 
