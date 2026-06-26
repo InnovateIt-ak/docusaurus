@@ -35,7 +35,6 @@ RUN mkdir -p /mnt/rootfs \
         --setopt=install_weak_deps=0 --setopt=tsflags=nodocs \
         pango cairo gdk-pixbuf2 harfbuzz fontconfig freetype libffi \
         dejavu-sans-fonts dejavu-sans-mono-fonts liberation-mono-fonts \
-        google-noto-emoji-fonts \
  && dnf clean all --installroot=/mnt/rootfs \
  && rm -rf /mnt/rootfs/var/cache/dnf
 
@@ -44,6 +43,12 @@ RUN mkdir -p /mnt/rootfs \
 # Bold, Mono Regular/Bold, SIL OFL 1.1) are vendored under docker/weasyprint/
 # fonts and staged here, keeping the build fully offline / reproducible.
 COPY docker/weasyprint/fonts/ibm-plex/ /mnt/rootfs/usr/share/fonts/ibm-plex/
+
+# Noto Emoji (monochrome) for emoji/symbol glyphs used in the docs (✅ ⚠️ ❌),
+# which none of the text fonts cover. Not in the UBI repositories either, so the
+# font (subset to the symbol + emoji ranges, SIL OFL 1.1) is vendored like IBM
+# Plex. Monochrome — the colour CBDT font renders badly in WeasyPrint.
+COPY docker/weasyprint/fonts/noto-emoji/ /mnt/rootfs/usr/share/fonts/noto-emoji/
 
 # Drop glibc and the dynamic linker from the staged root: the hardened runtime
 # already provides a newer glibc, and overwriting it would break its Python.
