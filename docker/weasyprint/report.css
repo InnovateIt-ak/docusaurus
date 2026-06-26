@@ -286,8 +286,8 @@ ul.toc li {
   width: 100%;
 }
 .markdown table th {
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent) !important;
+  color: #fff !important;
   text-align: left;
 }
 .markdown table th,
