@@ -32,8 +32,10 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 # A table with at least this many columns does not fit a portrait A4 page, so
 # its chapter is rendered in landscape and the table is laid out to fit. This is
 # the only "wide table" heuristic — it keys off the table shape, not any markup
-# the author has to add.
-WIDE_TABLE_MIN_COLUMNS = 7
+# the author has to add. Set to 5 so permission/role matrices (Permission +
+# several role columns) are caught: with long header tokens and path-style cells
+# they overflow the portrait page and clip the right-hand column otherwise.
+WIDE_TABLE_MIN_COLUMNS = 5
 
 # A diagram/image whose aspect ratio (width / height) is at least this wide, and
 # whose intrinsic width is at least this many CSS pixels, is rendered on a
