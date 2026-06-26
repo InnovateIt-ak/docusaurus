@@ -75,16 +75,53 @@ async function toDataUrlImage(node, source, baseDir) {
     delete node.children;
 }
 
+// When the PlantUML server cannot be reached (e.g. `npm run build` without the
+// server running), don't fail the whole build: replace the node with a visible
+// code block that keeps the diagram source and explains what happened. Set
+// PLANTUML_STRICT=1 to make a render failure abort the build instead.
+const STRICT = process.env.PLANTUML_STRICT === '1';
+
+function degradeToPlaceholder(node, source, err) {
+    delete node.url;
+    delete node.alt;
+    delete node.title;
+    delete node.children;
+    delete node.meta;
+    node.type = 'code';
+    node.lang = 'text';
+    node.value =
+        `⚠ PlantUML diagram not rendered: ${err.message}\n` +
+        `Set PLANTUML_BUILD_URL to a reachable PlantUML server and rebuild.\n` +
+        (source ? `\n${source}` : '');
+}
+
 export default function remarkPlantUMLInline() {
     return async (tree, file) => {
         const mdxFilePath = file.path ?? file.history?.[file.history.length - 1] ?? process.cwd();
         const mdxDir = dirname(mdxFilePath);
         const tasks = [];
 
+        // Render a node, degrading to a placeholder (instead of throwing) when
+        // the server is unreachable, unless PLANTUML_STRICT is set.
+        const render = (node, getSource) => {
+            tasks.push((async () => {
+                let source;
+                try {
+                    const {src, dir} = await getSource();
+                    source = src;
+                    await toDataUrlImage(node, src, dir);
+                } catch (err) {
+                    if (STRICT) throw err;
+                    console.warn(`[plantuml] ${mdxFilePath}: ${err.message}`);
+                    degradeToPlaceholder(node, source, err);
+                }
+            })());
+        };
+
         // Pattern 1: fenced code block ```plantuml ... ```
         visit(tree, 'code', (node) => {
             if (node.lang !== 'plantuml') return;
-            tasks.push(toDataUrlImage(node, node.value, mdxDir));
+            render(node, async () => ({src: node.value, dir: mdxDir}));
         });
 
         // Pattern 2: image link ![alt](path/to/file.puml)
@@ -92,11 +129,10 @@ export default function remarkPlantUMLInline() {
             if (!node.url || !/\.(puml|plantuml)$/i.test(node.url)) return;
             // Skip data URLs already processed
             if (node.url.startsWith('data:')) return;
-            tasks.push((async () => {
+            render(node, async () => {
                 const filePath = isAbsolute(node.url) ? node.url : resolve(mdxDir, node.url);
-                const source = await readFile(filePath, 'utf8');
-                await toDataUrlImage(node, source, dirname(filePath));
-            })());
+                return {src: await readFile(filePath, 'utf8'), dir: dirname(filePath)};
+            });
         });
 
         await Promise.all(tasks);
