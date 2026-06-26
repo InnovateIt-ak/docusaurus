@@ -302,12 +302,21 @@ ul.toc li {
    column count, detected in generate_pdf.py. */
 .landscape-block {
   page: matrix;
-  /* Isolate the table on its own landscape page(s): break before so it does not
+  /* Isolate the block on its own landscape page(s): break before so it does not
      share a page with the preceding portrait text, and break after so the text
-     that follows the table returns to a fresh portrait page instead of flowing
-     onto the leftover space of the landscape page. */
+     that follows returns to a fresh portrait page instead of flowing onto the
+     leftover space of the landscape page. */
   break-before: page;
   break-after: page;
+}
+/* A wide diagram on a landscape page is centred and scaled to fit the page. */
+.landscape-block img {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  max-height: 175mm;
+  width: auto;
+  height: auto;
 }
 .markdown table.wide-table {
   /* Infima renders wide markdown tables as `display: block; overflow-x: auto`

@@ -15,13 +15,13 @@
     "typecheck": "tsc",
     "build-likec4": "likec4 build ./likec4 -o ./static/likec4 --base /likec4/",
     "build-likec4-react": "likec4 codegen react --outfile ./src/components/likec4/likec4.generated.js"
-
   },
   "dependencies": {
     "@docusaurus/core": "3.10.1",
     "@docusaurus/preset-classic": "3.10.1",
     "@mdx-js/react": "^3.0.0",
     "clsx": "^2.0.0",
+    "plantuml-encoder": "^1.4.0",
     "prism-react-renderer": "^2.3.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
