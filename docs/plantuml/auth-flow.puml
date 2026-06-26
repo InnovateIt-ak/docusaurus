@@ -1,0 +1,32 @@
+@startuml
+' Wide authentication / authorisation flow — used to test the PlantUML remark
+' plugin and the landscape rendering of wide diagrams in the exported PDF.
+skinparam dpi 120
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+
+actor "End user" as User
+participant "Browser" as Browser
+participant "Docs portal" as Portal
+participant "ECAS\n(Identity provider)" as ECAS
+participant "Authorisation\nservice" as Authz
+database "Role store" as Roles
+collections "Audit log" as Audit
+
+User -> Browser : Open protected page
+Browser -> Portal : GET /architecture
+Portal --> Browser : 302 Redirect to ECAS
+Browser -> ECAS : Authenticate (login + MFA)
+ECAS --> Browser : Signed assertion (ticket)
+Browser -> Portal : GET /architecture (+ ticket)
+Portal -> ECAS : Validate ticket
+ECAS --> Portal : Identity + group membership
+Portal -> Authz : Resolve role for identity
+Authz -> Roles : Lookup assignment
+Roles --> Authz : Role = LOCAL_CONTRIBUTOR
+Authz --> Portal : Permission set
+Portal -> Audit : Record access decision
+Portal --> Browser : 200 Page (scoped to role)
+Browser --> User : Render documentation
+
+@enduml

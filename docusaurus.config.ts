@@ -3,6 +3,7 @@ import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 import remarkInclude from './src/remark/include.mjs';
+import remarkPlantUMLInline from './src/remark/plantuml-inline.mjs';
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
@@ -56,8 +57,10 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          // Active la directive `#include "fichier.md"` dans les docs.
-          beforeDefaultRemarkPlugins: [remarkInclude],
+          // `#include "fichier.md"` puis rendu PlantUML (```plantuml``` et
+          // `![](*.puml)`). PlantUML doit passer avant les plugins par défaut
+          // pour transformer les `.puml` avant le chargeur d'images de Docusaurus.
+          beforeDefaultRemarkPlugins: [remarkInclude, remarkPlantUMLInline],
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:

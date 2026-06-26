@@ -8,6 +8,28 @@ services:
       - "3000:3000"
     volumes:
       - .:/srv/app
+    # The PlantUML remark plugin renders diagrams against this server at build
+    # time. Inside compose it is reachable at http://plantuml:8080.
+    environment:
+      PLANTUML_BUILD_URL: "http://plantuml:8080"
+    depends_on:
+      plantuml:
+        condition: service_healthy
+
+  # PlantUML rendering server. The remark plugin (src/remark/plantuml-inline.mjs)
+  # posts diagrams here and inlines the returned SVG, so the built site and the
+  # exported PDF no longer depend on it.
+  plantuml:
+    image: plantuml/plantuml-server:jetty
+    ports:
+      - "8080:8080"
+    environment:
+      PLANTUML_LIMIT_SIZE: "16384"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080 || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
   # PDF generation with WeasyPrint. Started only with the "pdf" profile, e.g.
   #   docker compose --profile pdf run --rm weasyprint

@@ -22,6 +22,15 @@ jobs:
   architecture-pdf-pr:
     runs-on: ubuntu-latest
 
+    # PlantUML server so the remark plugin can render diagrams at build time.
+    services:
+      plantuml:
+        image: plantuml/plantuml-server:jetty
+        ports:
+          - 8080:8080
+    env:
+      PLANTUML_BUILD_URL: http://localhost:8080
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -46,6 +55,14 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Wait for PlantUML server
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8080/ >/dev/null && { echo "PlantUML is up"; exit 0; }
+            sleep 2
+          done
+          echo "::warning::PlantUML server did not become ready; diagrams may render as placeholders"
 
       - name: Build Docusaurus
         run: BASE_URL="/" npm run build

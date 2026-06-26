@@ -63,6 +63,31 @@
   @top-right { content: none; }
 }
 
+/* Landscape page used for chapters that contain a wide table, so all columns
+   fit comfortably and the header labels stay on one line. */
+@page matrix {
+  size: A4 landscape;
+  margin: 16mm 16mm 16mm 16mm;
+  @top-left {
+    content: counter(page);
+    color: var(--accent-dark);
+    background: var(--accent-2);
+    font: 700 9pt/1 "IBM Plex Sans", sans-serif;
+    padding: 1.6mm 2.6mm;
+  }
+  @top-right {
+    content: string(chapter);
+    color: var(--muted);
+    font: 400 8.5pt/1 "IBM Plex Sans", sans-serif;
+    vertical-align: bottom;
+  }
+  @bottom-right {
+    content: string(doctitle);
+    color: #b8bcc2;
+    font: 400 8pt/1 "IBM Plex Sans", sans-serif;
+  }
+}
+
 /* --------------------------------------------------------------- global ---- */
 /* The built site bundles third-party CSS (tldraw, via likec4) that sets global
    rules on bare html/body — notably `column-count: 3` and `height: 100%` —
@@ -161,8 +186,8 @@ ul.toc {
 ul.toc li {
   display: flex;
   align-items: flex-end;
-  padding: 1.3mm 0;
-  font-size: 10.5pt;
+  padding: 0.5mm 0;
+  font-size: 10pt;
 }
 /* The clickable area is limited to the title only. */
 .toc-link {
@@ -190,7 +215,7 @@ ul.toc li {
   content: target-counter(attr(data-href), page);
 }
 .toc-l1 {
-  margin-top: 4mm;
+  margin-top: 2mm;
   font-weight: 700;
   font-size: 11.5pt;
 }
@@ -208,25 +233,28 @@ ul.toc li {
 .chapter > .markdown > h1:first-child,
 .chapter h1 {
   string-set: chapter content(text);
-  font-size: 24pt;
+  /* !important: this stylesheet is applied as a user sheet, so a plain
+     declaration would lose to Infima's author rule `h1 { font-size: var(...) }`.
+     The same applies to the h2/h3 sizes below. */
+  font-size: 14pt !important;
   font-weight: 700;
-  line-height: 1.12;
+  line-height: 1.15;
   color: var(--ink);
-  margin: 0 0 7mm;
-  padding-bottom: 3mm;
+  margin: 0 0 6mm;
+  padding-bottom: 2.5mm;
   border-bottom: 3px solid var(--accent);
 }
 .markdown h2 {
-  font-size: 16pt;
+  font-size: 12pt !important;
   font-weight: 700;
   color: var(--accent-dark);
-  margin-top: 9mm;
+  margin-top: 7mm;
 }
 .markdown h3 {
-  font-size: 13pt;
+  font-size: 11pt !important;
   font-weight: 700;
   color: var(--ink);
-  margin-top: 7mm;
+  margin-top: 5.5mm;
 }
 .markdown a {
   color: var(--accent) !important;
@@ -252,6 +280,86 @@ ul.toc li {
   padding: 1.6mm 2.4mm;
 }
 
+/* Let any long table paginate and repeat its header on each page, instead of
+   trying (and failing) to keep the whole thing on one page. This is generic:
+   short tables still fit on a single page, long ones break cleanly between
+   rows. */
+.markdown table {
+  break-inside: auto;
+}
+.markdown table thead {
+  display: table-header-group; /* repeat the header on every page */
+}
+.markdown table tr {
+  break-inside: avoid; /* never split a row across a page break */
+}
+
+/* Wide tables (tagged `wide-table` by the exporter when a table has more
+   columns than fit an A4 portrait page) are wrapped in a `.landscape-block` and
+   laid out so every column fits. Only that block is rendered on a landscape
+   page; the surrounding text returns to portrait once the table is done.
+   Nothing here is specific to a particular table: it keys off the table's
+   column count, detected in generate_pdf.py. */
+.landscape-block {
+  page: matrix;
+  /* Isolate the block on its own landscape page(s): break before so it does not
+     share a page with the preceding portrait text, and break after so the text
+     that follows returns to a fresh portrait page instead of flowing onto the
+     leftover space of the landscape page. */
+  break-before: page;
+  break-after: page;
+}
+/* A wide diagram on a landscape page is centred and scaled to fit the page. */
+.landscape-block img {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  max-height: 175mm;
+  width: auto;
+  height: auto;
+}
+.markdown table.wide-table {
+  /* Infima renders wide markdown tables as `display: block; overflow-x: auto`
+     so they scroll horizontally on the web. There is no scroll in a PDF, so
+     force a real, fixed table layout that fits the page width instead of
+     overflowing (and clipping the right-hand columns). */
+  display: table !important;
+  width: 100% !important;
+  table-layout: fixed;
+  font-size: 8.5pt;
+  line-height: 1.35;
+}
+.markdown table.wide-table th,
+.markdown table.wide-table td {
+  padding: 0.8mm 1.2mm;
+  word-break: break-word;
+}
+/* Headers in a wide table are often long single tokens. They are kept on a
+   single line (small type) because a *wrapped* header cell under
+   `table-layout: fixed` triggers a WeasyPrint quirk where it overflows into its
+   neighbour on continuation pages. */
+.markdown table.wide-table thead th {
+  font-size: 6.6pt;
+  letter-spacing: -0.1pt;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+/* Give the leading (label) column ~a quarter of the width; the remaining data
+   columns share the rest equally, whatever their number. Data columns are
+   centred, which reads well for compact matrix-style values. */
+.markdown table.wide-table th:first-child,
+.markdown table.wide-table td:first-child {
+  width: 24%;
+}
+.markdown table.wide-table th:not(:first-child),
+.markdown table.wide-table td:not(:first-child) {
+  text-align: center;
+}
+.markdown table.wide-table code {
+  font-size: 7pt;
+  white-space: normal;
+}
+
 /* Keep things tidy and avoid awkward breaks. */
 .markdown img {
   max-width: 100% !important;
@@ -261,10 +369,51 @@ pre, code {
   white-space: pre-wrap !important;
   word-wrap: break-word;
 }
-table, figure, pre, .theme-admonition {
+figure, .theme-admonition {
   break-inside: avoid;
 }
-h1, h2, h3 {
+/* Code blocks must be allowed to break across pages. A tall <pre> with
+   `break-inside: avoid` cannot fit on one page, and WeasyPrint then renders
+   its overflow on top of the following headings/paragraphs (the classic
+   "code block overlapping the next section" bug). Letting it paginate fixes
+   the collision. */
+pre {
+  break-inside: auto;
+}
+
+/* Docusaurus floats the code lines — `.codeBlockLines { float: left }` — and
+   relies on the on-screen scroll container's block-formatting context to
+   contain them. A PDF has no scroll container, so the float escaped its grey
+   box: the container collapsed to an empty bar and the code spilled out below
+   it (and over the next section — the original "overlap" bug). Un-float the
+   lines so they sit in normal flow and the grey code box wraps them again. */
+.markdown [class*="codeBlockLines"] {
+  float: none !important;
+  min-width: 0 !important;
+}
+/* Drop the on-screen drop shadow and let a tall code block paginate instead of
+   overflowing the page. */
+.markdown [class*="codeBlockContainer"] {
+  box-shadow: none !important;
+  break-inside: auto;
+}
+.markdown pre.prism-code {
+  font-size: 8.5pt;
+  line-height: 1.4;
+}
+/* Each code line is a block <div class="token-line"> that ALSO ends in a <br>.
+   Under `white-space: pre-wrap` both the block and the <br> break the line, so
+   every line came out double-spaced. Make the line boxes inline so only the
+   <br> breaks them (blank lines are preserved by their own <br>). */
+.markdown .token-line {
+  display: inline;
+}
+/* Hide the floating "copy" button that has no meaning on paper. */
+.markdown [class*="copyButton"],
+.markdown [class*="buttonGroup"] {
+  display: none !important;
+}
+h1, h2, h3, h4 {
   break-after: avoid;
 }
 

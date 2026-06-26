@@ -17,18 +17,117 @@ Usage:
 """
 
 import argparse
+import base64
 import datetime
 import functools
 import html
 import os
+import re
 import sys
 import threading
 import urllib.request
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 
+# A table with at least this many columns does not fit a portrait A4 page, so
+# its chapter is rendered in landscape and the table is laid out to fit. This is
+# the only "wide table" heuristic — it keys off the table shape, not any markup
+# the author has to add.
+WIDE_TABLE_MIN_COLUMNS = 7
+
+# A diagram/image whose aspect ratio (width / height) is at least this wide, and
+# whose intrinsic width is at least this many CSS pixels, is rendered on a
+# landscape page so it stays readable instead of being shrunk to the portrait
+# column width (e.g. wide PlantUML sequence diagrams).
+WIDE_IMAGE_MIN_RATIO = 1.4
+WIDE_IMAGE_MIN_WIDTH = 700
+
+
 def log(message: str) -> None:
     print(f"[weasyprint] {message}", file=sys.stderr, flush=True)
+
+
+def _table_column_count(table) -> int:
+    """Best-effort column count: the widest row of the table."""
+    widest = 0
+    for row in table.find_all("tr"):
+        cells = row.find_all(["th", "td"], recursive=False)
+        widest = max(widest, len(cells))
+    return widest
+
+
+def tag_wide_tables(soup, node) -> bool:
+    """Mark wide tables and wrap each one in a landscape block.
+
+    A table with too many columns to fit a portrait page is given the
+    ``wide-table`` class (compact, fixed layout) and wrapped in a
+    ``landscape-block`` element. The CSS renders only that block on a landscape
+    page, so the surrounding text returns to portrait once the table is done.
+    Returns True if at least one wide table was found.
+    """
+    found = False
+    for table in node.find_all("table"):
+        if _table_column_count(table) >= WIDE_TABLE_MIN_COLUMNS:
+            classes = table.get("class", [])
+            if "wide-table" not in classes:
+                classes.append("wide-table")
+            table["class"] = classes
+            wrapper = soup.new_tag("div")
+            wrapper["class"] = ["landscape-block"]
+            table.wrap(wrapper)
+            found = True
+    return found
+
+
+def _image_dimensions(img):
+    """Return (width, height) in px for an <img>, or None if unknown.
+
+    Reads the width/height (or viewBox) of inline SVG data URLs — that is how the
+    PlantUML plugin embeds diagrams — and falls back to width/height attributes.
+    """
+    src = img.get("src", "")
+    if src.startswith("data:image/svg+xml;base64,"):
+        try:
+            svg = base64.b64decode(src.split(",", 1)[1]).decode("utf-8", "replace")
+        except (ValueError, UnicodeError):
+            return None
+        m = re.search(r'<svg[^>]*\bwidth="([\d.]+)(?:px)?"[^>]*\bheight="([\d.]+)', svg)
+        if not m:
+            m = re.search(r'viewBox="[\d.]+ [\d.]+ ([\d.]+) ([\d.]+)"', svg)
+        if m:
+            return float(m.group(1)), float(m.group(2))
+        return None
+    try:
+        return float(img.get("width")), float(img.get("height"))
+    except (TypeError, ValueError):
+        return None
+
+
+def tag_wide_images(soup, node) -> bool:
+    """Wrap wide diagrams/images in a landscape block, mirroring wide tables.
+
+    Generic: based on the image's intrinsic aspect ratio, so any wide diagram is
+    rotated to a landscape page without per-page markup. Returns True if one was
+    found.
+    """
+    found = False
+    for img in node.find_all("img"):
+        dims = _image_dimensions(img)
+        if not dims:
+            continue
+        width, height = dims
+        if height <= 0 or width < WIDE_IMAGE_MIN_WIDTH:
+            continue
+        if width / height < WIDE_IMAGE_MIN_RATIO:
+            continue
+        # Wrap the closest block container (usually the <p> the image sits in) so
+        # the landscape <div> is not placed inside a <p>.
+        target = img.parent if (img.parent is not None and img.parent.name == "p") else img
+        wrapper = soup.new_tag("div")
+        wrapper["class"] = ["landscape-block"]
+        target.wrap(wrapper)
+        found = True
+    return found
 
 
 def normalize_base_url(base_url: str) -> str:
@@ -118,6 +217,11 @@ def extract_article(page_html: str, index: int):
     for anchor in node.select("a.hash-link"):
         anchor.decompose()
 
+    # Wrap wide tables and wide diagrams in a landscape block so they fit the
+    # page while the surrounding text stays portrait.
+    tag_wide_tables(soup, node)
+    tag_wide_images(soup, node)
+
     heading = node.find("h1")
     if heading:
         title = heading.get_text(strip=True)
@@ -172,6 +276,9 @@ def build_document(server_url, css_hrefs, chapters, meta):
         f'</li>'
         for level, number, text, anchor in build_toc_items(chapters)
     )
+    # Wide tables are wrapped in a ".landscape-block" during extraction, which
+    # the CSS renders on a landscape page on its own; the rest of each chapter
+    # stays portrait.
     chapter_blocks = "\n".join(
         f'<section class="chapter" id="chapter-{i}">'
         f'<div class="markdown">{content}</div></section>'
