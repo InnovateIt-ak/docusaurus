@@ -1,0 +1,40 @@
+@startuml C4_System_Landscape
+!include <C4/C4_Context>
+
+title Authentication Landscape - EU Delegations Guide (Level 1)
+
+Person(user, "User", "EEAS/Commission staff")
+
+System_Boundary(auth, "Authentication System") {
+    System(authWebApp, "Web App", "")
+    SystemDb(sessionDb, "Session Store", "")
+}
+
+System_Ext(cas, "ECAS", "European Commission Authentication Service")
+System_Ext(sentry, "SENTRY", "Permission Management")
+System_Ext(easrefn, "EASREFN", "User Data Service")
+
+Rel(user, authWebApp, "Accesses application", "HTTPS")
+Rel(authWebApp, cas, "Authenticates via CAS", "HTTPS")
+Rel(authWebApp, sessionDb, "Stores session", "Database")
+Rel(authWebApp, sentry, "Fetches permissions", "HTTPS/API")
+Rel(authWebApp, easrefn, "Gets user details", "HTTPS/API")
+
+note right of cas
+  - Single Sign-On (SSO)
+  - Proxy validation
+  - Two-way SSL support
+  - Group membership
+end note
+
+note right of sentry
+  - Centralized permissions
+  - Org-specific access
+  - Permission caching
+  - Audit trail
+end note
+
+UpdateElementStyle(user, $bgColor="blue", $fontColor="white")
+UpdateElementStyle(authWebApp, $bgColor="green", $fontColor="white")
+
+@enduml
