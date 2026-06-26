@@ -391,16 +391,68 @@ pre {
   float: none !important;
   min-width: 0 !important;
 }
-/* Drop the on-screen drop shadow and let a tall code block paginate instead of
-   overflowing the page. */
+/* "Snappify"-style code card: a dark rounded panel with a window title bar and
+   three traffic-light dots, plus a One Dark syntax palette (defined below).
+   Replaces the on-screen grey box and its drop shadow. break-inside: auto lets
+   a tall block paginate; the title bar (::before) only renders on the first
+   fragment and the panel keeps its dark background across page breaks. */
 .markdown [class*="codeBlockContainer"] {
   box-shadow: none !important;
   break-inside: auto;
+  margin: 1.3rem 0;
+  padding: 0 !important;
+  background: #282c34 !important;
+  border-radius: 3mm;
+}
+.markdown [class*="codeBlockContainer"]::before {
+  content: "";
+  display: block;
+  height: 7mm;
+  border-top-left-radius: 3mm;
+  border-top-right-radius: 3mm;
+  border-bottom: 0.3mm solid #181a1f;
+  background:
+    radial-gradient(circle 1.4mm at 5mm 3.5mm,    #ff5f56 98%, transparent),
+    radial-gradient(circle 1.4mm at 9.5mm 3.5mm,  #ffbd2e 98%, transparent),
+    radial-gradient(circle 1.4mm at 14mm 3.5mm,   #27c93f 98%, transparent),
+    #21252b;
 }
 .markdown pre.prism-code {
-  font-size: 8.5pt;
-  line-height: 1.4;
+  background: #282c34 !important;
+  color: #abb2bf !important;
+  border: 0 !important;
+  border-radius: 0 0 3mm 3mm !important;
+  margin: 0 !important;
+  padding: 4mm 5mm !important;
+  font-size: 8.2pt;
+  line-height: 1.5;
 }
+/* One Dark token palette — applied as a user sheet so it overrides the site's
+   on-screen Prism theme. */
+.markdown .token.comment,
+.markdown .token.prolog,
+.markdown .token.doctype,
+.markdown .token.cdata        { color: #7f848e !important; font-style: italic; }
+.markdown .token.punctuation  { color: #abb2bf !important; }
+.markdown .token.keyword,
+.markdown .token.important,
+.markdown .token.rule         { color: #c678dd !important; }
+.markdown .token.string,
+.markdown .token.char,
+.markdown .token.attr-value,
+.markdown .token.regex        { color: #98c379 !important; }
+.markdown .token.function,
+.markdown .token.class-name   { color: #61afef !important; }
+.markdown .token.number,
+.markdown .token.boolean,
+.markdown .token.constant     { color: #d19a66 !important; }
+.markdown .token.operator,
+.markdown .token.variable     { color: #56b6c2 !important; }
+.markdown .token.property,
+.markdown .token.tag,
+.markdown .token.symbol,
+.markdown .token.deleted      { color: #e06c75 !important; }
+.markdown .token.attr-name    { color: #d19a66 !important; }
 /* Each code line is a block <div class="token-line"> that ALSO ends in a <br>.
    Under `white-space: pre-wrap` both the block and the <br> break the line, so
    every line came out double-spaced. Make the line boxes inline so only the
