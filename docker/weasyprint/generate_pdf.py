@@ -22,6 +22,7 @@ import datetime
 import functools
 import html
 import os
+import posixpath
 import re
 import sys
 import threading
@@ -198,6 +199,38 @@ def extract_stylesheets(page_html: str):
     return hrefs
 
 
+def inline_stylesheets(server_url: str, hrefs) -> str:
+    """Return a single ``<style>`` block with the content of every site sheet.
+
+    The Docusaurus/Infima stylesheets are inlined into the assembled document
+    instead of being referenced with ``<link href=...>``. This removes the PDF's
+    dependency on those URLs resolving — i.e. on ``--base-url`` matching the
+    baseUrl the site was built with — which was a frequent cause of an unstyled
+    render (clipped tables, etc.). Relative ``url(...)`` references inside the
+    CSS are rewritten to absolute paths so fonts/images still resolve against the
+    served build directory once the rules no longer live at the sheet's URL.
+    """
+    parts = []
+    for href in hrefs:
+        try:
+            css = fetch(f"{server_url}{href}")
+        except OSError as exc:
+            log(f"Could not inline stylesheet {href}: {exc}")
+            continue
+        base_dir = posixpath.dirname(href)
+
+        def _absolutise(match, base_dir=base_dir):
+            ref = match.group(1).strip().strip("'\"")
+            if not ref or ref.startswith(("http://", "https://", "data:", "/", "#")):
+                return match.group(0)
+            return f'url("{posixpath.normpath(posixpath.join(base_dir, ref))}")'
+
+        parts.append(re.sub(r"url\(\s*([^)]*?)\s*\)", _absolutise, css))
+    if not parts:
+        return ""
+    return "<style>\n" + "\n".join(parts) + "\n</style>"
+
+
 def extract_article(page_html: str, index: int):
     """Return (title, inner_html, headings) for a Docusaurus page.
 
@@ -260,10 +293,7 @@ def build_toc_items(chapters):
     return items
 
 
-def build_document(server_url, css_hrefs, chapters, meta):
-    links = "\n".join(
-        f'<link rel="stylesheet" href="{html.escape(h)}">' for h in css_hrefs
-    )
+def build_document(server_url, css_inline, chapters, meta):
     # Only the title is a link (small click area, so the PDF viewer's hover
     # highlight does not cover the whole row). The dotted leader is a plain
     # filler and the page number is generated via target-counter on a non-link
@@ -297,7 +327,7 @@ def build_document(server_url, css_hrefs, chapters, meta):
 <html lang="{html.escape(meta.get('lang', 'en'))}">
 <head>
 <meta charset="utf-8">
-{links}
+{css_inline}
 <title>{title}</title>
 </head>
 <body>
@@ -389,7 +419,8 @@ def main() -> int:
             "lang": args.lang,
             "date": datetime.date.today().isoformat(),
         }
-        document_html = build_document(server_url, css_hrefs, chapters, meta)
+        css_inline = inline_stylesheets(server_url, css_hrefs)
+        document_html = build_document(server_url, css_inline, chapters, meta)
 
         stylesheets = [CSS(filename=args.stylesheet)] if os.path.exists(args.stylesheet) else []
         os.makedirs(os.path.dirname(os.path.abspath(args.output)) or ".", exist_ok=True)
