@@ -20,13 +20,12 @@ The legend for each cell is:
 
 :::note
 
-The table below is intentionally wide (eight role columns). It is styled so that
-it also paginates and fits the page width when rendered to PDF — see the
+The table below is intentionally wide (eight role columns). It is a plain
+Markdown table — the PDF exporter detects wide tables automatically and adapts
+the layout so they paginate and fit the page. See the
 [PDF rendering](#pdf-rendering) note at the end of this page.
 
 :::
-
-<div className="permission-matrix">
 
 | Permission                                    | ADMIN | LOCAL_CONTRIBUTOR | EEAS_USER | ADVANCED_USER | POLICY_FOLLOWER | EXTERNAL_EXPERT | OBSERVER |
 |:----------------------------------------------|:-----:|:-----------------:|:---------:|:-------------:|:---------------:|:---------------:|:--------:|
@@ -122,8 +121,6 @@ it also paginates and fits the page width when rendered to PDF — see the
 | `/OBO/SWITCH_BACK`                            |   I   |         I         |     I     |       I       |        I        |        I        |    I     |
 | `/OBO/MANAGE_SESSIONS`                        |   I   |         -         |     -     |       -       |        -        |        -        |    -     |
 
-</div>
-
 ## Permission Path Convention
 
 Permission paths follow a hierarchical structure:
@@ -206,19 +203,19 @@ Examples:
 
 ## PDF rendering {#pdf-rendering}
 
-This page exercises a few things that did not previously export cleanly with
-WeasyPrint. They are all handled in `docker/weasyprint/report.css`, and the
-chapter that contains the matrix is emitted with a `landscape` class by
-`docker/weasyprint/generate_pdf.py`:
+The exporter (`docker/weasyprint/generate_pdf.py` + `docker/weasyprint/report.css`)
+handles these generically — **no special markup is needed in the Markdown**. Any
+page that hits the same cases is fixed automatically:
 
-1. **Wide table** — eight columns do not fit an A4 portrait page, so the whole
-   chapter is rendered in **landscape**. Infima renders wide tables as a
+1. **Wide tables** — the exporter counts each table's columns; any table past a
+   threshold (currently seven) is tagged `wide-table` and its chapter is rendered
+   in **landscape**, so every column fits. Infima renders wide tables as a
    horizontally scrolling `display: block` element; since a PDF cannot scroll,
-   the matrix is also forced into a fixed `table` layout so every column fits the
-   page width instead of being clipped on the right.
-2. **Pagination & repeating header** — the matrix is far longer than one page,
-   so it breaks across pages and its header row repeats on each one. The role
-   labels are sized to stay on a single line, which avoids a WeasyPrint quirk
+   wide tables are also forced into a fixed `table` layout instead of being
+   clipped on the right.
+2. **Pagination & repeating header** — long tables break across pages and their
+   header row repeats on each one (this applies to every table). Wide-table
+   headers are sized to stay on a single line, which avoids a WeasyPrint quirk
    where a *wrapped* header cell under a fixed layout overflows into its
    neighbour on continuation pages.
 3. **Code-block overflow** — Docusaurus wraps every code block in flex /
@@ -227,5 +224,5 @@ chapter that contains the matrix is emitted with a `landscape` class by
    was painted on top of the overflow. The chrome is now flattened to plain,
    auto-height blocks, and tall code blocks are allowed to paginate.
 
-The web view uses the matching `.permission-matrix` rules in
-`src/css/custom.css`, so no manual tweaking is needed when the matrix changes.
+None of this is specific to this page — it keys off the table's shape, not a
+hand-added class.

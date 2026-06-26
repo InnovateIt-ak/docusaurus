@@ -27,8 +27,41 @@ import urllib.request
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 
+# A table with at least this many columns does not fit a portrait A4 page, so
+# its chapter is rendered in landscape and the table is laid out to fit. This is
+# the only "wide table" heuristic — it keys off the table shape, not any markup
+# the author has to add.
+WIDE_TABLE_MIN_COLUMNS = 7
+
+
 def log(message: str) -> None:
     print(f"[weasyprint] {message}", file=sys.stderr, flush=True)
+
+
+def _table_column_count(table) -> int:
+    """Best-effort column count: the widest row of the table."""
+    widest = 0
+    for row in table.find_all("tr"):
+        cells = row.find_all(["th", "td"], recursive=False)
+        widest = max(widest, len(cells))
+    return widest
+
+
+def tag_wide_tables(node) -> bool:
+    """Add the ``wide-table`` class to any table wider than the threshold.
+
+    Returns True if at least one wide table was found, so the caller can render
+    the whole chapter in landscape.
+    """
+    found = False
+    for table in node.find_all("table"):
+        if _table_column_count(table) >= WIDE_TABLE_MIN_COLUMNS:
+            classes = table.get("class", [])
+            if "wide-table" not in classes:
+                classes.append("wide-table")
+            table["class"] = classes
+            found = True
+    return found
 
 
 def normalize_base_url(base_url: str) -> str:
@@ -118,6 +151,10 @@ def extract_article(page_html: str, index: int):
     for anchor in node.select("a.hash-link"):
         anchor.decompose()
 
+    # Flag wide tables so the CSS can lay them out to fit (and the chapter can
+    # switch to landscape). Generic: based on the table's column count.
+    tag_wide_tables(node)
+
     heading = node.find("h1")
     if heading:
         title = heading.get_text(strip=True)
@@ -172,11 +209,11 @@ def build_document(server_url, css_hrefs, chapters, meta):
         f'</li>'
         for level, number, text, anchor in build_toc_items(chapters)
     )
-    # Chapters that contain a very wide table (the permission matrix) are
-    # rendered in landscape so every column fits the page; the CSS keys off the
-    # "landscape" class on the chapter section.
+    # Chapters that contain a wide table (tagged "wide-table" during extraction)
+    # are rendered in landscape so every column fits the page; the CSS keys off
+    # the "landscape" class on the chapter section.
     chapter_blocks = "\n".join(
-        f'<section class="chapter{" landscape" if "permission-matrix" in content else ""}" id="chapter-{i}">'
+        f'<section class="chapter{" landscape" if "wide-table" in content else ""}" id="chapter-{i}">'
         f'<div class="markdown">{content}</div></section>'
         for i, (_, content, _headings) in enumerate(chapters)
     )
