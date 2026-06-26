@@ -112,9 +112,19 @@ html {
 }
 body {
   font-family: "IBM Plex Sans", "DejaVu Sans", sans-serif;
-  font-size: 10.5pt;
-  line-height: 1.55;
+  font-size: 9.5pt;
+  line-height: 1.45;
   color: var(--ink);
+}
+/* Harmonise every heading on the IBM Plex Sans family (Infima would otherwise
+   pull its own heading font), for one consistent, compact type system. */
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4,
+.markdown h5,
+.markdown h6 {
+  font-family: "IBM Plex Sans", "DejaVu Sans", sans-serif !important;
 }
 
 /* ---------------------------------------------------------------- cover ---- */
@@ -236,25 +246,31 @@ ul.toc li {
   /* !important: this stylesheet is applied as a user sheet, so a plain
      declaration would lose to Infima's author rule `h1 { font-size: var(...) }`.
      The same applies to the h2/h3 sizes below. */
-  font-size: 14pt !important;
+  font-size: 13pt !important;
   font-weight: 700;
   line-height: 1.15;
   color: var(--ink);
-  margin: 0 0 6mm;
-  padding-bottom: 2.5mm;
+  margin: 0 0 5mm;
+  padding-bottom: 2.2mm;
   border-bottom: 3px solid var(--accent);
 }
 .markdown h2 {
-  font-size: 12pt !important;
+  font-size: 10.5pt !important;
   font-weight: 700;
   color: var(--accent-dark);
-  margin-top: 7mm;
+  margin-top: 6mm;
 }
 .markdown h3 {
-  font-size: 11pt !important;
+  font-size: 9.5pt !important;
   font-weight: 700;
   color: var(--ink);
-  margin-top: 5.5mm;
+  margin-top: 4.5mm;
+}
+.markdown h4 {
+  font-size: 9pt !important;
+  font-weight: 700;
+  color: var(--ink);
+  margin-top: 4mm;
 }
 .markdown a {
   color: var(--accent) !important;
@@ -277,7 +293,8 @@ ul.toc li {
 .markdown table th,
 .markdown table td {
   border: 1px solid #d5d9e0;
-  padding: 1.6mm 2.4mm;
+  padding: 1.2mm 2mm;
+  font-size: 8.5pt;
 }
 
 /* Let any long table paginate and repeat its header on each page, instead of
@@ -423,9 +440,13 @@ pre {
   border: 0 !important;
   border-radius: 0 0 3mm 3mm !important;
   margin: 0 !important;
-  padding: 4mm 5mm !important;
-  font-size: 8.2pt;
+  padding: 3.5mm 5mm !important;
+  font-size: 8pt;
   line-height: 1.5;
+  /* When a tall block must split across pages, keep at least 2 lines together
+     on each side of the break so it never leaves a single orphaned line. */
+  orphans: 2;
+  widows: 2;
 }
 /* One Dark token palette — applied as a user sheet so it overrides the site's
    on-screen Prism theme. */
@@ -473,10 +494,11 @@ pre {
   margin: 0 !important;
   border-bottom: 0.3mm solid #181a1f;
 }
-/* Soften the highlighted-line background so it reads on the dark card instead
-   of painting a light bar across it. */
+/* Neutralise Docusaurus's line-highlight background: with inline token-lines it
+   paints uneven striped bands across the dark card. Keep the card uniform for a
+   clean, professional look. */
 .markdown .theme-code-block-highlighted-line {
-  background: rgba(255, 255, 255, 0.06) !important;
+  background: transparent !important;
 }
 /* Each code line is a block <div class="token-line"> that ALSO ends in a <br>.
    Under `white-space: pre-wrap` both the block and the <br> break the line, so
