@@ -63,6 +63,31 @@
   @top-right { content: none; }
 }
 
+/* Landscape page for very wide content (e.g. the role-permissions matrix), so
+   all eight columns fit comfortably and the header labels stay on one line. */
+@page matrix {
+  size: A4 landscape;
+  margin: 16mm 16mm 16mm 16mm;
+  @top-left {
+    content: counter(page);
+    color: var(--accent-dark);
+    background: var(--accent-2);
+    font: 700 9pt/1 "IBM Plex Sans", sans-serif;
+    padding: 1.6mm 2.6mm;
+  }
+  @top-right {
+    content: string(chapter);
+    color: var(--muted);
+    font: 400 8.5pt/1 "IBM Plex Sans", sans-serif;
+    vertical-align: bottom;
+  }
+  @bottom-right {
+    content: string(doctitle);
+    color: #b8bcc2;
+    font: 400 8pt/1 "IBM Plex Sans", sans-serif;
+  }
+}
+
 /* --------------------------------------------------------------- global ---- */
 /* The built site bundles third-party CSS (tldraw, via likec4) that sets global
    rules on bare html/body — notably `column-count: 3` and `height: 100%` —
@@ -252,6 +277,58 @@ ul.toc li {
   padding: 1.6mm 2.4mm;
 }
 
+/* The chapter that holds the wide permission matrix is rendered in landscape so
+   all eight columns fit the page and the role labels stay on one line. The
+   generator (generate_pdf.py) adds the `landscape` class to that chapter. */
+.chapter.landscape {
+  page: matrix;
+}
+
+.permission-matrix table {
+  /* Infima renders wide markdown tables as `display: block; overflow-x: auto`
+     so they scroll horizontally on the web. There is no scroll in a PDF, so
+     force a real, fixed table layout that fits the page width instead of
+     overflowing (and clipping the right-hand role columns). */
+  display: table !important;
+  width: 100% !important;
+  break-inside: auto;
+  table-layout: fixed;
+  font-size: 8.5pt;
+  line-height: 1.35;
+}
+.permission-matrix table thead {
+  display: table-header-group; /* repeat the header on every page */
+}
+.permission-matrix table tr {
+  break-inside: avoid;
+}
+.permission-matrix table th,
+.permission-matrix table td {
+  padding: 0.8mm 1.2mm;
+  word-break: break-word;
+}
+/* Role-name headers are long single tokens. In landscape the role columns are
+   wide enough that, at this size, each label fits on a single line — so they
+   are kept un-wrapped, which also sidesteps a WeasyPrint quirk where a wrapped
+   header cell under `table-layout: fixed` overflows into its neighbour. */
+.permission-matrix table thead th {
+  font-size: 6.6pt;
+  letter-spacing: -0.1pt;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+/* Centre the seven single-letter role columns and size them so the leading
+   permission column keeps roughly a quarter of the (landscape) page width. */
+.permission-matrix table th:not(:first-child),
+.permission-matrix table td:not(:first-child) {
+  text-align: center;
+  width: 11%;
+}
+.permission-matrix table code {
+  font-size: 7pt;
+  white-space: normal;
+}
+
 /* Keep things tidy and avoid awkward breaks. */
 .markdown img {
   max-width: 100% !important;
@@ -261,10 +338,55 @@ pre, code {
   white-space: pre-wrap !important;
   word-wrap: break-word;
 }
-table, figure, pre, .theme-admonition {
+table, figure, .theme-admonition {
   break-inside: avoid;
 }
-h1, h2, h3 {
+/* Code blocks must be allowed to break across pages. A tall <pre> with
+   `break-inside: avoid` cannot fit on one page, and WeasyPrint then renders
+   its overflow on top of the following headings/paragraphs (the classic
+   "code block overlapping the next section" bug). Letting it paginate fixes
+   the collision. */
+pre {
+  break-inside: auto;
+}
+
+/* Docusaurus wraps every code block in flex/relative containers
+   (.codeBlockContainer / .codeBlockContent) sized for an on-screen scroll box.
+   WeasyPrint mis-measures those, computing a box shorter than the code it holds,
+   so the following section is painted on top of the overflow. Flatten the chrome
+   to plain, auto-height blocks so the code occupies real flow space and the next
+   section starts below it. */
+[class*="codeBlockContainer"],
+[class*="codeBlockContent"],
+[class*="codeBlockLines"],
+.theme-code-block,
+.markdown pre.prism-code {
+  display: block !important;
+  position: static !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  box-shadow: none !important;
+  margin: 0 0 4mm !important;
+}
+.markdown pre.prism-code {
+  background: #f6f8fa !important;
+  border: 1px solid #d5d9e0;
+  padding: 2.5mm 3mm !important;
+  font-size: 8.5pt;
+  line-height: 1.45;
+}
+/* The Prism token lines render as block rows; keep them in normal flow. */
+.markdown pre.prism-code .token-line {
+  display: block !important;
+  position: static !important;
+}
+/* Hide the floating "copy" button that has no meaning on paper. */
+[class*="copyButton"],
+[class*="buttonGroup"] {
+  display: none !important;
+}
+h1, h2, h3, h4 {
   break-after: avoid;
 }
 

@@ -172,8 +172,11 @@ def build_document(server_url, css_hrefs, chapters, meta):
         f'</li>'
         for level, number, text, anchor in build_toc_items(chapters)
     )
+    # Chapters that contain a very wide table (the permission matrix) are
+    # rendered in landscape so every column fits the page; the CSS keys off the
+    # "landscape" class on the chapter section.
     chapter_blocks = "\n".join(
-        f'<section class="chapter" id="chapter-{i}">'
+        f'<section class="chapter{" landscape" if "permission-matrix" in content else ""}" id="chapter-{i}">'
         f'<div class="markdown">{content}</div></section>'
         for i, (_, content, _headings) in enumerate(chapters)
     )
