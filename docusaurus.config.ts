@@ -116,6 +116,15 @@ const config: Config = {
         {to: '/tldraw', label: 'TlDraw', position: 'left'},
         {to: '/likec4', label: 'Architecture', position: 'left'},
         {
+          // Lien de téléchargement du PDF. Il est généré par la CI APRÈS le
+          // build Docusaurus (il n'existe donc pas au build). Le protocole
+          // `pathname://` laisse Docusaurus servir le lien tel quel, sans
+          // routage ni vérification de lien cassé.
+          to: 'pathname:///documentation.pdf',
+          label: '📄 PDF',
+          position: 'right',
+        },
+        {
           href: 'https://github.com/InnovateIt-ak/docusaurus',
           label: 'GitHub',
           position: 'right',
