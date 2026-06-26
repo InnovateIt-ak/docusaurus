@@ -453,6 +453,31 @@ pre {
 .markdown .token.symbol,
 .markdown .token.deleted      { color: #e06c75 !important; }
 .markdown .token.attr-name    { color: #d19a66 !important; }
+/* Docusaurus stamps an inline `color` (the light-theme ink, ~#393A34) on every
+   <div class="token-line"> and leaves "plain"/unhighlighted tokens uncoloured.
+   On the dark card that ink is near-invisible. Force the One Dark foreground as
+   the base ink (an author !important rule beats the inline style); the per-type
+   rules above still win on highlighted tokens via their higher specificity. */
+.markdown pre.prism-code,
+.markdown .token-line,
+.markdown .token.plain {
+  color: #abb2bf !important;
+}
+/* The optional code-block filename strip (Docusaurus ```lang title="...")
+   becomes dark text on the dark card; restyle it as a window sub-bar. */
+.markdown [class*="codeBlockTitle"] {
+  background: #21252b !important;
+  color: #c8ccd4 !important;
+  font: italic 8pt/1.2 "IBM Plex Mono", "DejaVu Sans Mono", monospace !important;
+  padding: 1.6mm 5mm !important;
+  margin: 0 !important;
+  border-bottom: 0.3mm solid #181a1f;
+}
+/* Soften the highlighted-line background so it reads on the dark card instead
+   of painting a light bar across it. */
+.markdown .theme-code-block-highlighted-line {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
 /* Each code line is a block <div class="token-line"> that ALSO ends in a <br>.
    Under `white-space: pre-wrap` both the block and the <br> break the line, so
    every line came out double-spaced. Make the line boxes inline so only the
