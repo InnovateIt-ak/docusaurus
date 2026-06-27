@@ -290,6 +290,13 @@ ul.toc li {
   color: inherit;
   font-size: 0.9em;
 }
+/* Inside tables, drop the tint entirely — flat monospace keeps cells (e.g. the
+   permission matrix paths) clean and uncluttered. */
+.markdown table :not(pre) > code {
+  background: transparent !important;
+  padding: 0 !important;
+  border-radius: 0;
+}
 
 /* Tables: give them an EU-blue header for a professional look. */
 .markdown table {
