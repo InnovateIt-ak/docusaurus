@@ -704,3 +704,38 @@ body { counter-reset: chapter figure tablenum; }
   font-weight: 700;
   color: var(--ink);
 }
+
+/* --- Non-code blocks: a ``` fence with no language (or ```text) holds prose,
+   procedures or ASCII diagrams, for which the dark "editor" card is misleading.
+   Render those as a light callout (grey panel, EU-blue side bar, dark mono) and
+   strip the window chrome. Real code (language-php, -bash, …) keeps the dark
+   card. Higher specificity than the dark-card rules, so order-independent. */
+.markdown .theme-code-block.language-text,
+.markdown .theme-code-block.language-none,
+.markdown .theme-code-block.language-plaintext {
+  background: #f6f8fa !important;
+  border: 1px solid #e2e6ec !important;
+  border-left: 3px solid var(--accent) !important;
+  border-radius: 4px;
+}
+.markdown .theme-code-block.language-text::before,
+.markdown .theme-code-block.language-none::before,
+.markdown .theme-code-block.language-plaintext::before { display: none !important; }
+.markdown .theme-code-block.language-text::after,
+.markdown .theme-code-block.language-none::after,
+.markdown .theme-code-block.language-plaintext::after { content: none !important; }
+.markdown .theme-code-block.language-text pre.prism-code,
+.markdown .theme-code-block.language-none pre.prism-code,
+.markdown .theme-code-block.language-plaintext pre.prism-code {
+  background: transparent !important;
+  border-radius: 0 !important;
+  padding: 3mm 4mm !important;
+}
+.markdown .theme-code-block.language-text .token-line,
+.markdown .theme-code-block.language-text .token,
+.markdown .theme-code-block.language-none .token-line,
+.markdown .theme-code-block.language-none .token,
+.markdown .theme-code-block.language-plaintext .token-line,
+.markdown .theme-code-block.language-plaintext .token {
+  color: #1a1a2e !important;
+}
