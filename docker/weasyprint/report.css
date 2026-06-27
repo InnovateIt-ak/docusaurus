@@ -32,7 +32,7 @@
 /* ---------------------------------------------------------------- pages ---- */
 @page {
   size: A4;
-  margin: 22mm 18mm 20mm 18mm;
+  margin: 24mm 18mm 20mm 18mm;
 
   @top-left {
     content: counter(page);
@@ -45,7 +45,8 @@
     content: string(chapter);
     color: var(--muted);
     font: 400 8.5pt/1 "IBM Plex Sans", sans-serif;
-    vertical-align: bottom;
+    vertical-align: top;
+    padding-top: 1mm;
   }
   @bottom-right {
     content: string(doctitle);
@@ -83,7 +84,8 @@
     content: string(chapter);
     color: var(--muted);
     font: 400 8.5pt/1 "IBM Plex Sans", sans-serif;
-    vertical-align: bottom;
+    vertical-align: top;
+    padding-top: 1mm;
   }
   @bottom-right {
     content: string(doctitle);
