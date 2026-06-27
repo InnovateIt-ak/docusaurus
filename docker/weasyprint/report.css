@@ -23,6 +23,10 @@
   --ifm-font-color-base: #1a1a2e;
   --ifm-font-family-base: "IBM Plex Sans", "DejaVu Sans", "Noto Emoji", sans-serif;
   --ifm-font-family-monospace: "IBM Plex Mono", "DejaVu Sans Mono", "Liberation Mono", "Noto Emoji", monospace;
+  /* Headings too — otherwise the site's inlined --ifm-heading-font-family wins
+     for headings outside .markdown (cover title, TOC title) and falls back to a
+     serif. */
+  --ifm-heading-font-family: "IBM Plex Sans", "DejaVu Sans", "Noto Emoji", sans-serif;
 }
 
 /* ---------------------------------------------------------------- pages ---- */
@@ -147,6 +151,7 @@ body {
   margin: 0 0 10mm;
 }
 .cover-title {
+  font-family: "IBM Plex Sans", "DejaVu Sans", "Noto Emoji", sans-serif !important;
   font-size: 40pt;
   font-weight: 700;
   line-height: 1.08;
@@ -182,6 +187,7 @@ body {
   break-after: page;
 }
 #toc > h1 {
+  font-family: "IBM Plex Sans", "DejaVu Sans", "Noto Emoji", sans-serif !important;
   font-size: 24pt;
   font-weight: 700;
   color: var(--ink);
