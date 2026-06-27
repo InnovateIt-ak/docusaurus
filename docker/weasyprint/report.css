@@ -279,6 +279,17 @@ ul.toc li {
 .markdown pre {
   font-family: "IBM Plex Mono", "DejaVu Sans Mono", "Noto Emoji", monospace;
 }
+/* Inline code (a <code> not inside a <pre>): soften Infima's pill — drop the
+   border and keep only a light tint, no box outline. The code-block <code>
+   (inside <pre>) is excluded and keeps its dark card. */
+.markdown :not(pre) > code {
+  background: #eef1f5 !important;
+  border: 0 !important;
+  border-radius: 3px;
+  padding: 0.05em 0.3em;
+  color: inherit;
+  font-size: 0.9em;
+}
 
 /* Tables: give them an EU-blue header for a professional look. */
 .markdown table {
