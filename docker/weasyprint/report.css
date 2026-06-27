@@ -548,3 +548,159 @@ h1, h2, h3, h4 {
 [class*="skipToContent"] {
   display: none !important;
 }
+
+/* ============================================================================
+   Report enhancements
+   ========================================================================== */
+
+/* Document-wide counters: chapter (matches the generated TOC), plus figures and
+   tables for auto-numbered captions. */
+body { counter-reset: chapter figure tablenum; }
+
+/* --- Justified body text with automatic hyphenation (lang=en on <html>). ---- */
+.markdown p,
+.markdown li {
+  text-align: justify;
+  hyphens: auto;
+}
+
+/* --- Section numbering in the body, aligned with the TOC (e.g. 4, 4.1, 4.1.2).
+   counter(chapter) increments once per .chapter, exactly like the TOC top number. */
+.chapter { counter-increment: chapter; counter-reset: h2 figure-local; }
+.markdown h2 { counter-reset: h3; }
+.chapter h1::before { content: counter(chapter) "\00a0\00a0"; }
+.markdown h2::before {
+  counter-increment: h2;
+  content: counter(chapter) "." counter(h2) "\00a0\00a0";
+  color: var(--accent);
+}
+.markdown h3::before {
+  counter-increment: h3;
+  content: counter(chapter) "." counter(h2) "." counter(h3) "\00a0\00a0";
+  color: var(--accent);
+}
+
+/* --- Language badge on the code window bar (top-right of the dots strip). ---- */
+.markdown [class*="codeBlockContainer"] { position: relative; }
+.markdown [class*="codeBlockContainer"][class*="language-"]::after {
+  position: absolute;
+  top: 1.6mm;
+  right: 4mm;
+  color: #7f848e;
+  font: 700 6.5pt/1 "IBM Plex Mono", "DejaVu Sans Mono", monospace;
+  letter-spacing: 0.08em;
+}
+.markdown .theme-code-block.language-php::after    { content: "PHP"; }
+.markdown .theme-code-block.language-bash::after,
+.markdown .theme-code-block.language-shell::after,
+.markdown .theme-code-block.language-sh::after     { content: "BASH"; }
+.markdown .theme-code-block.language-js::after,
+.markdown .theme-code-block.language-jsx::after,
+.markdown .theme-code-block.language-javascript::after { content: "JS"; }
+.markdown .theme-code-block.language-ts::after,
+.markdown .theme-code-block.language-tsx::after,
+.markdown .theme-code-block.language-typescript::after { content: "TS"; }
+.markdown .theme-code-block.language-json::after   { content: "JSON"; }
+.markdown .theme-code-block.language-python::after,
+.markdown .theme-code-block.language-py::after     { content: "PYTHON"; }
+.markdown .theme-code-block.language-sql::after    { content: "SQL"; }
+.markdown .theme-code-block.language-yaml::after,
+.markdown .theme-code-block.language-yml::after    { content: "YAML"; }
+.markdown .theme-code-block.language-html::after,
+.markdown .theme-code-block.language-xml::after    { content: "HTML"; }
+.markdown .theme-code-block.language-css::after    { content: "CSS"; }
+.markdown .theme-code-block.language-java::after   { content: "JAVA"; }
+.markdown .theme-code-block.language-go::after     { content: "GO"; }
+.markdown .theme-code-block.language-rust::after   { content: "RUST"; }
+.markdown .theme-code-block.language-diff::after   { content: "DIFF"; }
+
+/* --- Stronger zebra striping for readability of long tables. ----------------- */
+.markdown table tbody tr:nth-child(even) { background: #f3f6fb; }
+
+/* --- Admonitions (:::tip / :::note / :::warning / :::danger) as coloured cards. */
+.markdown .theme-admonition {
+  border: 0 !important;
+  border-left: 3px solid #8a8f98 !important;
+  border-radius: 4px;
+  background: #f3f4f6 !important;
+  padding: 2.2mm 4mm !important;
+  margin: 3mm 0 !important;
+  box-shadow: none !important;
+  break-inside: avoid;
+}
+.markdown [class*="admonitionHeading"] {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 7.5pt;
+  letter-spacing: 0.06em;
+  margin: 0 0 1mm !important;
+}
+.markdown [class*="admonitionContent"] > :last-child { margin-bottom: 0; }
+.markdown .theme-admonition-tip { border-left-color: #1a7f37 !important; background: #eaf6ec !important; }
+.markdown .theme-admonition-tip [class*="admonitionHeading"] { color: #1a7f37; }
+.markdown .theme-admonition-note,
+.markdown .theme-admonition-info { border-left-color: var(--accent) !important; background: #eef3fb !important; }
+.markdown .theme-admonition-note [class*="admonitionHeading"],
+.markdown .theme-admonition-info [class*="admonitionHeading"] { color: var(--accent); }
+.markdown .theme-admonition-warning,
+.markdown .theme-admonition-caution { border-left-color: #bf8700 !important; background: #fdf6e3 !important; }
+.markdown .theme-admonition-warning [class*="admonitionHeading"],
+.markdown .theme-admonition-caution [class*="admonitionHeading"] { color: #bf8700; }
+.markdown .theme-admonition-danger { border-left-color: #cf222e !important; background: #fbeaec !important; }
+.markdown .theme-admonition-danger [class*="admonitionHeading"] { color: #cf222e; }
+
+/* --- Figures: centre, light frame, and an auto-numbered caption. -------------
+   Use in markdown/MDX:
+     <figure>
+     ![alt](diagram.svg)
+     <figcaption>Authentication landscape</figcaption>
+     </figure>                                                                 */
+.markdown figure {
+  counter-increment: figure;
+  margin: 4mm 0;
+  text-align: center;
+  break-inside: avoid;
+}
+.markdown figure img {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  border: 1px solid #e2e6ec;
+  border-radius: 3px;
+  padding: 2mm;
+}
+.markdown figcaption {
+  margin-top: 1.5mm;
+  font-size: 8pt;
+  font-style: italic;
+  color: var(--muted);
+}
+.markdown figcaption::before {
+  content: "Figure " counter(figure) ": ";
+  font-style: normal;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* --- Table captions: an auto-numbered, styled <caption>. ---------------------
+   Markdown tables have no caption; add one with HTML in MDX:
+     <table>
+       <caption>Role / permission matrix</caption>
+       ...
+     </table>
+   or keep using a plain bold line above the table.                            */
+.markdown table caption {
+  counter-increment: tablenum;
+  caption-side: top;
+  text-align: left;
+  font-size: 8.5pt;
+  font-style: italic;
+  color: var(--muted);
+  margin-bottom: 1.5mm;
+}
+.markdown table caption::before {
+  content: "Table " counter(tablenum) ": ";
+  font-style: normal;
+  font-weight: 700;
+  color: var(--ink);
+}
