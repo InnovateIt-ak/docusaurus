@@ -1,0 +1,105 @@
+name: PDF (reusable)
+
+# Reusable workflow: build the Docusaurus site and export one PDF per docs
+# section with the hardened WeasyPrint image. Call it from another workflow:
+#
+#   jobs:
+#     pdf:
+#       uses: ./.github/workflows/pdf.yml          # same repo
+#       # uses: org/repo/.github/workflows/pdf.yml@main   # from another repo
+#       with:
+#         base-url: /docusaurus
+#         sections: architecture        # optional; empty = every section
+#
+# Section selection and per-section cover text are handled by
+# docker/weasyprint/generate-all.sh (PDF_SECTIONS / PDF_EXCLUDE_SECTIONS and an
+# optional docs/<section>/_pdf.env).
+
+on:
+  workflow_call:
+    inputs:
+      base-url:
+        description: 'Docusaurus baseUrl, used for the build and --base-url (e.g. / or /docusaurus)'
+        type: string
+        default: '/'
+      sections:
+        description: 'Comma-separated sections to export (empty = every section discovered under docs/)'
+        type: string
+        default: ''
+      exclude-sections:
+        description: 'Comma-separated sections to skip when auto-discovering'
+        type: string
+        default: ''
+      node-version:
+        description: 'Node.js version for the Docusaurus build'
+        type: string
+        default: '20'
+      weasyprint-image:
+        description: 'Prebuilt converter image to use. Empty = build docker/weasyprint/Dockerfile locally.'
+        type: string
+        default: ''
+      artifact-name:
+        description: 'Name of the uploaded artifact bundling build/*.pdf'
+        type: string
+        default: 'documentation-pdf'
+      upload-artifact:
+        description: 'Upload the generated PDFs as a workflow artifact'
+        type: boolean
+        default: true
+
+jobs:
+  pdf:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    # PlantUML server so the remark plugin can render diagrams at build time.
+    services:
+      plantuml:
+        image: plantuml/plantuml-server:jetty
+        ports:
+          - 8080:8080
+    env:
+      PLANTUML_BUILD_URL: http://localhost:8080
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Wait for PlantUML server
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8080/ >/dev/null && { echo "PlantUML is up"; exit 0; }
+            sleep 2
+          done
+          echo "::warning::PlantUML server did not become ready; diagrams may render as placeholders"
+
+      - name: Build Docusaurus
+        run: BASE_URL="${{ inputs.base-url }}" npm run build
+
+      - name: Generate section PDFs with WeasyPrint
+        env:
+          PDF_SECTIONS: ${{ inputs.sections }}
+          PDF_EXCLUDE_SECTIONS: ${{ inputs.exclude-sections }}
+          WEASYPRINT_IMAGE: ${{ inputs.weasyprint-image }}
+        run: |
+          if [ -z "${WEASYPRINT_IMAGE}" ]; then
+            docker build -f docker/weasyprint/Dockerfile -t docusaurus-weasyprint .
+          fi
+          bash docker/weasyprint/generate-all.sh "${{ inputs.base-url }}"
+
+      - name: Upload PDF artifacts
+        if: ${{ inputs.upload-artifact }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: build/*.pdf

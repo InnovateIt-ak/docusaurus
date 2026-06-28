@@ -85,55 +85,11 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-  # Generate the PDF on every push and pull request and expose it as an
-  # artifact (useful for review before anything is deployed).
+  # Generate the section PDFs on every push and pull request and expose them as
+  # an artifact (useful for review before anything is deployed). Delegated to the
+  # reusable pdf.yml workflow.
   build-pdf:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-
-    # PlantUML server so the remark plugin can render diagrams at build time.
-    services:
-      plantuml:
-        image: plantuml/plantuml-server:jetty
-        ports:
-          - 8080:8080
-    env:
-      PLANTUML_BUILD_URL: http://localhost:8080
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Wait for PlantUML server
-        run: |
-          for i in $(seq 1 30); do
-            curl -sf http://localhost:8080/ >/dev/null && { echo "PlantUML is up"; exit 0; }
-            sleep 2
-          done
-          echo "::warning::PlantUML server did not become ready; diagrams may render as placeholders"
-
-      - name: Build Docusaurus
-        run: BASE_URL="/" npm run build
-
-      - name: Generate section PDFs with WeasyPrint
-        # One PDF per docs section (build/<section>.pdf). Auto-discovers every
-        # section under docs/; restrict with PDF_SECTIONS / PDF_EXCLUDE_SECTIONS.
-        run: |
-          docker build -f docker/weasyprint/Dockerfile -t docusaurus-weasyprint .
-          bash docker/weasyprint/generate-all.sh /
-
-      - name: Upload PDF artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: documentation-pdf
-          path: build/*.pdf
+    uses: ./.github/workflows/pdf.yml
+    with:
+      base-url: /
+      artifact-name: documentation-pdf
