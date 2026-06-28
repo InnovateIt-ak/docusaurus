@@ -11,6 +11,8 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  # Docs section exported to PDF. Change here to point the PDF at another section.
+  PDF_SECTION: architecture
 
 # Un seul déploiement Pages à la fois (évite que push master et PR se télescopent).
 concurrency:
@@ -66,12 +68,21 @@ jobs:
       - name: Build Docusaurus
         run: BASE_URL="/docusaurus" npm run build
 
-      - name: Generate section PDFs with WeasyPrint
-        # One PDF per docs section (build/<section>.pdf). Auto-discovers every
-        # section under docs/; restrict with PDF_SECTIONS / PDF_EXCLUDE_SECTIONS.
+      - name: Generate PDF with WeasyPrint
+        env:
+          SECTION: ${{ env.PDF_SECTION }}
         run: |
           docker build -f docker/weasyprint/Dockerfile -t docusaurus-weasyprint .
-          bash docker/weasyprint/generate-all.sh /docusaurus
+          docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" docusaurus-weasyprint \
+            --build-dir /data/build \
+            --output /data/build/documentation.pdf \
+            --base-url /docusaurus \
+            --title "My Site — Architecture" \
+            --eyebrow "Software Architecture" \
+            --subtitle "arc42 / MADR architecture documentation" \
+            --toc-title "Table of Contents" \
+            --source "https://innovateit-ak.github.io/docusaurus" \
+            --include "/docs/${SECTION}/"
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -85,11 +96,12 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-  # Generate the section PDFs on every push and pull request and expose them as
-  # an artifact (useful for review before anything is deployed). Delegated to the
-  # reusable pdf.yml workflow.
+  # Generate the section PDF on every push and pull request and expose it as an
+  # artifact (useful for review before anything is deployed). Delegated to the
+  # reusable pdf.yml workflow; change `section` to export another section.
   build-pdf:
     uses: ./.github/workflows/pdf.yml
     with:
+      section: architecture
       base-url: /
       artifact-name: documentation-pdf

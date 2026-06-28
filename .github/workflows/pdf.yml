@@ -1,49 +1,61 @@
 name: PDF (reusable)
 
-# Reusable workflow: build the Docusaurus site and export one PDF per docs
-# section with the hardened WeasyPrint image. Call it from another workflow:
+# Reusable workflow: build the Docusaurus site and export ONE docs section to a
+# PDF with the hardened WeasyPrint image. Call it from another workflow:
 #
 #   jobs:
 #     pdf:
-#       uses: ./.github/workflows/pdf.yml          # same repo
+#       uses: ./.github/workflows/pdf.yml                 # same repo
 #       # uses: org/repo/.github/workflows/pdf.yml@main   # from another repo
 #       with:
+#         section: architecture        # which docs/<section>/ to render
 #         base-url: /docusaurus
-#         sections: architecture        # optional; empty = every section
-#
-# Section selection and per-section cover text are handled by
-# docker/weasyprint/generate-all.sh (PDF_SECTIONS / PDF_EXCLUDE_SECTIONS and an
-# optional docs/<section>/_pdf.env).
 
 on:
   workflow_call:
     inputs:
+      section:
+        description: 'Docs section to render (folder name under docs/)'
+        type: string
+        default: 'architecture'
       base-url:
         description: 'Docusaurus baseUrl, used for the build and --base-url (e.g. / or /docusaurus)'
         type: string
         default: '/'
-      sections:
-        description: 'Comma-separated sections to export (empty = every section discovered under docs/)'
+      title:
+        description: 'Cover title'
+        type: string
+        default: 'My Site — Architecture'
+      eyebrow:
+        description: 'Small label above the cover title'
+        type: string
+        default: 'Software Architecture'
+      subtitle:
+        description: 'Cover subtitle'
+        type: string
+        default: 'arc42 / MADR architecture documentation'
+      source:
+        description: 'Source URL shown on the cover (optional)'
         type: string
         default: ''
-      exclude-sections:
-        description: 'Comma-separated sections to skip when auto-discovering'
+      output:
+        description: 'Output PDF filename under build/'
+        type: string
+        default: 'documentation.pdf'
+      weasyprint-image:
+        description: 'Prebuilt converter image to use. Empty = build docker/weasyprint/Dockerfile locally.'
         type: string
         default: ''
       node-version:
         description: 'Node.js version for the Docusaurus build'
         type: string
         default: '20'
-      weasyprint-image:
-        description: 'Prebuilt converter image to use. Empty = build docker/weasyprint/Dockerfile locally.'
-        type: string
-        default: ''
       artifact-name:
-        description: 'Name of the uploaded artifact bundling build/*.pdf'
+        description: 'Name of the uploaded artifact'
         type: string
         default: 'documentation-pdf'
       upload-artifact:
-        description: 'Upload the generated PDFs as a workflow artifact'
+        description: 'Upload the generated PDF as a workflow artifact'
         type: boolean
         default: true
 
@@ -86,20 +98,36 @@ jobs:
       - name: Build Docusaurus
         run: BASE_URL="${{ inputs.base-url }}" npm run build
 
-      - name: Generate section PDFs with WeasyPrint
+      - name: Generate PDF with WeasyPrint
         env:
-          PDF_SECTIONS: ${{ inputs.sections }}
-          PDF_EXCLUDE_SECTIONS: ${{ inputs.exclude-sections }}
+          SECTION: ${{ inputs.section }}
+          BASE_URL: ${{ inputs.base-url }}
+          TITLE: ${{ inputs.title }}
+          EYEBROW: ${{ inputs.eyebrow }}
+          SUBTITLE: ${{ inputs.subtitle }}
+          SOURCE: ${{ inputs.source }}
+          OUTPUT: ${{ inputs.output }}
           WEASYPRINT_IMAGE: ${{ inputs.weasyprint-image }}
         run: |
-          if [ -z "${WEASYPRINT_IMAGE}" ]; then
+          IMAGE="${WEASYPRINT_IMAGE}"
+          if [ -z "$IMAGE" ]; then
             docker build -f docker/weasyprint/Dockerfile -t docusaurus-weasyprint .
+            IMAGE=docusaurus-weasyprint
           fi
-          bash docker/weasyprint/generate-all.sh "${{ inputs.base-url }}"
+          docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" "$IMAGE" \
+            --build-dir /data/build \
+            --output "/data/build/${OUTPUT}" \
+            --base-url "${BASE_URL}" \
+            --title "${TITLE}" \
+            --eyebrow "${EYEBROW}" \
+            --subtitle "${SUBTITLE}" \
+            --toc-title "Table of Contents" \
+            ${SOURCE:+--source "${SOURCE}"} \
+            --include "/docs/${SECTION}/"
 
-      - name: Upload PDF artifacts
+      - name: Upload PDF artifact
         if: ${{ inputs.upload-artifact }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.artifact-name }}
-          path: build/*.pdf
+          path: build/${{ inputs.output }}

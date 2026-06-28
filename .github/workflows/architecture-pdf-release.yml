@@ -77,10 +77,18 @@ jobs:
 
       - name: Generate PDF with WeasyPrint
         env:
-          PDF_SECTIONS: ${{ steps.ver.outputs.section }}
+          SECTION: ${{ steps.ver.outputs.section }}
         run: |
           docker build -f docker/weasyprint/Dockerfile -t docusaurus-weasyprint .
-          bash docker/weasyprint/generate-all.sh /
+          docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" docusaurus-weasyprint \
+            --build-dir /data/build \
+            --output "/data/build/${SECTION}.pdf" \
+            --base-url / \
+            --title "My Site — ${SECTION}" \
+            --eyebrow "Documentation" \
+            --subtitle "" \
+            --toc-title "Table of Contents" \
+            --include "/docs/${SECTION}/"
 
       - name: Stage PDF into the repo
         run: |
