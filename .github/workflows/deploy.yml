@@ -66,19 +66,12 @@ jobs:
       - name: Build Docusaurus
         run: BASE_URL="/docusaurus" npm run build
 
-      - name: Generate PDF with WeasyPrint
+      - name: Generate section PDFs with WeasyPrint
+        # One PDF per docs section (build/<section>.pdf). Auto-discovers every
+        # section under docs/; restrict with PDF_SECTIONS / PDF_EXCLUDE_SECTIONS.
         run: |
           docker build -f docker/weasyprint/Dockerfile -t docusaurus-weasyprint .
-          docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" docusaurus-weasyprint \
-            --build-dir /data/build \
-            --output /data/build/documentation.pdf \
-            --base-url /docusaurus \
-            --title "My Site — Architecture" \
-            --eyebrow "Software Architecture" \
-            --subtitle "arc42 / MADR architecture documentation" \
-            --toc-title "Table of Contents" \
-            --source "https://innovateit-ak.github.io/docusaurus" \
-            --include /docs/architecture/
+          bash docker/weasyprint/generate-all.sh /docusaurus
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -132,21 +125,15 @@ jobs:
       - name: Build Docusaurus
         run: BASE_URL="/" npm run build
 
-      - name: Generate PDF with WeasyPrint
+      - name: Generate section PDFs with WeasyPrint
+        # One PDF per docs section (build/<section>.pdf). Auto-discovers every
+        # section under docs/; restrict with PDF_SECTIONS / PDF_EXCLUDE_SECTIONS.
         run: |
           docker build -f docker/weasyprint/Dockerfile -t docusaurus-weasyprint .
-          docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" docusaurus-weasyprint \
-            --build-dir /data/build \
-            --output /data/build/documentation.pdf \
-            --base-url / \
-            --title "My Site — Architecture" \
-            --eyebrow "Software Architecture" \
-            --subtitle "arc42 / MADR architecture documentation" \
-            --toc-title "Table of Contents" \
-            --include /docs/architecture/
+          bash docker/weasyprint/generate-all.sh /
 
-      - name: Upload PDF artifact
+      - name: Upload PDF artifacts
         uses: actions/upload-artifact@v4
         with:
           name: documentation-pdf
-          path: build/documentation.pdf
+          path: build/*.pdf

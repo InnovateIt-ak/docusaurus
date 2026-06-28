@@ -1,8 +1,9 @@
-name: Architecture PDF (release)
+name: Section PDF (release)
 
-# On every version tag (vX.Y.Z) — or on a manual run where you type the
-# version — build the architecture documentation PDF and open a pull request
-# that adds it under docs/architecture/releases/, keeping one PDF per version.
+# On every version tag (vX.Y.Z) — or on a manual run where you type the version
+# (and optionally a section) — build that docs section's PDF and open a pull
+# request adding it under docs/<section>/releases/, one PDF per version. Defaults
+# to the "architecture" section; tag pushes always use it.
 
 on:
   push:
@@ -13,6 +14,10 @@ on:
       version:
         description: 'Version tag to label the PDF (e.g. v1.2.0)'
         required: true
+      section:
+        description: 'Docs section to export (folder name under docs/)'
+        required: false
+        default: 'architecture'
 
 permissions:
   contents: write
@@ -37,15 +42,18 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Resolve version
+      - name: Resolve version and section
         id: ver
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             tag="${{ github.event.inputs.version }}"
+            section="${{ github.event.inputs.section }}"
           else
             tag="${GITHUB_REF_NAME}"
+            section="architecture"
           fi
           echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          echo "section=${section:-architecture}" >> "$GITHUB_OUTPUT"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -68,23 +76,18 @@ jobs:
         run: BASE_URL="/" npm run build
 
       - name: Generate PDF with WeasyPrint
+        env:
+          PDF_SECTIONS: ${{ steps.ver.outputs.section }}
         run: |
           docker build -f docker/weasyprint/Dockerfile -t docusaurus-weasyprint .
-          docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" docusaurus-weasyprint \
-            --build-dir /data/build \
-            --output /data/build/documentation.pdf \
-            --base-url / \
-            --title "My Site — Architecture" \
-            --eyebrow "Software Architecture" \
-            --subtitle "arc42 / MADR architecture documentation" \
-            --toc-title "Table of Contents" \
-            --include /docs/architecture/
+          bash docker/weasyprint/generate-all.sh /
 
       - name: Stage PDF into the repo
         run: |
-          mkdir -p docs/architecture/releases
-          cp build/documentation.pdf \
-             "docs/architecture/releases/architecture-${{ steps.ver.outputs.tag }}.pdf"
+          section="${{ steps.ver.outputs.section }}"
+          mkdir -p "docs/${section}/releases"
+          cp "build/${section}.pdf" \
+             "docs/${section}/releases/${section}-${{ steps.ver.outputs.tag }}.pdf"
 
       # The org disables "Allow GitHub Actions to create and approve pull
       # requests", so the default GITHUB_TOKEN cannot open a PR. The branch is
@@ -92,13 +95,14 @@ jobs:
       # as the RELEASE_PR_TOKEN secret (scopes: contents + pull-requests write).
       # If the secret is absent the branch is still pushed and the manual
       # "create PR" link is printed instead of failing the job.
-      - name: Open pull request with the architecture PDF
+      - name: Open pull request with the section PDF
         env:
           GH_TOKEN: ${{ secrets.RELEASE_PR_TOKEN }}
         run: |
           tag="${{ steps.ver.outputs.tag }}"
-          branch="docs/architecture-pdf-${tag}"
-          file="docs/architecture/releases/architecture-${tag}.pdf"
+          section="${{ steps.ver.outputs.section }}"
+          branch="docs/${section}-pdf-${tag}"
+          file="docs/${section}/releases/${section}-${tag}.pdf"
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -110,7 +114,7 @@ jobs:
             exit 0
           fi
 
-          git commit -m "docs(architecture): architecture PDF for ${tag}"
+          git commit -m "docs(${section}): ${section} PDF for ${tag}"
           git push -u origin "$branch" --force
 
           if [ -z "${GH_TOKEN}" ]; then
@@ -122,10 +126,10 @@ jobs:
           gh pr create \
             --base master \
             --head "$branch" \
-            --title "docs: architecture PDF for ${tag}" \
-            --body "Automated architecture documentation PDF generated for **${tag}**.
+            --title "docs: ${section} PDF for ${tag}" \
+            --body "Automated ${section} documentation PDF generated for **${tag}**.
 
-          Source: \`docs/architecture/\` rendered with the hardened WeasyPrint image.
+          Source: \`docs/${section}/\` rendered with the hardened WeasyPrint image.
           File: \`${file}\`" \
           || gh pr edit "$branch" \
-            --title "docs: architecture PDF for ${tag}"
+            --title "docs: ${section} PDF for ${tag}"
