@@ -182,6 +182,24 @@ const config: Config = {
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
+      // Prism only highlights a small default set (js/ts/bash/json/css/markup…).
+      // Load the extra grammars used in the docs so their code blocks are
+      // tokenised — otherwise ```php, ```sql, … render as untyped "plain"
+      // tokens and the PDF's syntax palette has nothing to colour.
+      additionalLanguages: [
+        'php',
+        'bash',
+        'json',
+        'sql',
+        'yaml',
+        'python',
+        'java',
+        'go',
+        'rust',
+        'diff',
+        'docker',
+        'ini',
+      ],
     },
   } satisfies Preset.ThemeConfig,
 };
