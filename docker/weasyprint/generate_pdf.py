@@ -47,6 +47,33 @@ def log(message: str) -> None:
     print(f"[weasyprint] {message}", file=sys.stderr, flush=True)
 
 
+# A manual section number an author may have typed at the start of a heading,
+# e.g. "1.", "2.3", "4.5.6)", "7) ". The table of contents generates its own
+# automatic numbering (build_toc_items), so this leading token is stripped to
+# avoid a doubled number like "1.1  1. Executive Summary".
+#
+# A separator (a "." or ")") is required for a single-level number ("1.", "7)")
+# and multi-level numbers may omit the trailing one ("1.1"). This is what keeps
+# a real title beginning with a bare number — "2024 Roadmap", "3D Rendering" —
+# from being mistaken for a section number and stripped.
+_MANUAL_HEADING_NUMBER = re.compile(r"^\s*\d+(?:(?:\.\d+)+[.)]?|[.)])\s+(?=\S)")
+
+
+def strip_manual_heading_number(tag) -> None:
+    """Remove a manual "1.2" style number from the start of a heading tag.
+
+    Edits only the first text node so nested markup (``<code>``, ``<a>`` …) in
+    the heading survives. A no-op when the heading does not begin with a manual
+    number, or begins with an element rather than text.
+    """
+    for child in tag.contents:
+        if isinstance(child, str):
+            stripped = _MANUAL_HEADING_NUMBER.sub("", child, count=1)
+            if stripped != child:
+                child.replace_with(stripped)
+        return
+
+
 def _table_column_count(table) -> int:
     """Best-effort column count: the widest row of the table."""
     widest = 0
@@ -224,16 +251,21 @@ def extract_article(page_html: str, index: int):
 
     heading = node.find("h1")
     if heading:
+        strip_manual_heading_number(heading)
         title = heading.get_text(strip=True)
     elif soup.title and soup.title.string:
         title = soup.title.string.split("|")[0].strip()
     else:
         title = "Document"
 
+    # Strip any manual "1.2" numbering the author typed into a heading so it is
+    # not duplicated by the table of contents' own automatic numbering. The tag
+    # text is edited in place, so the chapter body reads cleanly too.
     headings = []
     for count, tag in enumerate(node.find_all(["h2", "h3"])):
         hid = f"c{index}-s{count}"
         tag["id"] = hid
+        strip_manual_heading_number(tag)
         headings.append((int(tag.name[1]), tag.get_text(strip=True), hid))
 
     return title, node.decode_contents(), headings
