@@ -3,10 +3,9 @@ name: Build and Deploy Docusaurus
 on:
   push:
     branches:
-      - master  # ou master selon votre branche principale
+      - '**'  # publie GitHub Pages depuis n'importe quelle branche
   pull_request:
-    branches:
-      - master
+  workflow_dispatch:  # permet un déploiement manuel depuis n'importe quelle branche
 
 env:
   REGISTRY: ghcr.io
@@ -20,9 +19,11 @@ concurrency:
 jobs:
   deploy-github-pages:
     runs-on: [ubuntu-latest]
-    # Publie sur GitHub Pages aussi bien sur push master que sur une pull request.
+    # Publie sur GitHub Pages depuis n'importe quelle branche : sur push (quelle
+    # que soit la branche), sur pull request, ou sur déclenchement manuel.
     if: >-
-      (github.event_name == 'push' && github.ref == 'refs/heads/master')
+      github.event_name == 'push'
+      || github.event_name == 'workflow_dispatch'
       || github.event_name == 'pull_request'
     permissions:
       contents: read
