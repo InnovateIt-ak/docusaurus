@@ -40,6 +40,16 @@ function enqueue(request) {
             const browser = await getBrowser();
             const {data} = await renderMermaid(browser, request.source, 'svg', {
                 backgroundColor: 'transparent',
+                // Rendre les libellés en <text> SVG plutôt qu'en <foreignObject>
+                // (HTML). WeasyPrint ne sait pas rendre <foreignObject> : sans
+                // cela, le diagramme sort dans le PDF avec des boîtes et des
+                // flèches vides, sans aucun texte. `htmlLabels: false` force des
+                // éléments <text> que WeasyPrint affiche correctement, sur le
+                // site comme dans le PDF.
+                mermaidConfig: {
+                    htmlLabels: false,
+                    flowchart: {htmlLabels: false},
+                },
             });
             send({id: request.id, ok: true, svg: Buffer.from(data).toString('utf8')});
         } catch (err) {
