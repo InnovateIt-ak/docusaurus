@@ -1,0 +1,8 @@
+{
+  "label": "Proposals",
+  "position": 9,
+  "link": {
+    "type": "generated-index",
+    "description": "Design proposals to review and choose from."
+  }
+}
