@@ -4,6 +4,7 @@ import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 import remarkInclude from './src/remark/include.mjs';
 import remarkPlantUMLInline from './src/remark/plantuml-inline.mjs';
+import remarkMermaidInline from './src/remark/mermaid-inline.mjs';
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
@@ -58,9 +59,14 @@ const config: Config = {
         docs: {
           sidebarPath: './sidebars.ts',
           // `#include "fichier.md"` puis rendu PlantUML (```plantuml``` et
-          // `![](*.puml)`). PlantUML doit passer avant les plugins par défaut
-          // pour transformer les `.puml` avant le chargeur d'images de Docusaurus.
-          beforeDefaultRemarkPlugins: [remarkInclude, remarkPlantUMLInline],
+          // `![](*.puml)`) et Mermaid (```mermaid``` et `![](*.mmd)`). Ces
+          // plugins doivent passer avant les plugins par défaut pour transformer
+          // les diagrammes en images avant le chargeur d'images de Docusaurus.
+          beforeDefaultRemarkPlugins: [
+            remarkInclude,
+            remarkPlantUMLInline,
+            remarkMermaidInline,
+          ],
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
