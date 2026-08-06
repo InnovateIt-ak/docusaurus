@@ -21,14 +21,18 @@
   --ifm-color-primary-lightest: #4d83c4;
   --ifm-link-color: #004494;
   --ifm-font-color-base: #1a1a2e;
-  --ifm-font-family-base: "IBM Plex Sans", "DejaVu Sans", sans-serif;
-  --ifm-font-family-monospace: "IBM Plex Mono", "DejaVu Sans Mono", "Liberation Mono", monospace;
+  --ifm-font-family-base: "IBM Plex Sans", "DejaVu Sans", "Noto Emoji", sans-serif;
+  --ifm-font-family-monospace: "IBM Plex Mono", "DejaVu Sans Mono", "Liberation Mono", "Noto Emoji", monospace;
+  /* Headings too — otherwise the site's inlined --ifm-heading-font-family wins
+     for headings outside .markdown (cover title, TOC title) and falls back to a
+     serif. */
+  --ifm-heading-font-family: "IBM Plex Sans", "DejaVu Sans", "Noto Emoji", sans-serif;
 }
 
 /* ---------------------------------------------------------------- pages ---- */
 @page {
   size: A4;
-  margin: 22mm 18mm 20mm 18mm;
+  margin: 24mm 18mm 20mm 18mm;
 
   @top-left {
     content: counter(page);
@@ -41,7 +45,8 @@
     content: string(chapter);
     color: var(--muted);
     font: 400 8.5pt/1 "IBM Plex Sans", sans-serif;
-    vertical-align: bottom;
+    vertical-align: top;
+    padding-top: 1mm;
   }
   @bottom-right {
     content: string(doctitle);
@@ -79,7 +84,8 @@
     content: string(chapter);
     color: var(--muted);
     font: 400 8.5pt/1 "IBM Plex Sans", sans-serif;
-    vertical-align: bottom;
+    vertical-align: top;
+    padding-top: 1mm;
   }
   @bottom-right {
     content: string(doctitle);
@@ -111,10 +117,20 @@ html {
   string-set: doctitle "";
 }
 body {
-  font-family: "IBM Plex Sans", "DejaVu Sans", sans-serif;
-  font-size: 10.5pt;
-  line-height: 1.55;
+  font-family: "IBM Plex Sans", "DejaVu Sans", "Noto Emoji", sans-serif;
+  font-size: 9.5pt;
+  line-height: 1.45;
   color: var(--ink);
+}
+/* Harmonise every heading on the IBM Plex Sans family (Infima would otherwise
+   pull its own heading font), for one consistent, compact type system. */
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4,
+.markdown h5,
+.markdown h6 {
+  font-family: "IBM Plex Sans", "DejaVu Sans", "Noto Emoji", sans-serif !important;
 }
 
 /* ---------------------------------------------------------------- cover ---- */
@@ -137,6 +153,7 @@ body {
   margin: 0 0 10mm;
 }
 .cover-title {
+  font-family: "IBM Plex Sans", "DejaVu Sans", "Noto Emoji", sans-serif !important;
   font-size: 40pt;
   font-weight: 700;
   line-height: 1.08;
@@ -172,6 +189,7 @@ body {
   break-after: page;
 }
 #toc > h1 {
+  font-family: "IBM Plex Sans", "DejaVu Sans", "Noto Emoji", sans-serif !important;
   font-size: 24pt;
   font-weight: 700;
   color: var(--ink);
@@ -236,32 +254,56 @@ ul.toc li {
   /* !important: this stylesheet is applied as a user sheet, so a plain
      declaration would lose to Infima's author rule `h1 { font-size: var(...) }`.
      The same applies to the h2/h3 sizes below. */
-  font-size: 14pt !important;
+  font-size: 13pt !important;
   font-weight: 700;
   line-height: 1.15;
   color: var(--ink);
-  margin: 0 0 6mm;
-  padding-bottom: 2.5mm;
+  margin: 0 0 5mm;
+  padding-bottom: 2.2mm;
   border-bottom: 3px solid var(--accent);
 }
 .markdown h2 {
-  font-size: 12pt !important;
+  font-size: 10.5pt !important;
   font-weight: 700;
   color: var(--accent-dark);
-  margin-top: 7mm;
+  margin-top: 6mm;
 }
 .markdown h3 {
-  font-size: 11pt !important;
+  font-size: 9.5pt !important;
   font-weight: 700;
   color: var(--ink);
-  margin-top: 5.5mm;
+  margin-top: 4.5mm;
+}
+.markdown h4 {
+  font-size: 9pt !important;
+  font-weight: 700;
+  color: var(--ink);
+  margin-top: 4mm;
 }
 .markdown a {
   color: var(--accent) !important;
 }
 .markdown code,
 .markdown pre {
-  font-family: "IBM Plex Mono", monospace;
+  font-family: "IBM Plex Mono", "DejaVu Sans Mono", "Noto Emoji", monospace;
+}
+/* Inline code (a <code> not inside a <pre>): soften Infima's pill — drop the
+   border and keep only a light tint, no box outline. The code-block <code>
+   (inside <pre>) is excluded and keeps its dark card. */
+.markdown :not(pre) > code {
+  background: #eef1f5 !important;
+  border: 0 !important;
+  border-radius: 3px;
+  padding: 0.05em 0.3em;
+  color: inherit;
+  font-size: 0.9em;
+}
+/* Inside tables, drop the tint entirely — flat monospace keeps cells (e.g. the
+   permission matrix paths) clean and uncluttered. */
+.markdown table :not(pre) > code {
+  background: transparent !important;
+  padding: 0 !important;
+  border-radius: 0;
 }
 
 /* Tables: give them an EU-blue header for a professional look. */
@@ -270,14 +312,15 @@ ul.toc li {
   width: 100%;
 }
 .markdown table th {
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent) !important;
+  color: #fff !important;
   text-align: left;
 }
 .markdown table th,
 .markdown table td {
   border: 1px solid #d5d9e0;
-  padding: 1.6mm 2.4mm;
+  padding: 1.2mm 2mm;
+  font-size: 8.5pt;
 }
 
 /* Let any long table paginate and repeat its header on each page, instead of
@@ -391,15 +434,100 @@ pre {
   float: none !important;
   min-width: 0 !important;
 }
-/* Drop the on-screen drop shadow and let a tall code block paginate instead of
-   overflowing the page. */
+/* "Snappify"-style code card: a dark rounded panel with a window title bar and
+   three traffic-light dots, plus a One Dark syntax palette (defined below).
+   Replaces the on-screen grey box and its drop shadow. break-inside: avoid keeps
+   a block that fits on one page from being split across a page boundary; a block
+   taller than a page is still fragmented by the renderer (avoid is best-effort),
+   and the inner <pre> stays break-inside: auto so that split is clean. The title
+   bar (::before) only renders on the first fragment and the panel keeps its dark
+   background across page breaks. */
 .markdown [class*="codeBlockContainer"] {
   box-shadow: none !important;
-  break-inside: auto;
+  break-inside: avoid;
+  margin: 1.3rem 0;
+  padding: 0 !important;
+  background: #282c34 !important;
+  border-radius: 3mm;
+}
+.markdown [class*="codeBlockContainer"]::before {
+  content: "";
+  display: block;
+  height: 7mm;
+  border-top-left-radius: 3mm;
+  border-top-right-radius: 3mm;
+  border-bottom: 0.3mm solid #181a1f;
+  background:
+    radial-gradient(circle 1.4mm at 5mm 3.5mm,    #ff5f56 98%, transparent),
+    radial-gradient(circle 1.4mm at 9.5mm 3.5mm,  #ffbd2e 98%, transparent),
+    radial-gradient(circle 1.4mm at 14mm 3.5mm,   #27c93f 98%, transparent),
+    #21252b;
 }
 .markdown pre.prism-code {
-  font-size: 8.5pt;
-  line-height: 1.4;
+  background: #282c34 !important;
+  color: #abb2bf !important;
+  border: 0 !important;
+  border-radius: 0 0 3mm 3mm !important;
+  margin: 0 !important;
+  padding: 3.5mm 5mm !important;
+  font-size: 8pt;
+  line-height: 1.5;
+  /* When a tall block must split across pages, keep at least 2 lines together
+     on each side of the break so it never leaves a single orphaned line. */
+  orphans: 2;
+  widows: 2;
+}
+/* One Dark token palette — applied as a user sheet so it overrides the site's
+   on-screen Prism theme. */
+.markdown .token.comment,
+.markdown .token.prolog,
+.markdown .token.doctype,
+.markdown .token.cdata        { color: #7f848e !important; font-style: italic; }
+.markdown .token.punctuation  { color: #abb2bf !important; }
+.markdown .token.keyword,
+.markdown .token.important,
+.markdown .token.rule         { color: #c678dd !important; }
+.markdown .token.string,
+.markdown .token.char,
+.markdown .token.attr-value,
+.markdown .token.regex        { color: #98c379 !important; }
+.markdown .token.function,
+.markdown .token.class-name   { color: #61afef !important; }
+.markdown .token.number,
+.markdown .token.boolean,
+.markdown .token.constant     { color: #d19a66 !important; }
+.markdown .token.operator,
+.markdown .token.variable     { color: #56b6c2 !important; }
+.markdown .token.property,
+.markdown .token.tag,
+.markdown .token.symbol,
+.markdown .token.deleted      { color: #e06c75 !important; }
+.markdown .token.attr-name    { color: #d19a66 !important; }
+/* Docusaurus stamps an inline `color` (the light-theme ink, ~#393A34) on every
+   <div class="token-line"> and leaves "plain"/unhighlighted tokens uncoloured.
+   On the dark card that ink is near-invisible. Force the One Dark foreground as
+   the base ink (an author !important rule beats the inline style); the per-type
+   rules above still win on highlighted tokens via their higher specificity. */
+.markdown pre.prism-code,
+.markdown .token-line,
+.markdown .token.plain {
+  color: #abb2bf !important;
+}
+/* The optional code-block filename strip (Docusaurus ```lang title="...")
+   becomes dark text on the dark card; restyle it as a window sub-bar. */
+.markdown [class*="codeBlockTitle"] {
+  background: #21252b !important;
+  color: #c8ccd4 !important;
+  font: italic 8pt/1.2 "IBM Plex Mono", "DejaVu Sans Mono", monospace !important;
+  padding: 1.6mm 5mm !important;
+  margin: 0 !important;
+  border-bottom: 0.3mm solid #181a1f;
+}
+/* Neutralise Docusaurus's line-highlight background: with inline token-lines it
+   paints uneven striped bands across the dark card. Keep the card uniform for a
+   clean, professional look. */
+.markdown .theme-code-block-highlighted-line {
+  background: transparent !important;
 }
 /* Each code line is a block <div class="token-line"> that ALSO ends in a <br>.
    Under `white-space: pre-wrap` both the block and the <br> break the line, so
@@ -427,4 +555,195 @@ h1, h2, h3, h4 {
 [class*="tableOfContents"],
 [class*="skipToContent"] {
   display: none !important;
+}
+
+/* ============================================================================
+   Report enhancements
+   ========================================================================== */
+
+/* Document-wide counters: chapter (matches the generated TOC), plus figures and
+   tables for auto-numbered captions. */
+body { counter-reset: chapter figure tablenum; }
+
+/* --- Justified body text with automatic hyphenation (lang=en on <html>). ---- */
+.markdown p,
+.markdown li {
+  text-align: justify;
+  hyphens: auto;
+}
+
+/* --- Section numbering in the body, aligned with the TOC (e.g. 4, 4.1, 4.1.2).
+   counter(chapter) increments once per .chapter, exactly like the TOC top number. */
+.chapter { counter-increment: chapter; counter-reset: h2 figure-local; }
+.markdown h2 { counter-reset: h3; }
+.chapter h1::before { content: counter(chapter) "\00a0\00a0"; }
+.markdown h2::before {
+  counter-increment: h2;
+  content: counter(chapter) "." counter(h2) "\00a0\00a0";
+  color: var(--accent);
+}
+.markdown h3::before {
+  counter-increment: h3;
+  content: counter(chapter) "." counter(h2) "." counter(h3) "\00a0\00a0";
+  color: var(--accent);
+}
+
+/* --- Language badge on the code window bar (top-right of the dots strip). ---- */
+.markdown [class*="codeBlockContainer"] { position: relative; }
+.markdown [class*="codeBlockContainer"][class*="language-"]::after {
+  position: absolute;
+  top: 1.6mm;
+  right: 4mm;
+  color: #7f848e;
+  font: 700 6.5pt/1 "IBM Plex Mono", "DejaVu Sans Mono", monospace;
+  letter-spacing: 0.08em;
+}
+.markdown .theme-code-block.language-php::after    { content: "PHP"; }
+.markdown .theme-code-block.language-bash::after,
+.markdown .theme-code-block.language-shell::after,
+.markdown .theme-code-block.language-sh::after     { content: "BASH"; }
+.markdown .theme-code-block.language-js::after,
+.markdown .theme-code-block.language-jsx::after,
+.markdown .theme-code-block.language-javascript::after { content: "JS"; }
+.markdown .theme-code-block.language-ts::after,
+.markdown .theme-code-block.language-tsx::after,
+.markdown .theme-code-block.language-typescript::after { content: "TS"; }
+.markdown .theme-code-block.language-json::after   { content: "JSON"; }
+.markdown .theme-code-block.language-python::after,
+.markdown .theme-code-block.language-py::after     { content: "PYTHON"; }
+.markdown .theme-code-block.language-sql::after    { content: "SQL"; }
+.markdown .theme-code-block.language-yaml::after,
+.markdown .theme-code-block.language-yml::after    { content: "YAML"; }
+.markdown .theme-code-block.language-html::after,
+.markdown .theme-code-block.language-xml::after    { content: "HTML"; }
+.markdown .theme-code-block.language-css::after    { content: "CSS"; }
+.markdown .theme-code-block.language-java::after   { content: "JAVA"; }
+.markdown .theme-code-block.language-go::after     { content: "GO"; }
+.markdown .theme-code-block.language-rust::after   { content: "RUST"; }
+.markdown .theme-code-block.language-diff::after   { content: "DIFF"; }
+
+/* --- Stronger zebra striping for readability of long tables. ----------------- */
+.markdown table tbody tr:nth-child(even) { background: #f3f6fb; }
+
+/* --- Admonitions (:::tip / :::note / :::warning / :::danger) as coloured cards. */
+.markdown .theme-admonition {
+  border: 0 !important;
+  border-left: 3px solid #8a8f98 !important;
+  border-radius: 4px;
+  background: #f3f4f6 !important;
+  padding: 2.2mm 4mm !important;
+  margin: 3mm 0 !important;
+  box-shadow: none !important;
+  break-inside: avoid;
+}
+.markdown [class*="admonitionHeading"] {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 7.5pt;
+  letter-spacing: 0.06em;
+  margin: 0 0 1mm !important;
+}
+.markdown [class*="admonitionContent"] > :last-child { margin-bottom: 0; }
+.markdown .theme-admonition-tip { border-left-color: #1a7f37 !important; background: #eaf6ec !important; }
+.markdown .theme-admonition-tip [class*="admonitionHeading"] { color: #1a7f37; }
+.markdown .theme-admonition-note,
+.markdown .theme-admonition-info { border-left-color: var(--accent) !important; background: #eef3fb !important; }
+.markdown .theme-admonition-note [class*="admonitionHeading"],
+.markdown .theme-admonition-info [class*="admonitionHeading"] { color: var(--accent); }
+.markdown .theme-admonition-warning,
+.markdown .theme-admonition-caution { border-left-color: #bf8700 !important; background: #fdf6e3 !important; }
+.markdown .theme-admonition-warning [class*="admonitionHeading"],
+.markdown .theme-admonition-caution [class*="admonitionHeading"] { color: #bf8700; }
+.markdown .theme-admonition-danger { border-left-color: #cf222e !important; background: #fbeaec !important; }
+.markdown .theme-admonition-danger [class*="admonitionHeading"] { color: #cf222e; }
+
+/* --- Figures: centre, light frame, and an auto-numbered caption. -------------
+   Use in markdown/MDX:
+     <figure>
+     ![alt](diagram.svg)
+     <figcaption>Authentication landscape</figcaption>
+     </figure>                                                                 */
+.markdown figure {
+  counter-increment: figure;
+  margin: 4mm 0;
+  text-align: center;
+  break-inside: avoid;
+}
+.markdown figure img {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  border: 1px solid #e2e6ec;
+  border-radius: 3px;
+  padding: 2mm;
+}
+.markdown figcaption {
+  margin-top: 1.5mm;
+  font-size: 8pt;
+  font-style: italic;
+  color: var(--muted);
+}
+.markdown figcaption::before {
+  content: "Figure " counter(figure) ": ";
+  font-style: normal;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* --- Table captions: an auto-numbered, styled <caption>. ---------------------
+   Markdown tables have no caption; add one with HTML in MDX:
+     <table>
+       <caption>Role / permission matrix</caption>
+       ...
+     </table>
+   or keep using a plain bold line above the table.                            */
+.markdown table caption {
+  counter-increment: tablenum;
+  caption-side: top;
+  text-align: left;
+  font-size: 8.5pt;
+  font-style: italic;
+  color: var(--muted);
+  margin-bottom: 1.5mm;
+}
+.markdown table caption::before {
+  content: "Table " counter(tablenum) ": ";
+  font-style: normal;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* --- Non-code blocks: a ``` fence with no language (or ```text) holds prose,
+   procedures or ASCII diagrams, for which the dark "editor" card is misleading.
+   Render those as a light callout (grey panel, EU-blue side bar, dark mono) and
+   strip the window chrome. Real code (language-php, -bash, …) keeps the dark
+   card. Higher specificity than the dark-card rules, so order-independent. */
+.markdown .theme-code-block.language-text,
+.markdown .theme-code-block.language-none,
+.markdown .theme-code-block.language-plaintext {
+  background: #f6f8fa !important;
+  border: 1px solid #e2e6ec !important;
+  border-left: 3px solid var(--accent) !important;
+  border-radius: 4px;
+}
+.markdown .theme-code-block.language-text::before,
+.markdown .theme-code-block.language-none::before,
+.markdown .theme-code-block.language-plaintext::before { display: none !important; }
+.markdown .theme-code-block.language-text::after,
+.markdown .theme-code-block.language-none::after,
+.markdown .theme-code-block.language-plaintext::after { content: none !important; }
+.markdown .theme-code-block.language-text pre.prism-code,
+.markdown .theme-code-block.language-none pre.prism-code,
+.markdown .theme-code-block.language-plaintext pre.prism-code {
+  background: transparent !important;
+  border-radius: 0 !important;
+  padding: 3mm 4mm !important;
+}
+.markdown .theme-code-block.language-text .token-line,
+.markdown .theme-code-block.language-text .token,
+.markdown .theme-code-block.language-none .token-line,
+.markdown .theme-code-block.language-none .token,
+.markdown .theme-code-block.language-plaintext .token-line,
+.markdown .theme-code-block.language-plaintext .token {
+  color: #1a1a2e !important;
 }

@@ -1,0 +1,133 @@
+name: PDF (reusable)
+
+# Reusable workflow: build the Docusaurus site and export ONE docs section to a
+# PDF with the hardened WeasyPrint image. Call it from another workflow:
+#
+#   jobs:
+#     pdf:
+#       uses: ./.github/workflows/pdf.yml                 # same repo
+#       # uses: org/repo/.github/workflows/pdf.yml@main   # from another repo
+#       with:
+#         section: architecture        # which docs/<section>/ to render
+#         base-url: /docusaurus
+
+on:
+  workflow_call:
+    inputs:
+      section:
+        description: 'Docs section to render (folder name under docs/)'
+        type: string
+        default: 'architecture'
+      base-url:
+        description: 'Docusaurus baseUrl, used for the build and --base-url (e.g. / or /docusaurus)'
+        type: string
+        default: '/'
+      title:
+        description: 'Cover title'
+        type: string
+        default: 'My Site — Architecture'
+      eyebrow:
+        description: 'Small label above the cover title'
+        type: string
+        default: 'Software Architecture'
+      subtitle:
+        description: 'Cover subtitle'
+        type: string
+        default: 'arc42 / MADR architecture documentation'
+      source:
+        description: 'Source URL shown on the cover (optional)'
+        type: string
+        default: ''
+      output:
+        description: 'Output PDF filename under build/'
+        type: string
+        default: 'documentation.pdf'
+      weasyprint-image:
+        description: 'Prebuilt converter image to use. Empty = build docker/weasyprint/Dockerfile locally.'
+        type: string
+        default: ''
+      node-version:
+        description: 'Node.js version for the Docusaurus build'
+        type: string
+        default: '20'
+      artifact-name:
+        description: 'Name of the uploaded artifact'
+        type: string
+        default: 'documentation-pdf'
+      upload-artifact:
+        description: 'Upload the generated PDF as a workflow artifact'
+        type: boolean
+        default: true
+
+jobs:
+  pdf:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    # PlantUML server so the remark plugin can render diagrams at build time.
+    services:
+      plantuml:
+        image: plantuml/plantuml-server:jetty
+        ports:
+          - 8080:8080
+    env:
+      PLANTUML_BUILD_URL: http://localhost:8080
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Wait for PlantUML server
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8080/ >/dev/null && { echo "PlantUML is up"; exit 0; }
+            sleep 2
+          done
+          echo "::warning::PlantUML server did not become ready; diagrams may render as placeholders"
+
+      - name: Build Docusaurus
+        run: BASE_URL="${{ inputs.base-url }}" npm run build
+
+      - name: Generate PDF with WeasyPrint
+        env:
+          SECTION: ${{ inputs.section }}
+          BASE_URL: ${{ inputs.base-url }}
+          TITLE: ${{ inputs.title }}
+          EYEBROW: ${{ inputs.eyebrow }}
+          SUBTITLE: ${{ inputs.subtitle }}
+          SOURCE: ${{ inputs.source }}
+          OUTPUT: ${{ inputs.output }}
+          WEASYPRINT_IMAGE: ${{ inputs.weasyprint-image }}
+        run: |
+          IMAGE="${WEASYPRINT_IMAGE}"
+          if [ -z "$IMAGE" ]; then
+            docker build -f docker/weasyprint/Dockerfile -t docusaurus-weasyprint .
+            IMAGE=docusaurus-weasyprint
+          fi
+          docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" "$IMAGE" \
+            --build-dir /data/build \
+            --output "/data/build/${OUTPUT}" \
+            --base-url "${BASE_URL}" \
+            --title "${TITLE}" \
+            --eyebrow "${EYEBROW}" \
+            --subtitle "${SUBTITLE}" \
+            --toc-title "Table of Contents" \
+            ${SOURCE:+--source "${SOURCE}"} \
+            --include "/docs/${SECTION}/"
+
+      - name: Upload PDF artifact
+        if: ${{ inputs.upload-artifact }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: build/${{ inputs.output }}

@@ -44,6 +44,12 @@ RUN mkdir -p /mnt/rootfs \
 # fonts and staged here, keeping the build fully offline / reproducible.
 COPY docker/weasyprint/fonts/ibm-plex/ /mnt/rootfs/usr/share/fonts/ibm-plex/
 
+# Noto Emoji (monochrome) for emoji/symbol glyphs used in the docs (✅ ⚠️ ❌),
+# which none of the text fonts cover. Not in the UBI repositories either, so the
+# font (subset to the symbol + emoji ranges, SIL OFL 1.1) is vendored like IBM
+# Plex. Monochrome — the colour CBDT font renders badly in WeasyPrint.
+COPY docker/weasyprint/fonts/noto-emoji/ /mnt/rootfs/usr/share/fonts/noto-emoji/
+
 # Drop glibc and the dynamic linker from the staged root: the hardened runtime
 # already provides a newer glibc, and overwriting it would break its Python.
 # The UBI libraries (built against an older glibc) run fine on the newer one.
