@@ -309,14 +309,18 @@ ul.toc li {
   break-before: page;
   break-after: page;
 }
-/* A wide diagram on a landscape page is centred and scaled to fit the page. */
+/* A wide diagram on its landscape page, centred and scaled to fit. The extra
+   `.markdown` in the selector raises specificity above `.markdown img` above so
+   this landscape height cap (fitting the shorter landscape page) wins over the
+   portrait one. */
+.markdown .landscape-block img,
 .landscape-block img {
   display: block;
   margin: 0 auto;
-  max-width: 100%;
-  max-height: 175mm;
-  width: auto;
-  height: auto;
+  max-width: 100% !important;
+  max-height: 165mm !important;
+  width: auto !important;
+  height: auto !important;
 }
 .markdown table.wide-table {
   /* Infima renders wide markdown tables as `display: block; overflow-x: auto`
@@ -360,10 +364,19 @@ ul.toc li {
   white-space: normal;
 }
 
-/* Keep things tidy and avoid awkward breaks. */
+/* Keep things tidy and avoid awkward breaks. Cap the height too, not just the
+   width: a tall diagram (e.g. a top-down Mermaid flowchart, taller than it is
+   wide) is not caught by the "wide image → landscape" heuristic, so without a
+   height cap it renders at its full intrinsic pixel size, overflows the page
+   and pushes out blank/overflow pages. max-height keeps it on a single portrait
+   page; width/height:auto preserve the aspect ratio. !important is required
+   because report.css is a user stylesheet and must beat the intrinsic
+   width/height the exporter writes on the <img>. */
 .markdown img {
   max-width: 100% !important;
-  height: auto;
+  max-height: 220mm !important;
+  width: auto !important;
+  height: auto !important;
 }
 pre, code {
   white-space: pre-wrap !important;
