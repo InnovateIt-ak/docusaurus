@@ -83,6 +83,26 @@ def _table_column_count(table) -> int:
     return widest
 
 
+def _wrap_landscape(soup, target) -> None:
+    """Wrap ``target`` in a ``.landscape-block``, pulling an immediately
+    preceding heading in with it.
+
+    A wide table/diagram is isolated on its own landscape page; without this, a
+    heading that introduces it (``## The overall … landscape`` right before the
+    diagram) would be left orphaned at the bottom of the previous portrait page,
+    separated from the content it titles. Moving that heading inside the block
+    keeps heading + diagram together on the landscape page.
+    """
+    wrapper = soup.new_tag("div")
+    wrapper["class"] = ["landscape-block"]
+    lead = target.find_previous_sibling()
+    if lead is None or getattr(lead, "name", None) not in ("h2", "h3", "h4"):
+        lead = None
+    target.wrap(wrapper)
+    if lead is not None:
+        wrapper.insert(0, lead.extract())
+
+
 def tag_wide_tables(soup, node) -> bool:
     """Mark wide tables and wrap each one in a landscape block.
 
@@ -99,9 +119,7 @@ def tag_wide_tables(soup, node) -> bool:
             if "wide-table" not in classes:
                 classes.append("wide-table")
             table["class"] = classes
-            wrapper = soup.new_tag("div")
-            wrapper["class"] = ["landscape-block"]
-            table.wrap(wrapper)
+            _wrap_landscape(soup, table)
             found = True
     return found
 
@@ -150,9 +168,7 @@ def tag_wide_images(soup, node) -> bool:
         # Wrap the closest block container (usually the <p> the image sits in) so
         # the landscape <div> is not placed inside a <p>.
         target = img.parent if (img.parent is not None and img.parent.name == "p") else img
-        wrapper = soup.new_tag("div")
-        wrapper["class"] = ["landscape-block"]
-        target.wrap(wrapper)
+        _wrap_landscape(soup, target)
         found = True
     return found
 
