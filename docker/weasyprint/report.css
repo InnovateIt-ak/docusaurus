@@ -373,6 +373,8 @@ ul.toc li {
    because report.css is a user stylesheet and must beat the intrinsic
    width/height the exporter writes on the <img>. */
 .markdown img {
+  display: block;
+  margin: 0 auto; /* centre diagrams and screenshots on the page */
   max-width: 100% !important;
   max-height: 220mm !important;
   width: auto !important;
