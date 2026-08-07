@@ -125,17 +125,18 @@ const config: Config = {
         {to: '/tldraw', label: 'TlDraw', position: 'left'},
         {to: '/likec4', label: 'Architecture', position: 'left'},
         {
-          // PDF download menu — links chosen by hand. Each PDF is produced by
-          // CI from sharedConfig.ts (build/<id>.pdf) AFTER the Docusaurus build,
-          // so it doesn't exist at build time; `pathname://` serves the link
-          // as-is (baseUrl-aware, no routing / no broken-link check).
+          // PDF download menu — links chosen by hand. PDFs are AUTO-DISCOVERED
+          // and produced by CI AFTER the build: the all-in-one at
+          // `/<globalId>.pdf` (default documentation.pdf) and one per section at
+          // `/<section>.pdf`. They don't exist at build time; `pathname://`
+          // serves each link as-is (baseUrl-aware, no broken-link check).
           // Add/remove items here to control what appears in the menu.
           type: 'dropdown',
           label: '📄 PDF',
           position: 'right',
           items: [
+            {to: 'pathname:///documentation.pdf', label: 'Full documentation'},
             {to: 'pathname:///architecture.pdf', label: 'Architecture'},
-            {to: 'pathname:///tutorial.pdf', label: 'Tutorial'},
           ],
         },
         {
