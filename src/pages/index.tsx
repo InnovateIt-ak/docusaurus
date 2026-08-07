@@ -6,7 +6,7 @@ import {usePluginData} from '@docusaurus/useGlobalData';
 import styles from './index.module.css';
 
 type Release = {tag: string; name: string; body: string; date: string; url: string};
-type ChangelogData = {releases: Release[]};
+type Card = {icon: string; title: string; desc: string; cta: string; to: string};
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 function formatDate(iso: string): string {
@@ -15,37 +15,32 @@ function formatDate(iso: string): string {
   return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
 
-type Card = {icon: string; title: string; desc: string; cta: string; to: string};
-const CARDS: Card[] = [
-  {icon: '🚀', title: 'Prise en main', desc: 'Installe, lance et comprends le projet en moins de 5 minutes.', cta: 'Tutorial Intro', to: '/docs/intro'},
-  {icon: '🏛️', title: 'Architecture', desc: 'Vue arc42, décisions (MADR), authentification, système — avec diagrammes.', cta: "Voir l'architecture", to: '/docs/architecture/01-executive-summary'},
-  {icon: '📘', title: 'Tutoriels', desc: 'Basics et Extras : créer des pages, gérer les versions, traduire le site.', cta: 'Parcourir les tutoriels', to: '/docs/category/tutorial---basics'},
-  {icon: '📄', title: 'Téléchargements PDF', desc: 'Chaque section — et la doc complète — exportée en PDF, générée par la CI.', cta: 'Documentation complète', to: 'pathname:///documentation.pdf'},
-  {icon: '🗺️', title: 'Diagrammes', desc: 'Modèles LikeC4 et tableaux TlDraw, intégrés et interactifs.', cta: 'Explorer les diagrammes', to: '/likec4'},
-  {icon: '🧾', title: 'Changelog', desc: 'Toutes les versions et leurs notes, synchronisées avec les GitHub Releases.', cta: 'Voir les releases', to: '/changelog'},
-];
-
 function Hero(): ReactNode {
+  const {siteConfig} = useDocusaurusContext();
+  const hero = (siteConfig.customFields?.home as {hero?: Record<string, string>} | undefined)?.hero ?? {};
+  const eyebrow = hero.eyebrow || 'Documentation';
+  const title = hero.title || siteConfig.title;
+  const subtitle = hero.subtitle || siteConfig.tagline || '';
+  // Highlight the last word of the title with the accent gradient.
+  const words = title.trim().split(' ');
+  const head = words.slice(0, -1).join(' ');
+  const last = words[words.length - 1];
+
   return (
     <header className={styles.hero}>
       <div className={styles.container}>
-        <p className={styles.eyebrow}>EU Delegations Guide · Documentation</p>
+        <p className={styles.eyebrow}>{eyebrow}</p>
         <h1 className={styles.h1}>
-          Construire, comprendre et <span className={styles.grad}>livrer</span> la plateforme.
+          {head} <span className={styles.grad}>{last}</span>
         </h1>
-        <p className={styles.lead}>
-          Documentation d'architecture (arc42 / MADR), tutoriels pas-à-pas, diagrammes rendus au
-          build et versions PDF téléchargeables — le tout au même endroit.
-        </p>
+        <p className={styles.lead}>{subtitle}</p>
         <Link className={styles.search} to="/docs/intro">
           <span aria-hidden="true">🔎</span>
-          <span>Parcourir la documentation…</span>
+          <span>Browse the documentation…</span>
         </Link>
         <div className={styles.ctaRow}>
-          <Link className={`${styles.btn} ${styles.primary}`} to="/docs/intro">Commencer →</Link>
-          <Link className={`${styles.btn} ${styles.ghost}`} to="/docs/architecture/01-executive-summary">
-            Explorer l'architecture
-          </Link>
+          <Link className={`${styles.btn} ${styles.primary}`} to="/docs/intro">Get started →</Link>
+          <Link className={`${styles.btn} ${styles.ghost}`} to="/blog">What&apos;s new</Link>
         </div>
       </div>
     </header>
@@ -53,13 +48,17 @@ function Hero(): ReactNode {
 }
 
 function Cards(): ReactNode {
+  const data = usePluginData('docusaurus-plugin-home-cards') as {cards?: Card[]} | undefined;
+  const cards = data?.cards ?? [];
+  if (cards.length === 0) return null;
+
   return (
     <section className={styles.container}>
-      <p className={styles.eyebrow}>Explorer</p>
-      <h2 className={styles.sectionTitle}>Par où commencer</h2>
-      <p className={styles.sectionSub}>Choisis un point d'entrée selon ce que tu cherches.</p>
+      <p className={styles.eyebrow}>Explore</p>
+      <h2 className={styles.sectionTitle}>Where to start</h2>
+      <p className={styles.sectionSub}>Pick an entry point based on what you need.</p>
       <div className={styles.grid}>
-        {CARDS.map((c) => (
+        {cards.map((c) => (
           <Link key={c.title} className={styles.card} to={c.to}>
             <div className={styles.ic}>{c.icon}</div>
             <h3 className={styles.cardTitle}>{c.title}</h3>
@@ -73,7 +72,7 @@ function Cards(): ReactNode {
 }
 
 function LatestRelease(): ReactNode {
-  const data = usePluginData('docusaurus-plugin-changelog') as ChangelogData | undefined;
+  const data = usePluginData('docusaurus-plugin-changelog') as {releases?: Release[]} | undefined;
   const latest = data?.releases?.[0];
   if (!latest) return null;
 
@@ -85,8 +84,8 @@ function LatestRelease(): ReactNode {
 
   return (
     <section className={styles.container}>
-      <p className={styles.eyebrow}>Dernière version</p>
-      <h2 className={styles.sectionTitle}>Ce qui vient de sortir</h2>
+      <p className={styles.eyebrow}>Latest release</p>
+      <h2 className={styles.sectionTitle}>What just shipped</h2>
       <div className={styles.release}>
         <div className={styles.releaseLeft}>
           <span className={styles.releaseTag}>{latest.tag}</span>
@@ -100,12 +99,12 @@ function LatestRelease(): ReactNode {
           )}
         </div>
         <div className={styles.releaseRight}>
-          <span className={styles.releaseDate}>Publiée le {formatDate(latest.date)}</span>
+          <span className={styles.releaseDate}>Released {formatDate(latest.date)}</span>
           <Link className={`${styles.btn} ${styles.primary}`} to="/changelog">
-            Lire les notes complètes →
+            Read the full notes →
           </Link>
           <span className={styles.releaseHint}>
-            Le changelog liste automatiquement chaque GitHub Release.
+            The changelog lists every GitHub Release automatically.
           </span>
         </div>
       </div>
@@ -116,9 +115,7 @@ function LatestRelease(): ReactNode {
 export default function Home(): ReactNode {
   const {siteConfig} = useDocusaurusContext();
   return (
-    <Layout
-      title={siteConfig.title}
-      description="Documentation d'architecture, tutoriels, diagrammes et PDF téléchargeables.">
+    <Layout title={siteConfig.title} description={siteConfig.tagline}>
       <Hero />
       <main className={styles.main}>
         <Cards />
