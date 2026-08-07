@@ -74,31 +74,51 @@ jobs:
       - name: Build Docusaurus
         run: BASE_URL="/docusaurus" npm run build
 
-      # Auto-discover doc sections → one build/<section>.pdf per section, plus a
-      # global build/documentation.pdf (all docs). Sections are the top-level
-      # docs/ folders (skipping _* partials) that produced routes.
+      # Auto-discover doc content and generate, after the build:
+      #   * one build/docs/.../<page>.pdf per page (mirrors the page route so a
+      #     page at /docs/a/b is downloadable at /docs/a/b.pdf — see the footer
+      #     link in src/theme/DocItem/Footer),
+      #   * one build/<section>.pdf per top-level docs/ section, and
+      #   * a global build/documentation.pdf (all docs).
       - name: Generate PDFs with WeasyPrint
         env:
           BASE_URL: /docusaurus
         run: |
           docker build -f docker/weasyprint/Dockerfile -t docusaurus-weasyprint .
-          pdf() {  # pdf <id> <title> [<include-route>]
-            id="$1"; title="$2"; include="${3:-}"
-            args=( --build-dir=/data/build --output="/data/build/$id.pdf"
-                   --base-url="$BASE_URL" --title="My Site — $title"
-                   --eyebrow="Documentation" --toc-title="Table of Contents" )
-            [ -n "$include" ] && args+=( --include="$include" )
+
+          # weasy <output-path-under-build-root> <title> [extra generator args…]
+          weasy() {
+            out="$1"; title="$2"; shift 2
+            mkdir -p "$(dirname "$out")"
             docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" \
-              docusaurus-weasyprint "${args[@]}" \
-              || echo "::warning::skipped $id.pdf (no eligible content)"
+              docusaurus-weasyprint \
+              --build-dir=/data/build --output="/data/$out" \
+              --base-url="$BASE_URL" --title="My Site — $title" \
+              --eyebrow="Documentation" --toc-title="Table of Contents" "$@" \
+              || echo "::warning::skipped $out (no eligible content)"
           }
+          titlecase() { echo "$1" | sed -E 's/[-_]+/ /g; s/\b(.)/\U\1/g'; }
+
+          # One PDF per page: mirror the page route as <route>.pdf next to it.
+          # Skip generated-index category pages (/docs/category/*), which are not
+          # real doc pages and carry no footer download link.
+          while IFS= read -r index; do
+            dir=$(dirname "$index"); rel=${dir#build}
+            case "$rel" in */category/*) continue ;; esac
+            weasy "build${rel}.pdf" "$(titlecase "$(basename "$dir")")" \
+              --include-exact="${rel}/"
+          done < <(find build/docs -name index.html)
+
+          # One PDF per top-level section (skip _* partials that produced no route).
           for d in docs/*/; do
             s=$(basename "$d")
             case "$s" in _*) continue ;; esac
             [ -d "build/docs/$s" ] || continue
-            pdf "$s" "$(echo "$s" | sed -E 's/[-_]+/ /g; s/\b(.)/\U\1/g')" "/docs/$s/"
+            weasy "build/$s.pdf" "$(titlecase "$s")" --include="/docs/$s/"
           done
-          pdf documentation "Full documentation" "/docs/"
+
+          # Global: everything.
+          weasy "build/documentation.pdf" "Full documentation" --include="/docs/"
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -159,34 +179,55 @@ jobs:
       - name: Build Docusaurus
         run: BASE_URL="/" npm run build
 
-      # Auto-discover doc sections → one build/<section>.pdf per section, plus a
-      # global build/documentation.pdf (all docs). Sections are the top-level
-      # docs/ folders (skipping _* partials) that produced routes.
+      # Auto-discover doc content and generate, after the build:
+      #   * one build/docs/.../<page>.pdf per page (mirrors the page route),
+      #   * one build/<section>.pdf per top-level docs/ section, and
+      #   * a global build/documentation.pdf (all docs).
       - name: Generate PDFs with WeasyPrint
         env:
           BASE_URL: /
         run: |
           docker build -f docker/weasyprint/Dockerfile -t docusaurus-weasyprint .
-          pdf() {  # pdf <id> <title> [<include-route>]
-            id="$1"; title="$2"; include="${3:-}"
-            args=( --build-dir=/data/build --output="/data/build/$id.pdf"
-                   --base-url="$BASE_URL" --title="My Site — $title"
-                   --eyebrow="Documentation" --toc-title="Table of Contents" )
-            [ -n "$include" ] && args+=( --include="$include" )
+
+          # weasy <output-path-under-build-root> <title> [extra generator args…]
+          weasy() {
+            out="$1"; title="$2"; shift 2
+            mkdir -p "$(dirname "$out")"
             docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" \
-              docusaurus-weasyprint "${args[@]}" \
-              || echo "::warning::skipped $id.pdf (no eligible content)"
+              docusaurus-weasyprint \
+              --build-dir=/data/build --output="/data/$out" \
+              --base-url="$BASE_URL" --title="My Site — $title" \
+              --eyebrow="Documentation" --toc-title="Table of Contents" "$@" \
+              || echo "::warning::skipped $out (no eligible content)"
           }
+          titlecase() { echo "$1" | sed -E 's/[-_]+/ /g; s/\b(.)/\U\1/g'; }
+
+          # One PDF per page: mirror the page route as <route>.pdf next to it.
+          # Skip generated-index category pages (/docs/category/*).
+          while IFS= read -r index; do
+            dir=$(dirname "$index"); rel=${dir#build}
+            case "$rel" in */category/*) continue ;; esac
+            weasy "build${rel}.pdf" "$(titlecase "$(basename "$dir")")" \
+              --include-exact="${rel}/"
+          done < <(find build/docs -name index.html)
+
+          # One PDF per top-level section (skip _* partials that produced no route).
           for d in docs/*/; do
             s=$(basename "$d")
             case "$s" in _*) continue ;; esac
             [ -d "build/docs/$s" ] || continue
-            pdf "$s" "$(echo "$s" | sed -E 's/[-_]+/ /g; s/\b(.)/\U\1/g')" "/docs/$s/"
+            weasy "build/$s.pdf" "$(titlecase "$s")" --include="/docs/$s/"
           done
-          pdf documentation "Full documentation" "/docs/"
+
+          # Global: everything.
+          weasy "build/documentation.pdf" "Full documentation" --include="/docs/"
 
       - name: Upload PDF artifacts
         uses: actions/upload-artifact@v4
         with:
           name: documentation-pdfs
-          path: build/*.pdf
+          # Section/global PDFs at the build root plus one PDF per page nested
+          # under build/docs/**.
+          path: |
+            build/*.pdf
+            build/docs/**/*.pdf

@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
@@ -7,6 +8,85 @@ import remarkPlantUMLInline from './src/remark/plantuml-inline.mjs';
 import remarkMermaidInline from './src/remark/mermaid-inline.mjs';
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
+
+// Build the "📄 PDF" navbar dropdown from the filesystem so it mirrors the docs
+// sidebar and the PDFs CI produces (see .github/workflows/deploy.yml). Each
+// top-level sidebar entry gets a menu item:
+//   * a top-level doc file (e.g. intro.md) → its per-page PDF at /docs/<id>.pdf,
+//   * a section folder (e.g. architecture/) → its section PDF at /<section>.pdf,
+// followed by a "Full documentation" entry for the whole documentation. Entries
+// are labelled and ordered like the sidebar (sidebar_position / _category_.json
+// position, then label), and _* partials are skipped — the same rules the
+// workflow uses to decide which PDFs to build.
+function pdfMenuItems() {
+  const docsDir = path.resolve('docs');
+  const UNPOSITIONED = Number.MAX_SAFE_INTEGER;
+
+  // Pull the few scalar keys we need from a doc's leading `---` frontmatter.
+  const readFrontmatter = (file: string): Record<string, string> => {
+    const block = fs.readFileSync(file, 'utf8').match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    const out: Record<string, string> = {};
+    for (const line of block ? block[1].split(/\r?\n/) : []) {
+      const kv = line.match(/^([A-Za-z0-9_]+)\s*:\s*(.*)$/);
+      if (kv) out[kv[1]] = kv[2].trim().replace(/^['"]|['"]$/g, '');
+    }
+    return out;
+  };
+  const firstHeading = (file: string): string | undefined =>
+    fs.readFileSync(file, 'utf8').match(/^#\s+(.+)$/m)?.[1].trim();
+  const hasDocPage = (dir: string): boolean =>
+    fs.readdirSync(dir, {withFileTypes: true}).some((entry) => {
+      if (entry.name.startsWith('_')) return false; // _* files/folders are partials
+      return entry.isDirectory()
+        ? hasDocPage(path.join(dir, entry.name))
+        : /\.mdx?$/.test(entry.name);
+    });
+
+  const items: {to: string; label: string; position: number}[] = [];
+  for (const entry of fs.readdirSync(docsDir, {withFileTypes: true})) {
+    if (entry.name.startsWith('_')) continue;
+    const full = path.join(docsDir, entry.name);
+
+    if (entry.isDirectory()) {
+      if (!hasDocPage(full)) continue; // e.g. docs/plantuml (only .puml, no page)
+      // Section → whole-section PDF. Label/position from _category_.json, else
+      // the raw folder name (matching how Docusaurus labels the sidebar).
+      let label = entry.name;
+      let position = UNPOSITIONED;
+      const catFile = path.join(full, '_category_.json');
+      if (fs.existsSync(catFile)) {
+        try {
+          const cat = JSON.parse(fs.readFileSync(catFile, 'utf8'));
+          if (typeof cat.label === 'string') label = cat.label;
+          if (typeof cat.position === 'number') position = cat.position;
+        } catch {
+          /* ignore a malformed _category_.json and fall back to the folder name */
+        }
+      }
+      items.push({to: `pathname:///${entry.name}.pdf`, label, position});
+    } else if (/\.mdx?$/.test(entry.name)) {
+      // Standalone top-level doc → its per-page PDF (assumes the default route
+      // /docs/<id>; a custom `slug` would need mapping here). Label like the
+      // sidebar: sidebar_label, else frontmatter title, else the first heading.
+      const id = entry.name.replace(/\.mdx?$/, '');
+      const fm = readFrontmatter(full);
+      items.push({
+        to: `pathname:///docs/${id}.pdf`,
+        label: fm.sidebar_label || fm.title || firstHeading(full) || id,
+        position: fm.sidebar_position ? Number(fm.sidebar_position) : UNPOSITIONED,
+      });
+    }
+  }
+
+  items.sort((a, b) => a.position - b.position || a.label.localeCompare(b.label));
+
+  // `pathname://` serves each link as-is (baseUrl-aware, no broken-link check):
+  // the PDFs don't exist at build time, CI writes them afterwards.
+  return [
+    ...items.map(({to, label}) => ({to, label})),
+    {to: 'pathname:///documentation.pdf', label: 'Full documentation'},
+  ];
+}
 
 const config: Config = {
   title: 'My Site',
@@ -125,19 +205,13 @@ const config: Config = {
         {to: '/tldraw', label: 'TlDraw', position: 'left'},
         {to: '/likec4', label: 'Architecture', position: 'left'},
         {
-          // PDF download menu — links chosen by hand. PDFs are AUTO-DISCOVERED
-          // and produced by CI AFTER the build: the all-in-one at
-          // `/<globalId>.pdf` (default documentation.pdf) and one per section at
-          // `/<section>.pdf`. They don't exist at build time; `pathname://`
-          // serves each link as-is (baseUrl-aware, no broken-link check).
-          // Add/remove items here to control what appears in the menu.
+          // PDF download menu — AUTO-DISCOVERED from the docs/ folder at build
+          // time (see pdfMenuItems above): one entry per section plus the whole
+          // documentation. The matching PDFs are produced by CI after the build.
           type: 'dropdown',
           label: '📄 PDF',
           position: 'right',
-          items: [
-            {to: 'pathname:///documentation.pdf', label: 'Full documentation'},
-            {to: 'pathname:///architecture.pdf', label: 'Architecture'},
-          ],
+          items: pdfMenuItems(),
         },
         {
           href: 'https://github.com/InnovateIt-ak/docusaurus',
