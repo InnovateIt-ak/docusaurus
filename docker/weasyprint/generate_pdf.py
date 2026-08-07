@@ -251,11 +251,11 @@ def extract_article(page_html: str, index: int):
     from bs4 import BeautifulSoup
 
     soup = BeautifulSoup(page_html, "html.parser")
-    node = (
-        soup.select_one(".theme-doc-markdown")
-        or soup.select_one("article")
-        or soup.select_one("main")
-    )
+    # Only real documentation pages carry `.theme-doc-markdown`. Generated-index
+    # / category landing pages (a grid of cards, no prose) do not, so returning
+    # empty here keeps them out of every PDF — including the global one, whose
+    # `/docs/` filter would otherwise pull them in as junk "cards" chapters.
+    node = soup.select_one(".theme-doc-markdown")
     if node is None:
         return "Document", "", []
 
