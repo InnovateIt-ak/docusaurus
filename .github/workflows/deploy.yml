@@ -74,7 +74,7 @@ jobs:
       - name: Build Docusaurus
         run: BASE_URL="/docusaurus" npm run build
 
-      # Generate every PDF declared in pdf.config.mjs (one build/<id>.pdf each).
+      # Generate every PDF declared in sharedConfig.ts (PDF_DOCS) (one build/<id>.pdf each).
       - name: Generate PDFs with WeasyPrint
         run: node scripts/generate-pdfs.mjs
         env:
@@ -139,7 +139,7 @@ jobs:
       - name: Build Docusaurus
         run: BASE_URL="/" npm run build
 
-      # Generate every PDF declared in pdf.config.mjs (one build/<id>.pdf each).
+      # Generate every PDF declared in sharedConfig.ts (PDF_DOCS) (one build/<id>.pdf each).
       - name: Generate PDFs with WeasyPrint
         run: node scripts/generate-pdfs.mjs
         env:

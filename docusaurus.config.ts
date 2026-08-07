@@ -5,7 +5,6 @@ import type * as Preset from '@docusaurus/preset-classic';
 import remarkInclude from './src/remark/include.mjs';
 import remarkPlantUMLInline from './src/remark/plantuml-inline.mjs';
 import remarkMermaidInline from './src/remark/mermaid-inline.mjs';
-import {PDF_DOCS} from './pdf.config.mjs';
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
@@ -126,19 +125,18 @@ const config: Config = {
         {to: '/tldraw', label: 'TlDraw', position: 'left'},
         {to: '/likec4', label: 'Architecture', position: 'left'},
         {
-          // PDF download menu, generated from pdf.config.mjs — one item per
-          // document. The PDFs are produced by CI AFTER the Docusaurus build
-          // (so they don't exist at build time); `pathname://` serves each link
+          // PDF download menu — links chosen by hand. Each PDF is produced by
+          // CI from sharedConfig.ts (build/<id>.pdf) AFTER the Docusaurus build,
+          // so it doesn't exist at build time; `pathname://` serves the link
           // as-is (baseUrl-aware, no routing / no broken-link check).
+          // Add/remove items here to control what appears in the menu.
           type: 'dropdown',
           label: '📄 PDF',
           position: 'right',
-          items: PDF_DOCS
-            .filter((doc) => doc.inMenu !== false)
-            .map((doc) => ({
-              to: `pathname:///${doc.id}.pdf`,
-              label: doc.label,
-            })),
+          items: [
+            {to: 'pathname:///architecture.pdf', label: 'Architecture'},
+            {to: 'pathname:///tutorial.pdf', label: 'Tutorial'},
+          ],
         },
         {
           href: 'https://github.com/InnovateIt-ak/docusaurus',

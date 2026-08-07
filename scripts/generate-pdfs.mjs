@@ -1,10 +1,14 @@
-// Generate one PDF per entry in pdf.config.mjs.
+// Generate one PDF per entry in PDF_DOCS (defined in sharedConfig.ts).
 //
 // Usage:
-//   node scripts/generate-pdfs.mjs
+//   node scripts/generate-pdfs.mjs           generate every PDF
+//   node scripts/generate-pdfs.mjs --list    print PDF_DOCS as JSON and exit
 //
 // Runs the WeasyPrint converter over the already-built `build/` directory once
-// per document defined in pdf.config.mjs, writing `build/<id>.pdf` for each.
+// per document defined in sharedConfig.ts, writing `build/<id>.pdf` for each.
+//
+// `--list` is handy in a split-image CI (e.g. a separate converter image):
+// dump the config with the app image, then loop the converter image over it.
 //
 // Runner:
 //   * default — the Docker image `docker/weasyprint/Dockerfile` (matches CI;
@@ -17,7 +21,24 @@
 //              Must match the `npm run build` BASE_URL so asset paths resolve.
 
 import {execFileSync} from 'node:child_process';
-import {PDF_DOCS} from '../pdf.config.mjs';
+import {createRequire} from 'node:module';
+import {fileURLToPath} from 'node:url';
+import {dirname, resolve} from 'node:path';
+
+// PDF_DOCS lives in sharedConfig.ts (TypeScript). This script runs under plain
+// Node, which can't import .ts directly — load it through jiti (already a
+// Docusaurus dependency), exactly like Docusaurus loads the site config.
+const require = createRequire(import.meta.url);
+const here = dirname(fileURLToPath(import.meta.url));
+const jiti = require('jiti')(fileURLToPath(import.meta.url), {interopDefault: true});
+const {PDF_DOCS} = jiti(resolve(here, '..', 'sharedConfig.ts'));
+
+// `--list`: print the config as JSON and exit (used to drive an external
+// per-document loop, e.g. a separate converter image in CI).
+if (process.argv.includes('--list')) {
+  process.stdout.write(JSON.stringify(PDF_DOCS ?? []));
+  process.exit(0);
+}
 
 const BASE_URL = process.env.BASE_URL ?? '/';
 const LOCAL = process.env.PDF_LOCAL === '1';
@@ -46,7 +67,7 @@ function converterArgs(doc, buildDir, outPath) {
 }
 
 if (!PDF_DOCS.length) {
-  console.error('[pdfs] pdf.config.mjs has no entries — nothing to generate.');
+  console.error('[pdfs] sharedConfig.ts PDF_DOCS has no entries — nothing to generate.');
   process.exit(1);
 }
 
@@ -59,7 +80,7 @@ if (!LOCAL) {
 }
 
 for (const doc of PDF_DOCS) {
-  console.error(`[pdfs] → ${doc.id}.pdf  (${doc.label})`);
+  console.error(`[pdfs] → ${doc.id}.pdf  (${doc.title})`);
   if (LOCAL) {
     run('python3', [
       'docker/weasyprint/generate_pdf.py',
