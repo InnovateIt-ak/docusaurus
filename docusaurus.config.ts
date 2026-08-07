@@ -125,13 +125,19 @@ const config: Config = {
         {to: '/tldraw', label: 'TlDraw', position: 'left'},
         {to: '/likec4', label: 'Architecture', position: 'left'},
         {
-          // Lien de téléchargement du PDF. Il est généré par la CI APRÈS le
-          // build Docusaurus (il n'existe donc pas au build). Le protocole
-          // `pathname://` laisse Docusaurus servir le lien tel quel, sans
-          // routage ni vérification de lien cassé.
-          to: 'pathname:///documentation.pdf',
+          // PDF download menu — links chosen by hand. PDFs are AUTO-DISCOVERED
+          // and produced by CI AFTER the build: the all-in-one at
+          // `/<globalId>.pdf` (default documentation.pdf) and one per section at
+          // `/<section>.pdf`. They don't exist at build time; `pathname://`
+          // serves each link as-is (baseUrl-aware, no broken-link check).
+          // Add/remove items here to control what appears in the menu.
+          type: 'dropdown',
           label: '📄 PDF',
           position: 'right',
+          items: [
+            {to: 'pathname:///documentation.pdf', label: 'Full documentation'},
+            {to: 'pathname:///architecture.pdf', label: 'Architecture'},
+          ],
         },
         {
           href: 'https://github.com/InnovateIt-ak/docusaurus',
