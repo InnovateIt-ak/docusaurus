@@ -27,8 +27,26 @@ function getBrowser() {
     return browserPromise;
 }
 
+// Un pipe stdout cassé (le build parent s'est arrêté) ne doit PAS crasher cet
+// enfant via un event 'error' non géré : on traite EPIPE comme « le parent a
+// fermé, on s'arrête proprement » plutôt que de remonter un exit non nul qui
+// masquerait la vraie cause de l'échec du build.
+function onPipeError(err) {
+    if (err && (err.code === 'EPIPE' || err.code === 'ERR_STREAM_DESTROYED')) {
+        process.exit(0);
+    }
+    throw err;
+}
+process.stdout.on('error', onPipeError);
+process.stdin.on('error', onPipeError);
+
 function send(message) {
-    process.stdout.write(JSON.stringify(message) + '\n');
+    if (!process.stdout.writable) return; // parent déjà parti : rien à écrire
+    try {
+        process.stdout.write(JSON.stringify(message) + '\n');
+    } catch (err) {
+        onPipeError(err);
+    }
 }
 
 // File d'attente série : un rendu à la fois, réponses non entrelacées.
