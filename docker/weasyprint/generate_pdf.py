@@ -181,8 +181,15 @@ def make_handler(build_dir: str, base_prefix: str):
     return functools.partial(Handler, directory=build_dir)
 
 
-def discover_doc_routes(build_dir, base_prefix, exclude, include) -> list[str]:
-    """Return ordered HTTP paths for every documentation page."""
+def discover_doc_routes(build_dir, base_prefix, exclude, include, include_exact=None) -> list[str]:
+    """Return ordered HTTP paths for every documentation page.
+
+    ``include`` keeps routes whose path *contains* any of the given substrings
+    (used to select a whole section). ``include_exact`` keeps only routes that
+    *equal* one of the given paths, compared without the base prefix and with a
+    single trailing slash — this is what makes "one page → one PDF" reliable
+    even when a page's route is a prefix of another page's route.
+    """
     docs_dir = os.path.join(build_dir, "docs")
     routes: list[str] = []
 
@@ -197,6 +204,18 @@ def discover_doc_routes(build_dir, base_prefix, exclude, include) -> list[str]:
     if not routes and os.path.exists(os.path.join(build_dir, "index.html")):
         routes.append(f"{base_prefix}/")
 
+    if include_exact:
+        def normalize(path: str) -> str:
+            path = path if path.startswith("/") else "/" + path
+            return path if path.endswith("/") else path + "/"
+
+        def rel_route(route: str) -> str:
+            if base_prefix and route.startswith(base_prefix):
+                route = route[len(base_prefix):] or "/"
+            return route if route.endswith("/") else route + "/"
+
+        wanted = {normalize(p) for p in include_exact}
+        routes = [r for r in routes if rel_route(r) in wanted]
     if include:
         routes = [r for r in routes if any(pat in r for pat in include)]
     if exclude:
@@ -363,6 +382,7 @@ def main() -> int:
     parser.add_argument("--port", type=int, default=8765, help="Local HTTP port.")
     parser.add_argument("--exclude", default="", help="Comma-separated route substrings to skip.")
     parser.add_argument("--include", default="", help="Comma-separated route substrings to keep (others are skipped).")
+    parser.add_argument("--include-exact", default="", help="Comma-separated exact routes to keep (one page → one PDF).")
     parser.add_argument("--title", default="Documentation", help="Cover title.")
     parser.add_argument("--subtitle", default="", help="Cover subtitle.")
     parser.add_argument("--eyebrow", default="Documentation", help="Small label above the cover title.")
@@ -373,6 +393,7 @@ def main() -> int:
 
     exclude = [p.strip() for p in args.exclude.split(",") if p.strip()]
     include = [p.strip() for p in args.include.split(",") if p.strip()]
+    include_exact = [p.strip() for p in args.include_exact.split(",") if p.strip()]
 
     build_dir = os.path.abspath(args.build_dir)
     if not os.path.isdir(build_dir):
@@ -382,7 +403,7 @@ def main() -> int:
     from weasyprint import CSS, HTML
 
     base_prefix = normalize_base_url(args.base_url)
-    routes = discover_doc_routes(build_dir, base_prefix, exclude, include)
+    routes = discover_doc_routes(build_dir, base_prefix, exclude, include, include_exact)
     if not routes:
         log("No pages found to render.")
         return 1
