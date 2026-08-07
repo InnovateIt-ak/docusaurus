@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
@@ -7,6 +8,41 @@ import remarkPlantUMLInline from './src/remark/plantuml-inline.mjs';
 import remarkMermaidInline from './src/remark/mermaid-inline.mjs';
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
+
+// Build the "📄 PDF" navbar dropdown from the filesystem so it always mirrors
+// the PDFs CI produces (see .github/workflows/deploy.yml): one entry per doc
+// section plus one for the whole documentation. A "section" is a top-level
+// docs/ folder (skipping _* partials) that actually contains a doc page — the
+// exact same rule the workflow uses to decide which /<section>.pdf to build.
+function pdfMenuItems() {
+  const docsDir = path.resolve('docs');
+  const titleCase = (name: string) =>
+    name.replace(/[-_]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  const hasDocPage = (dir: string): boolean =>
+    fs.readdirSync(dir, {withFileTypes: true}).some((entry) => {
+      if (entry.name.startsWith('_')) return false; // _* files/folders are partials
+      return entry.isDirectory()
+        ? hasDocPage(path.join(dir, entry.name))
+        : /\.mdx?$/.test(entry.name);
+    });
+
+  const sections = fs
+    .readdirSync(docsDir, {withFileTypes: true})
+    .filter((entry) => entry.isDirectory() && !entry.name.startsWith('_'))
+    .map((entry) => entry.name)
+    .filter((name) => hasDocPage(path.join(docsDir, name)))
+    .sort();
+
+  // `pathname://` serves each link as-is (baseUrl-aware, no broken-link check):
+  // the PDFs don't exist at build time, CI writes them afterwards.
+  return [
+    ...sections.map((name) => ({
+      to: `pathname:///${name}.pdf`,
+      label: titleCase(name),
+    })),
+    {to: 'pathname:///documentation.pdf', label: 'Full documentation'},
+  ];
+}
 
 const config: Config = {
   title: 'My Site',
@@ -125,19 +161,13 @@ const config: Config = {
         {to: '/tldraw', label: 'TlDraw', position: 'left'},
         {to: '/likec4', label: 'Architecture', position: 'left'},
         {
-          // PDF download menu — links chosen by hand. PDFs are AUTO-DISCOVERED
-          // and produced by CI AFTER the build: the all-in-one at
-          // `/<globalId>.pdf` (default documentation.pdf) and one per section at
-          // `/<section>.pdf`. They don't exist at build time; `pathname://`
-          // serves each link as-is (baseUrl-aware, no broken-link check).
-          // Add/remove items here to control what appears in the menu.
+          // PDF download menu — AUTO-DISCOVERED from the docs/ folder at build
+          // time (see pdfMenuItems above): one entry per section plus the whole
+          // documentation. The matching PDFs are produced by CI after the build.
           type: 'dropdown',
           label: '📄 PDF',
           position: 'right',
-          items: [
-            {to: 'pathname:///documentation.pdf', label: 'Full documentation'},
-            {to: 'pathname:///architecture.pdf', label: 'Architecture'},
-          ],
+          items: pdfMenuItems(),
         },
         {
           href: 'https://github.com/InnovateIt-ak/docusaurus',
