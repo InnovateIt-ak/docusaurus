@@ -173,6 +173,9 @@ const config: Config = {
   ],
 
   plugins: [
+    // Changelog : récupère les GitHub Releases au build et les expose en global
+    // data pour la page /changelog (voir plugins/changelog + src/pages/changelog).
+    './plugins/changelog',
     // Dev : recompile la page quand un fichier inclus via `#include` change.
     // Déclare les fichiers inclus comme dépendances webpack (hot reload).
     function remarkIncludeWatchPlugin() {
@@ -215,6 +218,7 @@ const config: Config = {
         {to: '/blog', label: 'Blog', position: 'left'},
         {to: '/tldraw', label: 'TlDraw', position: 'left'},
         {to: '/likec4', label: 'Architecture', position: 'left'},
+        {to: '/changelog', label: 'Changelog', position: 'left'},
         {
           // PDF download menu — AUTO-DISCOVERED from the docs/ folder at build
           // time (see pdfMenuItems above): one entry per section plus the whole
