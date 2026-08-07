@@ -42,6 +42,15 @@ let child = null;
 let nextId = 0;
 const pending = new Map();
 
+// Garde le pipe stdout de l'enfant référencé tant qu'un diagramme est en
+// attente de réponse (sinon l'event loop peut se vider avant l'arrivée du SVG
+// → exit 13), et le libère une fois idle pour ne pas bloquer la fin du build.
+function syncStdoutRef() {
+    if (!child) return;
+    if (pending.size > 0) child.stdout.ref();
+    else child.stdout.unref();
+}
+
 function ensureChild() {
     if (child) return child;
     child = spawn(process.execPath, [RENDERER_PATH], {
@@ -52,6 +61,13 @@ function ensureChild() {
     // cela, `npm run build` reste bloqué après avoir généré les fichiers. Quand
     // le parent se termine, l'enfant reçoit EOF sur stdin, ferme Chromium et
     // s'arrête (voir mermaid-renderer.mjs).
+    //
+    // ATTENTION : on ne déréférence stdout QUE lorsqu'aucun diagramme n'est en
+    // attente (voir syncStdoutRef). Le déréférencer en permanence viderait
+    // l'event loop pendant qu'un rendu est en vol — plus aucun handle référencé,
+    // la réponse de l'enfant n'arrive jamais, et Node sort en « unsettled
+    // top-level await » (code 13). On le re-référence donc dès qu'une requête
+    // part, et on ne le libère qu'une fois toutes les réponses reçues.
     child.unref();
     child.stdout.unref();
     createInterface({input: child.stdout}).on('line', (line) => {
@@ -66,6 +82,7 @@ function ensureChild() {
         const resolver = pending.get(message.id);
         if (!resolver) return;
         pending.delete(message.id);
+        syncStdoutRef(); // idle → libère l'event loop ; sinon garde-le en vie
         if (message.ok) resolver.resolve(message.svg);
         else resolver.reject(new Error(message.error || 'unknown mermaid render error'));
     });
@@ -96,6 +113,7 @@ function renderSvgViaChild(source) {
     const id = nextId++;
     return new Promise((resolve, reject) => {
         pending.set(id, {resolve, reject});
+        syncStdoutRef(); // rendu en vol : garde l'event loop en vie jusqu'à la réponse
         proc.stdin.write(JSON.stringify({id, source}) + '\n');
     });
 }
