@@ -30,7 +30,7 @@ export default function FooterWrapper(props: Props): ReactNode {
           <Translate
             id="theme.docs.pdfDownload.label"
             description="Label of the per-page PDF download link at the bottom of a doc page">
-            📄 Télécharger cette page en PDF
+            📄 Download this page as PDF
           </Translate>
         </a>
       </div>
