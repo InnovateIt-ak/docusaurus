@@ -309,6 +309,12 @@ ul.toc li {
   break-before: page;
   break-after: page;
 }
+/* …but when the landscape block is the last thing in its chapter, the
+   break-after would emit a trailing blank portrait page (the next chapter's
+   break-before, or the document end, already breaks). Drop it in that case. */
+.markdown > .landscape-block:last-child {
+  break-after: auto !important;
+}
 /* A wide diagram on its landscape page, centred and scaled to fit. The extra
    `.markdown` in the selector raises specificity above `.markdown img` above so
    this landscape height cap (fitting the shorter landscape page) wins over the
