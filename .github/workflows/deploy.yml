@@ -74,11 +74,31 @@ jobs:
       - name: Build Docusaurus
         run: BASE_URL="/docusaurus" npm run build
 
-      # Auto-discover doc sections → one PDF per section + a global all-in-one PDF.
+      # Auto-discover doc sections → one build/<section>.pdf per section, plus a
+      # global build/documentation.pdf (all docs). Sections are the top-level
+      # docs/ folders (skipping _* partials) that produced routes.
       - name: Generate PDFs with WeasyPrint
-        run: node scripts/generate-pdfs.mjs
         env:
           BASE_URL: /docusaurus
+        run: |
+          docker build -f docker/weasyprint/Dockerfile -t docusaurus-weasyprint .
+          pdf() {  # pdf <id> <title> [<include-route>]
+            id="$1"; title="$2"; include="${3:-}"
+            args=( --build-dir=/data/build --output="/data/build/$id.pdf"
+                   --base-url="$BASE_URL" --title="My Site — $title"
+                   --eyebrow="Documentation" --toc-title="Table of Contents" )
+            [ -n "$include" ] && args+=( --include="$include" )
+            docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" \
+              docusaurus-weasyprint "${args[@]}" \
+              || echo "::warning::skipped $id.pdf (no eligible content)"
+          }
+          for d in docs/*/; do
+            s=$(basename "$d")
+            case "$s" in _*) continue ;; esac
+            [ -d "build/docs/$s" ] || continue
+            pdf "$s" "$(echo "$s" | sed -E 's/[-_]+/ /g; s/\b(.)/\U\1/g')" "/docs/$s/"
+          done
+          pdf documentation "Full documentation" "/docs/"
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -139,11 +159,31 @@ jobs:
       - name: Build Docusaurus
         run: BASE_URL="/" npm run build
 
-      # Auto-discover doc sections → one PDF per section + a global all-in-one PDF.
+      # Auto-discover doc sections → one build/<section>.pdf per section, plus a
+      # global build/documentation.pdf (all docs). Sections are the top-level
+      # docs/ folders (skipping _* partials) that produced routes.
       - name: Generate PDFs with WeasyPrint
-        run: node scripts/generate-pdfs.mjs
         env:
           BASE_URL: /
+        run: |
+          docker build -f docker/weasyprint/Dockerfile -t docusaurus-weasyprint .
+          pdf() {  # pdf <id> <title> [<include-route>]
+            id="$1"; title="$2"; include="${3:-}"
+            args=( --build-dir=/data/build --output="/data/build/$id.pdf"
+                   --base-url="$BASE_URL" --title="My Site — $title"
+                   --eyebrow="Documentation" --toc-title="Table of Contents" )
+            [ -n "$include" ] && args+=( --include="$include" )
+            docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" \
+              docusaurus-weasyprint "${args[@]}" \
+              || echo "::warning::skipped $id.pdf (no eligible content)"
+          }
+          for d in docs/*/; do
+            s=$(basename "$d")
+            case "$s" in _*) continue ;; esac
+            [ -d "build/docs/$s" ] || continue
+            pdf "$s" "$(echo "$s" | sed -E 's/[-_]+/ /g; s/\b(.)/\U\1/g')" "/docs/$s/"
+          done
+          pdf documentation "Full documentation" "/docs/"
 
       - name: Upload PDF artifacts
         uses: actions/upload-artifact@v4
