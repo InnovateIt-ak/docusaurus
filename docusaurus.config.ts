@@ -5,6 +5,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 import remarkInclude from './src/remark/include.mjs';
 import remarkPlantUMLInline from './src/remark/plantuml-inline.mjs';
 import remarkMermaidInline from './src/remark/mermaid-inline.mjs';
+import {PDF_DOCS} from './pdf.config.mjs';
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
@@ -125,13 +126,19 @@ const config: Config = {
         {to: '/tldraw', label: 'TlDraw', position: 'left'},
         {to: '/likec4', label: 'Architecture', position: 'left'},
         {
-          // Lien de téléchargement du PDF. Il est généré par la CI APRÈS le
-          // build Docusaurus (il n'existe donc pas au build). Le protocole
-          // `pathname://` laisse Docusaurus servir le lien tel quel, sans
-          // routage ni vérification de lien cassé.
-          to: 'pathname:///documentation.pdf',
+          // PDF download menu, generated from pdf.config.mjs — one item per
+          // document. The PDFs are produced by CI AFTER the Docusaurus build
+          // (so they don't exist at build time); `pathname://` serves each link
+          // as-is (baseUrl-aware, no routing / no broken-link check).
+          type: 'dropdown',
           label: '📄 PDF',
           position: 'right',
+          items: PDF_DOCS
+            .filter((doc) => doc.inMenu !== false)
+            .map((doc) => ({
+              to: `pathname:///${doc.id}.pdf`,
+              label: doc.label,
+            })),
         },
         {
           href: 'https://github.com/InnovateIt-ak/docusaurus',

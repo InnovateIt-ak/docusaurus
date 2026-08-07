@@ -74,19 +74,11 @@ jobs:
       - name: Build Docusaurus
         run: BASE_URL="/docusaurus" npm run build
 
-      - name: Generate PDF with WeasyPrint
-        run: |
-          docker build -f docker/weasyprint/Dockerfile -t docusaurus-weasyprint .
-          docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" docusaurus-weasyprint \
-            --build-dir /data/build \
-            --output /data/build/documentation.pdf \
-            --base-url /docusaurus \
-            --title "My Site — Architecture" \
-            --eyebrow "Software Architecture" \
-            --subtitle "arc42 / MADR architecture documentation" \
-            --toc-title "Table of Contents" \
-            --source "https://innovateit-ak.github.io/docusaurus" \
-            --include /docs/architecture/
+      # Generate every PDF declared in pdf.config.mjs (one build/<id>.pdf each).
+      - name: Generate PDFs with WeasyPrint
+        run: node scripts/generate-pdfs.mjs
+        env:
+          BASE_URL: /docusaurus
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -147,21 +139,14 @@ jobs:
       - name: Build Docusaurus
         run: BASE_URL="/" npm run build
 
-      - name: Generate PDF with WeasyPrint
-        run: |
-          docker build -f docker/weasyprint/Dockerfile -t docusaurus-weasyprint .
-          docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" docusaurus-weasyprint \
-            --build-dir /data/build \
-            --output /data/build/documentation.pdf \
-            --base-url / \
-            --title "My Site — Architecture" \
-            --eyebrow "Software Architecture" \
-            --subtitle "arc42 / MADR architecture documentation" \
-            --toc-title "Table of Contents" \
-            --include /docs/architecture/
+      # Generate every PDF declared in pdf.config.mjs (one build/<id>.pdf each).
+      - name: Generate PDFs with WeasyPrint
+        run: node scripts/generate-pdfs.mjs
+        env:
+          BASE_URL: /
 
-      - name: Upload PDF artifact
+      - name: Upload PDF artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: documentation-pdf
-          path: build/documentation.pdf
+          name: documentation-pdfs
+          path: build/*.pdf
