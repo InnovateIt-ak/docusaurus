@@ -110,11 +110,14 @@ jobs:
           done < <(find build/docs -name index.html)
 
           # One PDF per top-level section (skip _* partials that produced no route).
+          # Strip a Docusaurus number prefix from the folder name to get the built
+          # route/slug: docs/06-standards/ → build/docs/standards → /standards.pdf.
           for d in docs/*/; do
             s=$(basename "$d")
             case "$s" in _*) continue ;; esac
-            [ -d "build/docs/$s" ] || continue
-            weasy "build/$s.pdf" "$(titlecase "$s")" --include="/docs/$s/"
+            slug=$(printf '%s' "$s" | sed -E 's/^[0-9]+[[:space:]]*[-_.][[:space:]]*//; t; s/^[0-9]+[[:space:]]+//')
+            [ -d "build/docs/$slug" ] || continue
+            weasy "build/$slug.pdf" "$(titlecase "$slug")" --include="/docs/$slug/"
           done
 
           # Global: everything.
@@ -212,11 +215,14 @@ jobs:
           done < <(find build/docs -name index.html)
 
           # One PDF per top-level section (skip _* partials that produced no route).
+          # Strip a Docusaurus number prefix from the folder name to get the built
+          # route/slug: docs/06-standards/ → build/docs/standards → /standards.pdf.
           for d in docs/*/; do
             s=$(basename "$d")
             case "$s" in _*) continue ;; esac
-            [ -d "build/docs/$s" ] || continue
-            weasy "build/$s.pdf" "$(titlecase "$s")" --include="/docs/$s/"
+            slug=$(printf '%s' "$s" | sed -E 's/^[0-9]+[[:space:]]*[-_.][[:space:]]*//; t; s/^[0-9]+[[:space:]]+//')
+            [ -d "build/docs/$slug" ] || continue
+            weasy "build/$slug.pdf" "$(titlecase "$slug")" --include="/docs/$slug/"
           done
 
           # Global: everything.

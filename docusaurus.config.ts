@@ -34,6 +34,13 @@ function pdfMenuItems() {
   };
   const firstHeading = (file: string): string | undefined =>
     fs.readFileSync(file, 'utf8').match(/^#\s+(.+)$/m)?.[1].trim();
+  // Docusaurus strips a leading number prefix ("06-standards" → "standards")
+  // from the URL and uses the number as the sidebar position. We mirror both so
+  // the PDF link matches the real route and the menu keeps the sidebar order.
+  const parseNumberPrefix = (name: string): {value?: number; rest: string} => {
+    const m = name.match(/^(\d+)(?:\s*[-_.]\s*|\s+)(.+)$/);
+    return m ? {value: Number(m[1]), rest: m[2]} : {rest: name};
+  };
   const hasDocPage = (dir: string): boolean =>
     fs.readdirSync(dir, {withFileTypes: true}).some((entry) => {
       if (entry.name.startsWith('_')) return false; // _* files/folders are partials
@@ -49,10 +56,13 @@ function pdfMenuItems() {
 
     if (entry.isDirectory()) {
       if (!hasDocPage(full)) continue; // e.g. docs/plantuml (only .puml, no page)
-      // Section → whole-section PDF. Label/position from _category_.json, else
-      // the raw folder name (matching how Docusaurus labels the sidebar).
-      let label = entry.name;
-      let position = UNPOSITIONED;
+      // Section → whole-section PDF at /<slug>.pdf, where <slug> is the folder
+      // name with its number prefix stripped (matching the route CI builds).
+      // Label/position come from _category_.json; otherwise fall back to the
+      // slug and the number prefix (as the sidebar does).
+      const {value: prefixPos, rest: slug} = parseNumberPrefix(entry.name);
+      let label = slug;
+      let position = prefixPos ?? UNPOSITIONED;
       const catFile = path.join(full, '_category_.json');
       if (fs.existsSync(catFile)) {
         try {
@@ -60,20 +70,21 @@ function pdfMenuItems() {
           if (typeof cat.label === 'string') label = cat.label;
           if (typeof cat.position === 'number') position = cat.position;
         } catch {
-          /* ignore a malformed _category_.json and fall back to the folder name */
+          /* ignore a malformed _category_.json and fall back to the slug */
         }
       }
-      items.push({to: `pathname:///${entry.name}.pdf`, label, position});
+      items.push({to: `pathname:///${slug}.pdf`, label, position});
     } else if (/\.mdx?$/.test(entry.name)) {
       // Standalone top-level doc → its per-page PDF (assumes the default route
-      // /docs/<id>; a custom `slug` would need mapping here). Label like the
-      // sidebar: sidebar_label, else frontmatter title, else the first heading.
-      const id = entry.name.replace(/\.mdx?$/, '');
+      // /docs/<id>; a custom `slug` would need mapping here). Id and order also
+      // honour a number prefix ("01-intro.md" → /docs/intro.pdf, position 1).
+      // Label like the sidebar: sidebar_label, else title, else first heading.
+      const {value: prefixPos, rest: id} = parseNumberPrefix(entry.name.replace(/\.mdx?$/, ''));
       const fm = readFrontmatter(full);
       items.push({
         to: `pathname:///docs/${id}.pdf`,
         label: fm.sidebar_label || fm.title || firstHeading(full) || id,
-        position: fm.sidebar_position ? Number(fm.sidebar_position) : UNPOSITIONED,
+        position: fm.sidebar_position ? Number(fm.sidebar_position) : prefixPos ?? UNPOSITIONED,
       });
     }
   }
