@@ -105,6 +105,11 @@ jobs:
           while IFS= read -r index; do
             dir=$(dirname "$index"); rel=${dir#build}
             case "$rel" in */category/*) continue ;; esac
+            # Skip generated-index / section landing pages: they carry no real
+            # markdown article (no .theme-doc-markdown), just a grid of cards, so
+            # they must never be rendered to PDF. Robust for any URL, not just
+            # /docs/category/*.
+            grep -q 'theme-doc-markdown' "$index" || continue
             weasy "build${rel}.pdf" "$(titlecase "$(basename "$dir")")" \
               --include-exact="${rel}/"
           done < <(find build/docs -name index.html)
@@ -210,6 +215,11 @@ jobs:
           while IFS= read -r index; do
             dir=$(dirname "$index"); rel=${dir#build}
             case "$rel" in */category/*) continue ;; esac
+            # Skip generated-index / section landing pages: they carry no real
+            # markdown article (no .theme-doc-markdown), just a grid of cards, so
+            # they must never be rendered to PDF. Robust for any URL, not just
+            # /docs/category/*.
+            grep -q 'theme-doc-markdown' "$index" || continue
             weasy "build${rel}.pdf" "$(titlecase "$(basename "$dir")")" \
               --include-exact="${rel}/"
           done < <(find build/docs -name index.html)
