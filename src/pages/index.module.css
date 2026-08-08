@@ -1,5 +1,8 @@
 .container {
-  max-width: 1120px;
+  /* Widened to match the roomier documentation layout: at 1120px the hero and
+     cards were cramped in the middle with large empty margins on wide screens.
+     1400px reduces that dead space and lets the cards form clean rows of four. */
+  max-width: 1400px;
   margin: 0 auto;
   padding: 0 24px;
 }
