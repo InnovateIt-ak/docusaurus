@@ -421,6 +421,16 @@ pre {
 .markdown pre.prism-code {
   font-size: 8.5pt;
   line-height: 1.4;
+  /* Docusaurus puts the code padding on the <code> (.codeBlockLines). With the
+     lines laid out inline for the PDF, wrapped lines then lost that left padding
+     and drifted ~1rem left of the first line (misaligned "extra space"). Put the
+     padding on the <pre> box so every line shares the same inset — and it gives
+     the block a little breathing room. */
+  padding: 3mm 4mm !important;
+}
+.markdown pre.prism-code > code,
+.markdown [class*="codeBlockLines"] {
+  padding: 0 !important;
 }
 /* Each code line is a block <div class="token-line"> that ALSO ends in a <br>.
    Under `white-space: pre-wrap` both the block and the <br> break the line, so
