@@ -55,4 +55,36 @@
   main[class*='docMainContainer'] > .container {
     max-width: 1600px;
   }
+
+  /* Make the right on-page table-of-contents column narrower (default is a
+     wide col--3 = 25%), and lift the theme's 75% cap on the article column so
+     the article absorbs the freed width instead of leaving a gap. Net effect:
+     a smaller right menu and a wider reading area. Scoped to the doc main
+     container so the col--3 override does not touch other grids on the page. */
+  main[class*='docMainContainer'] .col--3 {
+    flex: 0 0 200px;
+    max-width: 200px;
+  }
+  /* !important: the theme caps the article column at `max-width: 75% !important`,
+     so a plain declaration would lose. */
+  main[class*='docMainContainer'] [class*='docItemCol'] {
+    max-width: none !important;
+  }
+}
+
+/* Left documentation sidebar: slightly narrower and a smaller menu font, so the
+   nav takes less room and leaves more for the content. Desktop only — below
+   997px the sidebar is a full-screen drawer where these do not apply. */
+@media (min-width: 997px) {
+  :root {
+    --doc-sidebar-width: 270px;
+  }
+  .menu__link,
+  .menu__caret {
+    font-size: 0.84rem;
+  }
+  .menu__link {
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
+  }
 }
