@@ -62,8 +62,8 @@
      a smaller right menu and a wider reading area. Scoped to the doc main
      container so the col--3 override does not touch other grids on the page. */
   main[class*='docMainContainer'] .col--3 {
-    flex: 0 0 200px;
-    max-width: 200px;
+    flex: 0 0 240px;
+    max-width: 240px;
   }
   /* !important: the theme caps the article column at `max-width: 75% !important`,
      so a plain declaration would lose. */
