@@ -41,3 +41,18 @@
   border-radius: 8px;
   padding: 12px;
 }
+
+/* Widen the documentation reading area on desktop. By default the doc container
+   caps at the Infima width (~1140px), which leaves wide empty margins on large
+   monitors (the reading column is only ~820px at 1440px, and the gap grows past
+   that). Raise the cap so docs — and especially wide diagrams and tables — use
+   more of the screen, while keeping a sane maximum so line length stays
+   readable on ultra-wide displays. Desktop only: the sidebar/TOC layout that
+   this widens does not exist below 997px, where content is already full-width.
+   Targeted via an attribute-substring selector because the class carries a
+   build-time hash suffix (docMainContainer_XXXX). */
+@media (min-width: 997px) {
+  main[class*='docMainContainer'] > .container {
+    max-width: 1600px;
+  }
+}
