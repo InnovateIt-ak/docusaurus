@@ -1,4 +1,4 @@
-import type {ComponentProps, ReactNode} from 'react';
+import type {ComponentProps, MouseEvent, ReactNode} from 'react';
 import Img from '@theme-original/MDXComponents/Img';
 import Translate from '@docusaurus/Translate';
 import styles from './styles.module.css';
@@ -27,6 +27,35 @@ function downloadName(src: string, alt: string | undefined): string | true {
   }
   // A real URL already carries a filename; let the browser use it.
   return true;
+}
+
+// Browsers block top-level navigation to a `data:` URL (an anti-phishing
+// mitigation), so left-clicking "open" on an inline-SVG diagram does nothing —
+// only the browser's own "open in new tab" works. Re-materialise the data URL
+// as a Blob and open that instead, which is not blocked. Real URLs are left to
+// the anchor's default behaviour.
+function openInNewTab(
+  event: MouseEvent<HTMLAnchorElement>,
+  src: string,
+): void {
+  if (!src.startsWith('data:')) {
+    return;
+  }
+  event.preventDefault();
+  const comma = src.indexOf(',');
+  const meta = src.slice(5, comma); // between "data:" and ","
+  const mime = meta.split(';')[0] || 'application/octet-stream';
+  const isBase64 = /;base64/i.test(meta);
+  const raw = src.slice(comma + 1);
+  const text = isBase64 ? atob(raw) : decodeURIComponent(raw);
+  const bytes = new Uint8Array(text.length);
+  for (let i = 0; i < text.length; i += 1) {
+    bytes[i] = text.charCodeAt(i);
+  }
+  const url = URL.createObjectURL(new Blob([bytes], {type: mime}));
+  window.open(url, '_blank', 'noopener,noreferrer');
+  // Give the new tab time to load before releasing the object URL.
+  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
 // Adds a small caption under each image with a link to download it — including
@@ -61,6 +90,7 @@ export default function ImgWrapper(props: Props): ReactNode {
           <a
             className={styles.action}
             href={src}
+            onClick={(event) => openInNewTab(event, src)}
             target="_blank"
             rel="noopener noreferrer">
             <Translate
