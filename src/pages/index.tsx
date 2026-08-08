@@ -49,7 +49,6 @@ function HeroTop(): ReactNode {
             </Link>
             <div className={styles.ctaRow}>
               <Link className={`${styles.btn} ${styles.primary}`} to="/docs/intro">Get started →</Link>
-              <Link className={`${styles.btn} ${styles.ghost}`} to="/blog">What&apos;s new</Link>
             </div>
           </div>
 
