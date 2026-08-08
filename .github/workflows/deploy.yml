@@ -76,6 +76,10 @@ jobs:
           echo "::warning::PlantUML server did not become ready; diagrams may render as placeholders"
 
       - name: Build Docusaurus
+        # GITHUB_TOKEN lets the changelog plugin read the repo's Releases via the
+        # GitHub API without hitting the low unauthenticated rate limit.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: BASE_URL="/docusaurus" npm run build
 
       # Auto-discover doc content and generate, after the build:
@@ -189,6 +193,10 @@ jobs:
           echo "::warning::PlantUML server did not become ready; diagrams may render as placeholders"
 
       - name: Build Docusaurus
+        # GITHUB_TOKEN lets the changelog plugin read the repo's Releases via the
+        # GitHub API without hitting the low unauthenticated rate limit.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: BASE_URL="/" npm run build
 
       # Auto-discover doc content and generate, after the build:
