@@ -15,7 +15,7 @@ function formatDate(iso: string): string {
   return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
 
-function Hero(): ReactNode {
+function HeroTop(): ReactNode {
   const {siteConfig} = useDocusaurusContext();
   const hero = (siteConfig.customFields?.home as {hero?: Record<string, string>} | undefined)?.hero ?? {};
   const eyebrow = hero.eyebrow || 'Documentation';
@@ -26,48 +26,53 @@ function Hero(): ReactNode {
   const head = words.slice(0, -1).join(' ');
   const last = words[words.length - 1];
 
+  const data = usePluginData('docusaurus-plugin-home-cards') as {cards?: Card[]} | undefined;
+  const cards = data?.cards ?? [];
+
   return (
     <header className={styles.hero}>
       <div className={styles.container}>
-        <p className={styles.eyebrow}>{eyebrow}</p>
-        <h1 className={styles.h1}>
-          {head} <span className={styles.grad}>{last}</span>
-        </h1>
-        <p className={styles.lead}>{subtitle}</p>
-        <Link className={styles.search} to="/docs/intro">
-          <span aria-hidden="true">🔎</span>
-          <span>Browse the documentation…</span>
-        </Link>
-        <div className={styles.ctaRow}>
-          <Link className={`${styles.btn} ${styles.primary}`} to="/docs/intro">Get started →</Link>
-          <Link className={`${styles.btn} ${styles.ghost}`} to="/blog">What&apos;s new</Link>
+        {/* Two columns on desktop: the pitch on the left, the "Explore" cards on
+            the right so they fill the space beside the headline. Stacks on
+            narrow screens (see index.module.css). When there are no cards the
+            layout collapses to a single column. */}
+        <div className={cards.length > 0 ? styles.topGrid : undefined}>
+          <div className={styles.heroCol}>
+            <p className={styles.eyebrow}>{eyebrow}</p>
+            <h1 className={styles.h1}>
+              {head} <span className={styles.grad}>{last}</span>
+            </h1>
+            <p className={styles.lead}>{subtitle}</p>
+            <Link className={styles.search} to="/docs/intro">
+              <span aria-hidden="true">🔎</span>
+              <span>Browse the documentation…</span>
+            </Link>
+            <div className={styles.ctaRow}>
+              <Link className={`${styles.btn} ${styles.primary}`} to="/docs/intro">Get started →</Link>
+              <Link className={`${styles.btn} ${styles.ghost}`} to="/blog">What&apos;s new</Link>
+            </div>
+          </div>
+
+          {cards.length > 0 && (
+            <div className={styles.cardsCol}>
+              <p className={styles.eyebrow}>Explore</p>
+              <h2 className={styles.sectionTitle}>Where to start</h2>
+              <p className={styles.sectionSub}>Pick an entry point based on what you need.</p>
+              <div className={styles.grid}>
+                {cards.map((c) => (
+                  <Link key={c.title} className={styles.card} to={c.to}>
+                    <div className={styles.ic}>{c.icon}</div>
+                    <h3 className={styles.cardTitle}>{c.title}</h3>
+                    <p className={styles.cardDesc}>{c.desc}</p>
+                    <span className={styles.go}>{c.cta} →</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </header>
-  );
-}
-
-function Cards(): ReactNode {
-  const data = usePluginData('docusaurus-plugin-home-cards') as {cards?: Card[]} | undefined;
-  const cards = data?.cards ?? [];
-  if (cards.length === 0) return null;
-
-  return (
-    <section className={styles.container}>
-      <p className={styles.eyebrow}>Explore</p>
-      <h2 className={styles.sectionTitle}>Where to start</h2>
-      <p className={styles.sectionSub}>Pick an entry point based on what you need.</p>
-      <div className={styles.grid}>
-        {cards.map((c) => (
-          <Link key={c.title} className={styles.card} to={c.to}>
-            <div className={styles.ic}>{c.icon}</div>
-            <h3 className={styles.cardTitle}>{c.title}</h3>
-            <p className={styles.cardDesc}>{c.desc}</p>
-            <span className={styles.go}>{c.cta} →</span>
-          </Link>
-        ))}
-      </div>
-    </section>
   );
 }
 
@@ -116,9 +121,8 @@ export default function Home(): ReactNode {
   const {siteConfig} = useDocusaurusContext();
   return (
     <Layout title={siteConfig.title} description={siteConfig.tagline}>
-      <Hero />
+      <HeroTop />
       <main className={styles.main}>
-        <Cards />
         <LatestRelease />
       </main>
     </Layout>
