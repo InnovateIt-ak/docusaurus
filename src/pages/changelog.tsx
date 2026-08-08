@@ -17,6 +17,12 @@ type ChangelogData = {owner: string; repo: string; releases: Release[]};
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+// GitHub releases often carry a name identical to the tag (e.g. tag "1.0.0",
+// name "1.0.0"), which would render the version twice. Treat them as the same
+// (ignoring a leading "v") so the redundant name can be dropped.
+const sameVersion = (a: string, b: string) =>
+  a.replace(/^v/i, '').trim().toLowerCase() === b.replace(/^v/i, '').trim().toLowerCase();
+
 // Format from UTC parts so the server-rendered and client-rendered strings match
 // (a locale/timezone-dependent formatter would risk a hydration mismatch).
 function formatDate(iso: string): string {
@@ -79,7 +85,9 @@ function ReleaseCard({release, defaultOpen}: {release: Release; defaultOpen: boo
     <details className={styles.release} open={defaultOpen}>
       <summary className={styles.summary}>
         <span className={styles.tag}>{release.tag}</span>
-        <span className={styles.name}>{release.name}</span>
+        {release.name && !sameVersion(release.name, release.tag) && (
+          <span className={styles.name}>{release.name}</span>
+        )}
         {release.prerelease && <span className={styles.pre}>pre-release</span>}
         <span className={styles.date}>{formatDate(release.date)}</span>
       </summary>

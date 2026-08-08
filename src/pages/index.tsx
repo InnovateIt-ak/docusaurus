@@ -93,8 +93,10 @@ function LatestRelease(): ReactNode {
       <h2 className={styles.sectionTitle}>What just shipped</h2>
       <div className={styles.release}>
         <div className={styles.releaseLeft}>
-          <span className={styles.releaseTag}>{latest.tag}</span>
-          <h3 className={styles.releaseName}>{latest.name}</h3>
+          {latest.name && latest.name.replace(/^v/i, '').trim().toLowerCase() !== latest.tag.replace(/^v/i, '').trim().toLowerCase() && (
+            <span className={styles.releaseTag}>{latest.tag}</span>
+          )}
+          <h3 className={styles.releaseName}>{latest.name || latest.tag}</h3>
           {bullets.length > 0 && (
             <ul className={styles.releaseList}>
               {bullets.map((b, i) => (
