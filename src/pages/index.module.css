@@ -156,13 +156,14 @@
   border: 1px solid var(--ifm-color-emphasis-200);
   border-radius: 14px;
   box-shadow: var(--ifm-global-shadow-lw);
-  transition: transform 0.14s ease, border-color 0.14s ease;
+  transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
   text-decoration: none !important;
   color: var(--ifm-font-color-base);
 }
 .card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-4px);
   border-color: color-mix(in srgb, var(--ifm-color-primary) 45%, var(--ifm-color-emphasis-200));
+  box-shadow: var(--ifm-global-shadow-md);
 }
 .ic {
   width: 40px;
@@ -172,6 +173,10 @@
   place-items: center;
   font-size: 20px;
   background: color-mix(in srgb, var(--ifm-color-primary) 12%, transparent);
+  transition: transform 0.16s ease;
+}
+.card:hover .ic {
+  transform: scale(1.08);
 }
 .cardTitle {
   margin: 8px 0 0;
@@ -189,6 +194,10 @@
   color: var(--ifm-color-primary);
   font-weight: 600;
   font-size: 14px;
+  transition: transform 0.16s ease;
+}
+.card:hover .go {
+  transform: translateX(3px);
 }
 
 /* ---- release strip ---- */
@@ -268,4 +277,40 @@
   .btn {
     transition: none;
   }
+}
+
+/* Entrance animation: hero and cards fade up in a gentle stagger on load. Gated
+   behind `no-preference` so that with reduced motion the elements simply render
+   at full opacity (their default) with no movement — never invisible. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .heroCol > *,
+  .cardsCol > p,
+  .cardsCol > h2,
+  .card {
+    opacity: 0;
+    animation: fadeUp 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+  /* Left column: eyebrow, title, lead, search, CTA row. */
+  .heroCol > *:nth-child(1) { animation-delay: 0.04s; }
+  .heroCol > *:nth-child(2) { animation-delay: 0.1s; }
+  .heroCol > *:nth-child(3) { animation-delay: 0.16s; }
+  .heroCol > *:nth-child(4) { animation-delay: 0.22s; }
+  .heroCol > *:nth-child(5) { animation-delay: 0.28s; }
+  /* Right column heading, then the cards. */
+  .cardsCol > p { animation-delay: 0.14s; }
+  .cardsCol > h2 { animation-delay: 0.18s; }
+  .card:nth-child(1) { animation-delay: 0.24s; }
+  .card:nth-child(2) { animation-delay: 0.3s; }
+  .card:nth-child(3) { animation-delay: 0.36s; }
+  .card:nth-child(4) { animation-delay: 0.42s; }
 }
