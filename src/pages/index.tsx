@@ -59,7 +59,7 @@ function HeroTop(): ReactNode {
               <h2 className={styles.sectionTitle}>Where to start</h2>
               <p className={styles.sectionSub}>Pick an entry point based on what you need.</p>
               <div className={styles.grid}>
-                {cards.map((c) => (
+                {cards.slice(0, 4).map((c) => (
                   <Link key={c.title} className={styles.card} to={c.to}>
                     <div className={styles.ic}>{c.icon}</div>
                     <h3 className={styles.cardTitle}>{c.title}</h3>
