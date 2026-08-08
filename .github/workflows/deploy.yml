@@ -19,12 +19,16 @@ concurrency:
 jobs:
   deploy-github-pages:
     runs-on: [ubuntu-latest]
-    # Publie sur GitHub Pages depuis n'importe quelle branche : sur push (quelle
-    # que soit la branche), sur pull request, ou sur déclenchement manuel.
+    # Publie sur GitHub Pages sur push (quelle que soit la branche) ou sur
+    # déclenchement manuel. Sur `pull_request`, on ne déploie QUE pour les PR
+    # venant d'un fork : une PR de branche interne est déjà déployée par son
+    # événement `push`, et déclencher les deux produit DEUX déploiements Pages
+    # concurrents pour le même commit — le second échoue (collision push/PR).
     if: >-
       github.event_name == 'push'
       || github.event_name == 'workflow_dispatch'
-      || github.event_name == 'pull_request'
+      || (github.event_name == 'pull_request'
+          && github.event.pull_request.head.repo.full_name != github.repository)
     permissions:
       contents: read
       pages: write
