@@ -57,18 +57,31 @@ export default function ImgWrapper(props: Props): ReactNode {
         ) : (
           <span className={styles.spacer} />
         )}
-        <a
-          className={styles.download}
-          href={src}
-          download={downloadName(src, alt)}
-          target="_blank"
-          rel="noopener noreferrer">
-          <Translate
-            id="theme.image.downloadLink"
-            description="Label of the download link shown under an image or diagram">
-            ⬇ Télécharger
-          </Translate>
-        </a>
+        <span className={styles.actions}>
+          <a
+            className={styles.action}
+            href={src}
+            target="_blank"
+            rel="noopener noreferrer">
+            <Translate
+              id="theme.image.openLink"
+              description="Label of the link that opens an image or diagram in a new tab">
+              ↗ Ouvrir
+            </Translate>
+          </a>
+          <a
+            className={styles.action}
+            href={src}
+            download={downloadName(src, alt)}
+            target="_blank"
+            rel="noopener noreferrer">
+            <Translate
+              id="theme.image.downloadLink"
+              description="Label of the download link shown under an image or diagram">
+              ⬇ Télécharger
+            </Translate>
+          </a>
+        </span>
       </span>
     </span>
   );

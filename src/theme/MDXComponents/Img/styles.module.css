@@ -30,13 +30,19 @@
   flex: 1 1 auto;
 }
 
-.download {
+.actions {
   flex: 0 0 auto;
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+}
+
+.action {
   font-weight: 600;
   white-space: nowrap;
   text-decoration: none;
 }
 
-.download:hover {
+.action:hover {
   text-decoration: underline;
 }
