@@ -315,6 +315,19 @@ ul.toc li {
 .markdown > .landscape-block:last-child {
   break-after: auto !important;
 }
+/* A chapter whose whole body is one wide diagram (just a heading + the figure)
+   is rendered entirely on a landscape page, so the heading rides on the same
+   page as the diagram it introduces instead of sitting alone on a portrait
+   page. The section already carries `page: matrix`, so the inner block must NOT
+   force its own page break — otherwise the heading and the diagram split across
+   two landscape pages. Tagged `chapter--landscape` by generate_pdf.py when it
+   detects that single-figure shape. */
+.chapter--landscape {
+  page: matrix;
+}
+.chapter--landscape > .markdown > .landscape-block {
+  break-before: avoid !important;
+}
 /* A wide diagram on its landscape page, centred and scaled to fit. The extra
    `.markdown` in the selector raises specificity above `.markdown img` above so
    this landscape height cap (fitting the shorter landscape page) wins over the

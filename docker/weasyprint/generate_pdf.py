@@ -173,6 +173,43 @@ def tag_wide_images(soup, node) -> bool:
     return found
 
 
+def _is_blank_block(tag) -> bool:
+    """True for a filler tag that carries no visible content.
+
+    Docusaurus emits stray empty ``<p></p>`` around block content (e.g. right
+    before a diagram). Such tags must not count when deciding whether a chapter
+    holds nothing but a single landscape diagram.
+    """
+    if tag.name in ("header", "h1"):
+        return False
+    if tag.get_text(strip=True):
+        return False
+    return tag.find(["img", "svg", "table", "pre", "hr"]) is None
+
+
+def is_single_landscape_chapter(node) -> bool:
+    """True when a chapter's only content is one landscape block under its title.
+
+    A chapter that is just ``# Heading`` + one wide diagram would otherwise put
+    the heading alone on a portrait page and the diagram on the next (landscape)
+    page — the title divorced from the figure it names. Detecting that shape lets
+    the builder render the whole chapter on a single landscape page instead.
+    """
+    tags = [c for c in node.children if getattr(c, "name", None)]
+    body = [
+        t for t in tags
+        if t.name not in ("header", "h1") and not _is_blank_block(t)
+    ]
+    stray_text = any(
+        isinstance(c, str) and c.strip() for c in node.children
+    )
+    return (
+        not stray_text
+        and len(body) == 1
+        and "landscape-block" in (body[0].get("class") or [])
+    )
+
+
 def normalize_base_url(base_url: str) -> str:
     """Return a base prefix like '/docusaurus' (no trailing slash, '' for root)."""
     base = (base_url or "/").strip()
@@ -273,7 +310,7 @@ def extract_article(page_html: str, index: int):
     # `/docs/` filter would otherwise pull them in as junk "cards" chapters.
     node = soup.select_one(".theme-doc-markdown")
     if node is None:
-        return "Document", "", []
+        return "Document", "", [], False
 
     # Drop the hover anchor links Docusaurus injects into headings.
     for anchor in node.select("a.hash-link"):
@@ -303,13 +340,15 @@ def extract_article(page_html: str, index: int):
         strip_manual_heading_number(tag)
         headings.append((int(tag.name[1]), tag.get_text(strip=True), hid))
 
-    return title, node.decode_contents(), headings
+    full_landscape = is_single_landscape_chapter(node)
+
+    return title, node.decode_contents(), headings, full_landscape
 
 
 def build_toc_items(chapters):
     """Build numbered, multi-level TOC entries: (level, number, text, anchor)."""
     items = []
-    for ci, (title, _content, headings) in enumerate(chapters):
+    for ci, (title, _content, headings, *_rest) in enumerate(chapters):
         top = ci + 1
         items.append((1, str(top), title, f"chapter-{ci}"))
         h2 = 0
@@ -346,10 +385,21 @@ def build_document(server_url, css_hrefs, chapters, meta):
     # Wide tables are wrapped in a ".landscape-block" during extraction, which
     # the CSS renders on a landscape page on its own; the rest of each chapter
     # stays portrait.
+    # A chapter that is nothing but a heading and one wide diagram is rendered
+    # entirely on a landscape page (`chapter--landscape`), so the title stays
+    # with the figure it introduces instead of stranded on a portrait page of
+    # its own. See is_single_landscape_chapter / report.css.
+    def render_chapter(i, chapter):
+        _title, content, _headings, *rest = chapter
+        full_landscape = rest[0] if rest else False
+        cls = "chapter chapter--landscape" if full_landscape else "chapter"
+        return (
+            f'<section class="{cls}" id="chapter-{i}">'
+            f'<div class="markdown">{content}</div></section>'
+        )
+
     chapter_blocks = "\n".join(
-        f'<section class="chapter" id="chapter-{i}">'
-        f'<div class="markdown">{content}</div></section>'
-        for i, (_, content, _headings) in enumerate(chapters)
+        render_chapter(i, chapter) for i, chapter in enumerate(chapters)
     )
 
     eyebrow = html.escape(meta.get("eyebrow", ""))
@@ -436,9 +486,11 @@ def main() -> int:
             page_html = fetch(f"{server_url}{route}")
             if not css_hrefs:
                 css_hrefs = extract_stylesheets(page_html)
-            title, content, headings = extract_article(page_html, len(chapters))
+            title, content, headings, full_landscape = extract_article(
+                page_html, len(chapters)
+            )
             if content.strip():
-                chapters.append((title, content, headings))
+                chapters.append((title, content, headings, full_landscape))
                 log(f"Added '{title}' ({route})")
             else:
                 log(f"Skipped empty page {route}")
