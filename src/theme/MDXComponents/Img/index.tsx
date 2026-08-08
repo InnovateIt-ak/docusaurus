@@ -58,6 +58,48 @@ function openInNewTab(
   window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
+// Thin, monochrome line icons that inherit the link colour (currentColor) and
+// stay understated next to the label. 14px, 1.5 stroke.
+function OpenIcon(): ReactNode {
+  return (
+    <svg
+      className={styles.icon}
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true">
+      <path d="M14 5h5v5" />
+      <path d="M19 5l-8 8" />
+      <path d="M18 14v4a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h4" />
+    </svg>
+  );
+}
+
+function DownloadIcon(): ReactNode {
+  return (
+    <svg
+      className={styles.icon}
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true">
+      <path d="M12 4v10" />
+      <path d="M8 11l4 3 4-3" />
+      <path d="M5 19h14" />
+    </svg>
+  );
+}
+
 // Adds a small caption under each image with a link to download it — including
 // build-time diagrams, so a reader can grab the SVG. Structured with <span>s
 // (not <figure>/<figcaption>) because a markdown image renders as <p><img></p>,
@@ -93,10 +135,11 @@ export default function ImgWrapper(props: Props): ReactNode {
             onClick={(event) => openInNewTab(event, src)}
             target="_blank"
             rel="noopener noreferrer">
+            <OpenIcon />
             <Translate
               id="theme.image.openLink"
               description="Label of the link that opens an image or diagram in a new tab">
-              ↗ Ouvrir
+              Ouvrir
             </Translate>
           </a>
           <a
@@ -105,10 +148,11 @@ export default function ImgWrapper(props: Props): ReactNode {
             download={downloadName(src, alt)}
             target="_blank"
             rel="noopener noreferrer">
+            <DownloadIcon />
             <Translate
               id="theme.image.downloadLink"
               description="Label of the download link shown under an image or diagram">
-              ⬇ Télécharger
+              Télécharger
             </Translate>
           </a>
         </span>

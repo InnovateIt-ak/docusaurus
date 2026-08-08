@@ -33,16 +33,25 @@
 .actions {
   flex: 0 0 auto;
   display: flex;
-  gap: 1rem;
-  align-items: baseline;
+  gap: 1.1rem;
+  align-items: center;
 }
 
 .action {
-  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 500;
   white-space: nowrap;
   text-decoration: none;
+  color: var(--ifm-color-emphasis-700);
 }
 
 .action:hover {
-  text-decoration: underline;
+  color: var(--ifm-color-primary);
+}
+
+.icon {
+  flex: 0 0 auto;
+  opacity: 0.8;
 }
