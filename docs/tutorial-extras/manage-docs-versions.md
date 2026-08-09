@@ -47,6 +47,9 @@ The docs version dropdown appears in your navbar:
 
 ![Docs Version Dropdown](./img/docsVersionDropdown.png)
 
+
+[![Badge VIDEO](img/video_badge.svg)](https://hive.eeas.testa.eu/otcs/llisapi.dll/app/nodes/16998794)
+
 ## Update an existing version
 
 It is possible to edit versioned docs in their respective folder:

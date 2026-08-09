@@ -1,0 +1,43 @@
+name: 🏗️ Build latest
+on:
+  push:
+    paths-ignore:
+      - 'docs/**'
+      - 'README.md'
+      - 'compose-*'
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-base:
+    uses: is-development/eeas-workflow/.github/workflows/generic-build-push.yaml@main
+    secrets: inherit
+    with:
+      artifactory-project-name: docusaurus
+      artifactory-project-version: latest
+      docker-target: base_image
+      docker-publish: true
+      prisma-scan-test: true
+      docker-buildx-proxy : true
+  build-builder:
+    needs: [build-base]
+    uses: is-development/eeas-workflow/.github/workflows/generic-build-push.yaml@main
+    secrets: inherit
+    with:
+      artifactory-project-name: docusaurus
+      artifactory-project-version: builder
+      docker-target: ci_builder
+      docker-publish: true
+      prisma-scan-test: true
+      docker-buildx-proxy : true
+  build-builder-pdf:
+    uses: is-development/eeas-workflow/.github/workflows/generic-build-push.yaml@main
+    secrets: inherit
+    with:
+      artifactory-project-name: docusaurus
+      artifactory-project-version: builder-pdf
+      docker-target: weasyprint
+      docker-publish: true
+      prisma-scan-test: true
+      docker-buildx-proxy : true
+      docker-file: docker/weasyprint/Dockerfile

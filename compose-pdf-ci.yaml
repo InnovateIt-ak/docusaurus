@@ -1,0 +1,21 @@
+services:
+  weasyprint-ci:
+    image: artifactory.eeas.europa.eu/eeas-docker-local/docusaurus:builder-pdf
+    volumes:
+      - ./build:/data/build:ro
+      - ./out:/data/out:rw
+    user: "root"
+    command:
+      - "--build-dir=/data/build/html"
+      - "--output=/data/out/documentation.pdf"
+      - "--base-url=/"
+      - "--title=My Site — Architecture"
+      - "--eyebrow=Software Architecture"
+      - "--subtitle=arc42 / MADR architecture documentation"
+      - "--toc-title=Table of Contents"
+      # Render only the architecture section (arc42). Remove --include to build
+      # a PDF of the whole documentation instead.
+      - "--include=/docs/architecture/"
+secrets:
+  artifactory_token:
+    file: ./secrets/artifactory_token.txt

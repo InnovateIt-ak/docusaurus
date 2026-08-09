@@ -1,0 +1,43 @@
+include:
+  - compose-plantuml.yaml
+  - compose-pdf.yaml
+services:
+  docs:
+    secrets:
+      - artifactory_token
+    depends_on:
+      plantuml:
+        condition: service_healthy
+    build:
+      dockerfile: docker/Dockerfile
+      target: node_dev
+      context: .
+      args:
+        HTTP_PROXY: ${HTTP_PROXY:-http://iasproxy2.eeas.europa.eu:3128}
+        http_proxy: ${HTTP_PROXY:-http://iasproxy2.eeas.europa.eu:3128}
+        HTTPS_PROXY: ${HTTP_PROXY:-http://iasproxy2.eeas.europa.eu:3128}
+        https_proxy: ${HTTP_PROXY:-http://iasproxy2.eeas.europa.eu:3128}
+      secrets:
+        - artifactory_token
+    environment:
+      G_BASE_URL: '/'
+      G_PROJECT_NAME: 'docusaurus'
+      G_ORGANIZATION_NAME: 'is-development'
+      G_HOST_URL: 'http://localhost'
+      # Build-time fetch from docs container -> plantuml container (Docker internal DNS)
+      PLANTUML_BUILD_URL: 'http://plantuml:8080'
+      # Bypass corporate proxy for internal docker network hostnames
+      NO_PROXY: 'plantuml,localhost,127.0.0.1'
+      no_proxy: 'plantuml,localhost,127.0.0.1'
+      DOCUSAURUS_IGNORE_SSG_WARNINGS: true
+    volumes:
+      - .:/srv/app
+      - docusaurus_build:/srv/app/build
+
+    ports:
+      - "3000:3000"
+volumes:
+  docusaurus_build:
+secrets:
+  artifactory_token:
+    file: ./secrets/artifactory_token.txt

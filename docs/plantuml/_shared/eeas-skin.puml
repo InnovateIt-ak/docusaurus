@@ -1,0 +1,6 @@
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "Helvetica"
+skinparam shadowing false
+skinparam roundCorner 8
+skinparam sequenceArrowColor #003399
+skinparam sequenceLifeLineBorderColor #003399

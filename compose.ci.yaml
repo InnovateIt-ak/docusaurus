@@ -1,0 +1,39 @@
+include:
+  - compose-plantuml.yaml
+  - compose-pdf.yaml
+services:
+  docusaurus_ci_builder:
+    image: artifactory.eeas.europa.eu/eeas-docker-local/docusaurus:builder
+    container_name: docusaurus-ci-builder
+    depends_on:
+      plantuml:
+        condition: service_healthy
+    pull_policy: always
+    environment:
+      CD_DEBUG: true
+      G_PROJECT_NAME: 'docusaurus'
+      G_ORGANIZATION_NAME: 'is-development'
+      G_BASE_URL: '/'
+      G_HOST_URL: 'http://localhost'
+      GIT_DISCOVERY_ACROSS_FILESYSTEM: 1
+      PLANTUML_BUILD_URL: http://plantuml:8080
+      NO_PROXY: 'plantuml,localhost,127.0.0.1'
+      no_proxy: 'plantuml,localhost,127.0.0.1'
+      DOCUSAURUS_IGNORE_SSG_WARNINGS: true
+      ENABLE_LOCAL: ${ENABLE_LOCAL-false}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./docker/builder/entrypoint.sh:/usr/local/bin/entrypoint:ro
+      - ./sharedConfig.ts:/srv/app/sharedConfig.ts
+      - ./openapi:/srv/app/openapi
+      - ./docs:/srv/app/docs
+      - ./.git:/srv/app/.git
+      - ./build:/srv/app/build
+
+
+secrets:
+  artifactory_token:
+    file: ./secrets/artifactory_token.txt
+volumes:
+  docusaurus_build:

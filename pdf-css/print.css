@@ -1,0 +1,52 @@
+/* ---- Colors: force light (dark-only theme) ---- */
+html[data-theme='dark'] {
+    --ifm-background-color: #fff;
+    --ifm-font-color-base: #1c1e21;
+    --ifm-heading-color: #1c1e21;
+    --ifm-link-color: #1c1e21;
+}
+body, main, article { background: #fff !important; color: #1c1e21 !important; }
+a, a:visited { color: #1c1e21 !important; text-decoration: none; }
+pre, code { background: #f6f8fa !important; color: #1c1e21 !important; }
+
+/* ---- Typography: formal serif (extracted from the reference) ---- */
+html { font-size: 12px; }
+body, main, article,
+h1, h2, h3, h4, h5, h6 {
+    font-family: Georgia, "Times New Roman", "Liberation Serif", "DejaVu Serif", serif !important;
+}
+
+/* Document title — large, bold, centered */
+article h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-align: center;
+    margin: 0 0 1.3rem;
+}
+
+/* Section headings */
+article h2 { font-size: 1.6rem;  font-weight: 700; margin: 1.6rem 0 0.6rem; }
+article h3 { font-size: 1.25rem; font-weight: 700; margin: 1.2rem 0 0.5rem; }
+article h4 { font-size: 1.05rem; font-weight: 700; margin: 1.0rem 0 0.4rem; }
+
+/* Body text */
+article p, article li, article td, article th {
+    font-size: 0.95rem;
+    line-height: 1.45;
+}
+
+/* ===== Auto-numbering of the TOC — fixed ===== */
+.toc-page { counter-reset: toc1; }   /* ⬅️ seulement toc1 ici, PAS toc2/3/4 */
+
+.toc-item-1 { counter-increment: toc1; counter-reset: toc2 toc3 toc4; }
+.toc-item-2 { counter-increment: toc2; counter-reset: toc3 toc4; }
+.toc-item-3 { counter-increment: toc3; counter-reset: toc4; }
+.toc-item-4 { counter-increment: toc4; }
+
+.toc-item-1 > a::before { content: counter(toc1) ". "; }
+.toc-item-2 > a::before { content: counter(toc1) "." counter(toc2) ". "; }
+.toc-item-3 > a::before { content: counter(toc1) "." counter(toc2) "." counter(toc3) ". "; }
+.toc-item-4 > a::before { content: counter(toc1) "." counter(toc2) "." counter(toc3) "." counter(toc4) ". "; }
+
+/* kill the default <li> bullets (sinon tu as • + numéro) */
+.toc-item { list-style: none; display: block; }

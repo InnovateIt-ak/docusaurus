@@ -19,21 +19,21 @@ type Props = WrapperProps<typeof FooterType>;
 // produced by CI *after* the build, so it must not be validated by the
 // broken-link checker, exactly like the navbar PDF menu (`pathname://`).
 export default function FooterWrapper(props: Props): ReactNode {
-  const {metadata} = useDoc();
-  const pdfHref = `${metadata.permalink.replace(/\/$/, '')}.pdf`;
+    const {metadata} = useDoc();
+    const pdfHref = `${metadata.permalink.replace(/\/$/, '')}.pdf`;
 
-  return (
-    <>
-      <Footer {...props} />
-      <div className={styles.pdfDownload}>
-        <a href={pdfHref} target="_blank" rel="noopener noreferrer">
-          <Translate
-            id="theme.docs.pdfDownload.label"
-            description="Label of the per-page PDF download link at the bottom of a doc page">
-            📄 Download this page as PDF
-          </Translate>
-        </a>
-      </div>
-    </>
-  );
+    return (
+        <>
+            <Footer {...props} />
+            <div className={styles.pdfDownload}>
+                <a href={pdfHref} target="_blank" rel="noopener noreferrer">
+                    <Translate
+                        id="theme.docs.pdfDownload.label"
+                        description="Label of the per-page PDF download link at the bottom of a doc page">
+                        📄 Download this page as PDF
+                    </Translate>
+                </a>
+            </div>
+        </>
+    );
 }

@@ -1,96 +1,50 @@
-# Website
+[![🏗️ Build latest](https://github.eeas.europa.eu/is-development/docusaurus/actions/workflows/build-base.yaml/badge.svg?branch=main)](https://github.eeas.europa.eu/is-development/docusaurus/actions/workflows/build-base.yaml)
+[![🏗️ Publish GitHub Page](https://github.eeas.europa.eu/is-development/docusaurus/actions/workflows/build-page.yaml/badge.svg)](https://github.eeas.europa.eu/is-development/docusaurus/actions/workflows/build-page.yaml)
+---
 
-This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
 
-make dev
+### 1. Copy ./secrets/_artifactory_token.txt to ./secrets/artifactory_token.txt
 
-make prod
-## Installation
 
-```bash
-yarn
+---
+
+### 2. Basic image build
+
+Build and check the base image
+````
+docker compose -f compose.base.yaml build --no-cache && docker compose -f compose.base.yaml up -d
+````
+
+Build and check the builder image
+````
+docker compose -f compose.ci.yaml build --no-cache && docker compose -f compose.ci.yaml up -d
+````
+
+Build and dev only
+````
+docker compose -f compose.dev.yaml build --no-cache && docker compose -f compose.dev.yaml up -d
+````
+---
+
+
+Generate PDF
 ```
 
-## Local Development
-
-```bash
-yarn start
+docker run --rm \
+  -v "$(pwd)/build:/docs-to-pdf/build:ro" \
+  -v "$(pwd)/output:/docs-to-pdf/output" \
+  artifactory.eeas.europa.eu/ghcr.io-docker-remote/jean-humann/docs-to-pdf:latest-node24-alpine \
+  docs-to-pdf docusaurus --version=3 \
+    --docsDir="/docs-to-pdf/build" \
+    --initialDocURLs="http://localhost:3000/docs/intro" \
+    --outputPDFFilename="output/eeas-documentation.pdf" \
+    --paperFormat="A4" \
+    --pdfMargin="20,15,30,15" \
+    --excludePaths="/docs/test,/docs/test-mermaid" \
+    --puppeteerArgs="--no-sandbox,--disable-setuid-sandbox,--disable-dev-shm-usage" \
+    --headerTemplate='<span></span>' \
+    --footerTemplate='<div style="font-size:9px; width:100%; text-align:center; color:#666;"><span class="pageNumber"></span> / <span class="totalPages"></span></div>' \
+    --cssStyle="$(cat pdf-css/print.css)" \
+    --coverTitle="PROJECT DOC V1"
+    --disableCover
 ```
-
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
-
-## Build
-
-```bash
-yarn build
-```
-
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
-
-## Deployment
-
-Using SSH:
-
-```bash
-USE_SSH=true yarn deploy
-```
-
-Not using SSH:
-
-```bash
-GIT_USER=<Your GitHub username> yarn deploy
-```
-
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
-
-## PDF generation (WeasyPrint)
-
-The documentation can be exported to a single, professionally styled PDF using
-[WeasyPrint](https://weasyprint.org/), packaged as a dedicated Docker image
-(`docker/weasyprint/`). The output includes a branded cover page, an automatic
-table of contents with real page numbers, running headers and PDF bookmarks.
-
-### With Docker / docker-compose
-
-```bash
-make pdf
-```
-
-This builds the static site and runs the WeasyPrint service (compose profile `pdf`),
-writing the result to `build/documentation.pdf`.
-
-Equivalent compose command (the site must already be built in `build/`):
-
-```bash
-docker compose --profile pdf run --rm weasyprint
-```
-
-The converter serves the `build/` folder locally, extracts the article content of
-every page under `build/docs/`, and assembles a single document (cover + table of
-contents + one chapter per page) styled by `docker/weasyprint/report.css`.
-
-Useful options (see `generate_pdf.py --help`):
-
-- `--base-url` — match the Docusaurus `baseUrl` (e.g. `/docusaurus`);
-- `--title` / `--subtitle` / `--eyebrow` / `--source` — cover page text;
-- `--exclude` — comma-separated route substrings to skip (e.g. the interactive
-  LikeC4 diagram page, which cannot be rendered to PDF).
-
-### Base image
-
-The converter image is built on Red Hat **hardened images** (`hi/python`) using a
-multi-stage build: the `hi/python:3.12-builder` stage builds the Python virtual
-environment and stages the native libraries and fonts, which are copied into the
-minimal `hi/python:3.12` runtime.
-
-> Pulling `registry.access.redhat.com/hi/...` may require Red Hat registry
-> authentication in your CI environment.
-
-### In CI/CD
-
-The GitHub Actions workflow (`.github/workflows/deploy.yml`):
-
-- builds `build/documentation.pdf` and publishes it with the site (job `deploy-github-pages`),
-  so it is downloadable from the deployed URL;
-- on every push and pull request, produces the PDF as the `documentation-pdf` artifact
-  (job `build-pdf`).

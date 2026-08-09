@@ -1,0 +1,8 @@
+name: 🏗️ Publish GitHub Page
+on:
+  workflow_dispatch:
+
+jobs:
+  publish-page:
+    uses: is-development/eeas-workflow/.github/workflows/docusaurus-github-page-publish.yaml@main
+    secrets: inherit
