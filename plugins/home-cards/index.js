@@ -9,13 +9,71 @@
 
 const DEFAULT_ICON = '📄';
 
+// Keyword → icon. Matching is by WORD inside the card title, not by the exact
+// label, so "Developer Guide", "API reference", "analyse", "Filters"… all pick
+// up an icon. Keys are single lowercase words; add more (or override) via the
+// plugin's `icons` option.
+const DEFAULT_KEYWORD_ICONS = {
+  guide: '🧭', guides: '🧭', handbook: '🧭',
+  tutorial: '🎓', tutorials: '🎓', learn: '🎓',
+  analyse: '📊', analyze: '📊', analysis: '📊', analytics: '📊', report: '📊', reports: '📊',
+  architecture: '🏛️', design: '🏛️',
+  api: '🔌', apis: '🔌', endpoint: '🔌', endpoints: '🔌', rest: '🔌',
+  reference: '📚', references: '📚', spec: '📚', specification: '📚',
+  filter: '🎛️', filters: '🎛️', filtering: '🎛️',
+  changelog: '🧾', release: '🧾', releases: '🧾', changes: '🧾',
+  developer: '💻', developers: '💻', dev: '💻', sdk: '💻', code: '💻',
+  overview: '🗺️', diagram: '🗺️', diagrams: '🗺️', map: '🗺️',
+  intro: '🚀', introduction: '🚀', start: '🚀', started: '🚀', getting: '🚀', quickstart: '🚀',
+  deploy: '🚀', deployment: '🚀',
+  security: '🔐', auth: '🔐', authentication: '🔐', authorization: '🔐', permissions: '🔐',
+  config: '⚙️', configuration: '⚙️', settings: '⚙️', setup: '⚙️',
+  standard: '📐', standards: '📐', convention: '📐', conventions: '📐',
+  faq: '❓', help: '❓', support: '❓',
+  data: '🗄️', database: '🗄️', model: '🗄️', models: '🗄️', schema: '🗄️',
+  test: '🧪', tests: '🧪', testing: '🧪',
+};
+
+// Split a label into lowercase words: break camelCase, treat any non-alphanumeric
+// (spaces, -, _, ., /) as a separator. "DeveloperGuide" / "developer-guide" /
+// "Developer Guide" all → ["developer", "guide"].
+function tokenize(label) {
+  return String(label)
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/[^A-Za-z0-9]+/g, ' ')
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
 module.exports = function homeCardsPlugin(context, options = {}) {
-  // Case-insensitive icon override: keys match section/doc labels regardless of
-  // capitalisation (a folder-derived label like "architecture" still matches).
+  // Defaults first, then the `icons` option (which wins on conflicts). Keys are
+  // lowercased; a key may be a single keyword (matched per word in the title) or
+  // a full label (matched exactly, for backwards compatibility).
   const iconMap = new Map(
-    Object.entries(options.icons || {}).map(([k, v]) => [k.toLowerCase(), v]),
+    [...Object.entries(DEFAULT_KEYWORD_ICONS), ...Object.entries(options.icons || {})]
+      .map(([k, v]) => [k.toLowerCase(), v]),
   );
-  const iconFor = (label) => iconMap.get(String(label).toLowerCase()) || DEFAULT_ICON;
+  // Resolve one word to an icon, tolerating singular/plural (guide↔guides).
+  const lookupWord = (w) =>
+    iconMap.get(w) ||
+    (w.endsWith('s') && iconMap.get(w.slice(0, -1))) ||
+    iconMap.get(`${w}s`) ||
+    undefined;
+  const iconFor = (label) => {
+    // 1) exact full-label match (e.g. an explicit "Tutorial - Basics" override).
+    const exact = iconMap.get(String(label).toLowerCase());
+    if (exact) return exact;
+    // 2) keyword match, preferring the last matching word — the "head noun"
+    //    ("Developer Guide" → guide, "API reference" → reference).
+    let found;
+    for (const w of tokenize(label)) {
+      const ic = lookupWord(w);
+      if (ic) found = ic;
+    }
+    return found || DEFAULT_ICON;
+  };
   const extraCards = options.extraCards || [];
 
   return {
