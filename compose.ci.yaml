@@ -3,7 +3,7 @@ include:
   - compose-pdf.yaml
 services:
   docusaurus_ci_builder:
-    image: artifactory.eeas.europa.eu/eeas-docker-local/docusaurus:builder
+    image: ghcr.io/innovateit-ak/docusaurus/builder:latest
     container_name: docusaurus-ci-builder
     depends_on:
       plantuml:

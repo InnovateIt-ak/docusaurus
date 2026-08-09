@@ -1,19 +1,19 @@
-ARG DOCUSAURUS_UP_STREAM=artifactory.eeas.europa.eu/eeas-docker-local/docusaurus:latest
+ARG DOCUSAURUS_UP_STREAM=ghcr.io/innovateit-ak/docusaurus:latest
 
-FROM artifactory.eeas.europa.eu/eeas-docker-local/node:26-hi-builder AS node_up_stream
-FROM artifactory.eeas.europa.eu/eeas-docker-local/caddy:2.11.4-hi AS caddy_up_stream
+FROM node:26 AS node_up_stream
+FROM caddy:2.11.4 AS caddy_up_stream
 
 # Third-party image that already bundles the browser (Google build, Debian/glibc).
 # Used only as a COPY source, so nothing is fetched from the Google CDN.
 # Mirror/scan it into Artifactory and pin the tag (never 'latest').
-FROM artifactory.eeas.europa.eu/ghcr.io-docker-remote/ghcr.io/puppeteer/puppeteer:24.10.0 AS chrome_src
+FROM ghcr.io/puppeteer/puppeteer:24.10.0 AS chrome_src
 
 # --- Chromium runtime libraries, staged from a full UBI9 image ----------------
 # The hardened 'hi' base only ships a minimal curated repo (public-hummingbird)
 # without gtk3/pango/nss/... Same approach as the WeasyPrint image: install the
 # closure into an installroot, then COPY it and expose it to the Chrome process
 # only (via a wrapper), never globally.
-FROM artifactory.eeas.europa.eu/redhat-docker-remote/ubi9/ubi AS chromium-libs
+FROM registry.access.redhat.com/ubi9/ubi AS chromium-libs
 RUN mkdir -p /mnt/rootfs \
  && dnf install -y --installroot=/mnt/rootfs --releasever=9 \
       --setopt=install_weak_deps=0 --setopt=tsflags=nodocs \

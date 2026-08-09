@@ -1,6 +1,6 @@
 services:
   weasyprint-ci:
-    image: artifactory.eeas.europa.eu/eeas-docker-local/docusaurus:builder-pdf
+    image: ghcr.io/innovateit-ak/docusaurus/weasyprint:latest
     volumes:
       - ./build:/data/build:ro
       - ./out:/data/out:rw

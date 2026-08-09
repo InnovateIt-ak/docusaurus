@@ -33,7 +33,7 @@ Generate PDF
 docker run --rm \
   -v "$(pwd)/build:/docs-to-pdf/build:ro" \
   -v "$(pwd)/output:/docs-to-pdf/output" \
-  artifactory.eeas.europa.eu/ghcr.io-docker-remote/jean-humann/docs-to-pdf:latest-node24-alpine \
+  ghcr.io/jean-humann/docs-to-pdf:latest-node24-alpine \
   docs-to-pdf docusaurus --version=3 \
     --docsDir="/docs-to-pdf/build" \
     --initialDocURLs="http://localhost:3000/docs/intro" \

@@ -1,6 +1,6 @@
 services:
   plantuml:
-    image: artifactory.eeas.europa.eu/docker.io-docker-remote/plantuml/plantuml-server:jetty
+    image: plantuml/plantuml-server:jetty
     ports:
       - "8080:8080"
     environment:

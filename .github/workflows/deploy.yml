@@ -1,0 +1,177 @@
+name: Build and Deploy Docusaurus
+
+# Adapted to run in this GitHub org (github.com / GitHub Pages), replacing the
+# upstream reusable workflows that targeted an internal CI + Artifactory. The
+# site is built with Node directly, PDFs are rendered with the WeasyPrint image
+# pulled from the GitHub Container Registry, and everything is published to
+# GitHub Pages.
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+  workflow_dispatch:
+
+# Only one Pages deployment at a time.
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+env:
+  # The upstream config is env-driven (see sharedConfig.ts / docusaurus.config.ts).
+  # Provide values for this org so the exact upstream config builds unchanged.
+  G_PROJECT_NAME: docusaurus
+  G_ORGANIZATION_NAME: InnovateIt-ak
+  G_HOST_URL: https://innovateit-ak.github.io
+  G_BASE_URL: /docusaurus/
+
+jobs:
+  deploy-github-pages:
+    runs-on: ubuntu-latest
+    # Deploy on push (any branch) or manual run. On pull_request, only for forks
+    # (an internal-branch PR is already deployed by its own push event).
+    if: >-
+      github.event_name == 'push'
+      || github.event_name == 'workflow_dispatch'
+      || (github.event_name == 'pull_request'
+          && github.event.pull_request.head.repo.full_name != github.repository)
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+      packages: read  # pull the prebuilt WeasyPrint image from GHCR
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    # PlantUML server so the remark plugin can render diagrams at build time
+    # (src/remark/plantuml-inline.mjs reads PLANTUML_BUILD_URL).
+    services:
+      plantuml:
+        image: plantuml/plantuml-server:jetty
+        ports:
+          - 8080:8080
+    env:
+      PLANTUML_BUILD_URL: http://localhost:8080
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Mermaid is pre-rendered to SVG at build time by src/remark/mermaid-*.mjs,
+      # which drives a headless Chromium via `puppeteer`. The upstream project
+      # only depends on puppeteer-core (the browser is provided by its Docker
+      # image), so add the puppeteer wrapper here without downloading a browser
+      # (.puppeteerrc.cjs sets skipDownload) and point it at the runner's Chrome.
+      - name: Provide Chromium for Mermaid
+        run: |
+          npm install --no-save puppeteer@24.10.0
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          if [ -z "$CHROME" ]; then
+            sudo apt-get update && sudo apt-get install -y chromium-browser
+            CHROME="$(command -v chromium-browser || command -v chromium)"
+          fi
+          echo "Using Chromium at: $CHROME"
+          echo "PUPPETEER_EXECUTABLE_PATH=$CHROME" >> "$GITHUB_ENV"
+
+      # LikeC4 is optional upstream (entrypoint deletes src/pages/likec4.tsx when
+      # ENABLE_LIKEC4 != true). Follow that default so no code generation step is
+      # required for a Pages build.
+      - name: Disable LikeC4 page (upstream default)
+        run: rm -f src/pages/likec4.tsx
+
+      - name: Wait for PlantUML server
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8080/ >/dev/null && { echo "PlantUML is up"; exit 0; }
+            sleep 2
+          done
+          echo "::warning::PlantUML server did not become ready; diagrams may render as placeholders"
+
+      - name: Build Docusaurus
+        run: npm run build
+
+      # Auto-discover doc content after the build and generate:
+      #   * one build/docs/.../<page>.pdf per page (mirrors the page route),
+      #   * one build/<section>.pdf per top-level docs/ section, and
+      #   * a global build/documentation.pdf (all docs).
+      - name: Log in to GitHub Container Registry
+        # Lets the next step pull the prebuilt WeasyPrint image from GHCR.
+        # Non-fatal: a fork PR without package access falls back to a local build.
+        continue-on-error: true
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate PDFs with WeasyPrint
+        env:
+          BASE_URL: /docusaurus/
+        run: |
+          # Prefer the prebuilt image from GHCR (published by
+          # build-weasyprint-image.yaml); fall back to a local build.
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}/weasyprint:latest"
+          if docker pull "$IMAGE" 2>/dev/null; then
+            echo "Using $IMAGE from GHCR"
+          else
+            echo "::notice::$IMAGE unavailable — building the image locally"
+            IMAGE=docusaurus-weasyprint
+            docker build -f docker/weasyprint/Dockerfile -t "$IMAGE" .
+          fi
+
+          # weasy <output-path-under-build-root> <title> [extra generator args…]
+          weasy() {
+            out="$1"; title="$2"; shift 2
+            mkdir -p "$(dirname "$out")"
+            docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" \
+              "$IMAGE" \
+              --build-dir=/data/build --output="/data/$out" \
+              --base-url="$BASE_URL" --title="$title" \
+              --eyebrow="Documentation" "$@" \
+              || echo "::warning::skipped $out (no eligible content)"
+          }
+          titlecase() { echo "$1" | sed -E 's/[-_]+/ /g; s/\b(.)/\U\1/g'; }
+
+          # One PDF per page: mirror the page route as <route>.pdf next to it.
+          while IFS= read -r index; do
+            dir=$(dirname "$index"); rel=${dir#build}
+            case "$rel" in */category/*) continue ;; esac
+            grep -q 'theme-doc-markdown' "$index" || continue
+            weasy "build${rel}.pdf" "$(titlecase "$(basename "$dir")")" \
+              --include-exact="${rel}/"
+          done < <(find build/docs -name index.html)
+
+          # One PDF per top-level section (skip _* partials).
+          for d in docs/*/; do
+            s=$(basename "$d")
+            case "$s" in _*) continue ;; esac
+            slug=$(printf '%s' "$s" | sed -E 's/^[0-9]+[[:space:]]*[-_.][[:space:]]*//; t; s/^[0-9]+[[:space:]]+//')
+            [ -d "build/docs/$slug" ] || continue
+            weasy "build/$slug.pdf" "$(titlecase "$slug")" --include="/docs/$slug/"
+          done
+
+          # Global: everything.
+          weasy "build/documentation.pdf" "Full documentation" --include="/docs/"
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload to GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

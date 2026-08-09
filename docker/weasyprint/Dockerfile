@@ -12,7 +12,7 @@
 #   cosign verify --insecure-ignore-tlog registry.access.redhat.com/hi/python:3.12-builder
 
 # ------------------------------------------------------------- venv-builder ----
-FROM artifactory.eeas.europa.eu/eeas-docker-local/python:3.12-hi-builder AS venv-builder
+FROM registry.access.redhat.com/hi/python:3.12-builder AS venv-builder
 
 USER root
 
@@ -28,7 +28,7 @@ RUN python3 -m venv --copies /opt/venv \
 # repository which does not include Pango/cairo/etc; the standard UBI 9 image
 # already has its repositories configured (with GPG verification), so we install
 # from there and copy the resulting binaries into the runtime.
-FROM artifactory.eeas.europa.eu/redhat-docker-remote/ubi9/ubi AS ubi-libs
+FROM registry.access.redhat.com/ubi9/ubi AS ubi-libs
 
 RUN mkdir -p /mnt/rootfs \
  && dnf install -y --installroot=/mnt/rootfs --releasever=9 \
@@ -65,7 +65,7 @@ RUN cd /mnt/rootfs/usr/lib64 \
           ld-linux-x86-64.so.2
 
 # ------------------------------------------------------------------ runtime ----
-FROM artifactory.eeas.europa.eu/eeas-docker-local/python:3.12-hi AS weasyprint
+FROM registry.access.redhat.com/hi/python:3.12 AS weasyprint
 
 # The UBI native libraries are isolated under /opt/ubi/lib64 and exposed through
 # LD_LIBRARY_PATH instead of being overlaid on /usr/lib64. This keeps the
