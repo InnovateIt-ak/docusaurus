@@ -134,8 +134,14 @@ const config: Config = {
     format: 'detect',
     hooks: {
       onBrokenMarkdownLinks: 'warn',
+      // A doc image that fails to resolve shouldn't fail the whole build.
+      onBrokenMarkdownImages: 'ignore',
     },
   },
+
+  // Served as-is at the site root (favicon, logo, social card, CI-generated
+  // PDFs, …). Explicit here so it survives config edits.
+  staticDirectories: ['static'],
 
   // Set the production url of your site here
   url: 'https://github.com',
@@ -188,6 +194,14 @@ const config: Config = {
   ],
 
   plugins: [
+    // Click-to-zoom on content images and rendered diagrams (lightbox).
+    // Reads its options from themeConfig.zoom below.
+    [
+      'docusaurus-plugin-image-zoom',
+      {
+        id: 'extraZoom',
+      },
+    ],
     // Changelog : récupère les GitHub Releases au build et les expose en global
     // data pour la page /changelog (voir plugins/changelog + src/pages/changelog).
     './plugins/changelog',
@@ -248,6 +262,37 @@ const config: Config = {
   themeConfig: {
     // Replace with your project's social card
     image: 'img/docusaurus-social-card.jpg',
+    // Dark by default, following the upstream config. respectPrefersColorScheme
+    // honours the visitor's OS setting on first visit.
+    colorMode: {
+      defaultMode: 'dark',
+      disableSwitch: true,
+      respectPrefersColorScheme: true,
+    },
+    docs: {
+      sidebar: {
+        hideable: true,
+      },
+    },
+    // Options for docusaurus-plugin-image-zoom (declared in plugins above).
+    zoom: {
+      selector: [
+        'article.theme-doc-markdown p > img',
+        'article.theme-doc-markdown a > img.allow-zoom',
+        'article.theme-doc-markdown img[alt="Mermaid diagram"]',
+        '.markdown p > img',
+        '.markdown a > img.allow-zoom',
+        '.markdown img[alt="Mermaid diagram"]',
+      ].join(', '),
+      background: {
+        light: 'rgb(255, 255, 255)',
+        dark: 'rgb(50, 50, 50)',
+      },
+      config: {
+        margin: 0,
+        scrollOffset: 0,
+      },
+    },
     navbar: {
       title: 'My Site',
       logo: {
