@@ -88,3 +88,42 @@
     padding-bottom: 0.4rem;
   }
 }
+
+/* ---- Code blocks: a polished "editor window" look ---------------------------
+   Rounded container with a soft border and shadow, and — when a code block has
+   a title (```js title="…") — a header bar styled like a window title bar with
+   three macOS-style dots and the filename in monospace. Works in light and dark
+   (colours come from Infima variables). Only affects the website; the PDF uses
+   its own stylesheet. `.theme-code-block` and the codeBlockTitle_* hash class
+   are Docusaurus's own markup. */
+.theme-code-block {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 10px 28px -14px rgba(0, 0, 0, 0.22);
+}
+
+.theme-code-block [class*='codeBlockTitle'] {
+  position: relative;
+  padding: 0.6rem 1rem 0.6rem 4.4rem;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ifm-color-emphasis-800);
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+}
+
+/* Three "traffic light" dots on the left of the title bar: one real dot plus
+   two more painted with box-shadow. */
+.theme-code-block [class*='codeBlockTitle']::before {
+  content: '';
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  background: #ff5f56;
+  box-shadow: 18px 0 0 #ffbd2e, 36px 0 0 #27c93f;
+}
