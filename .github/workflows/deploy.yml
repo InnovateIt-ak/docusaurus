@@ -62,11 +62,15 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
+      # `npm install`, not `npm ci`: the upstream package-lock.json is not fully
+      # in sync with package.json (a pre-existing drift in a few transitive
+      # deps — mermaid layout, proxy-agent, playwright-core). `npm install`
+      # reconciles it in the runner without us rewriting the committed lockfile.
       - name: Install dependencies
-        run: npm ci
+        run: npm install --no-audit --no-fund
 
       # Mermaid is pre-rendered to SVG at build time by src/remark/mermaid-*.mjs,
       # which drives a headless Chromium via `puppeteer`. The upstream project
