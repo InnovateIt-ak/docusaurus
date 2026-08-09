@@ -128,7 +128,7 @@ export default function ImgWrapper(props: Props): ReactNode {
         ) : (
           <span className={styles.spacer} />
         )}
-        <span className={styles.actions}>
+        <span className={`${styles.actions} pdf-hide`}>
           <a
             className={styles.action}
             href={src}
