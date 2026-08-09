@@ -44,27 +44,44 @@ RUN mkdir -p /mnt/rootfs \
 # fonts and staged here, keeping the build fully offline / reproducible.
 COPY docker/weasyprint/fonts/ibm-plex/ /mnt/rootfs/usr/share/fonts/ibm-plex/
 
-# Drop glibc and the dynamic linker from the staged root: the hardened runtime
-# already provides a newer glibc, and overwriting it would break its Python.
-# The UBI libraries (built against an older glibc) run fine on the newer one.
+# Noto Emoji (monochrome) for emoji/symbol glyphs used in the docs (✅ ⚠️ ❌),
+# which none of the text fonts cover. Not in the UBI repositories either, so the
+# font (subset to the symbol + emoji ranges, SIL OFL 1.1) is vendored like IBM
+# Plex. Monochrome — the colour CBDT font renders badly in WeasyPrint.
+COPY docker/weasyprint/fonts/noto-emoji/ /mnt/rootfs/usr/share/fonts/noto-emoji/
+
+# Strip glibc and the dynamic linker from the staged root. The UBI glibc is
+# older than the hardened runtime's and must never reach the runtime's library
+# search path: the runtime Python is linked with DT_RELR relocations and needs
+# the GLIBC_ABI_DT_RELR symbol version, which the UBI glibc does not provide.
+# This MUST include the glibc-hwcaps/ variants (x86-64-v2 / v3), which the
+# loader would otherwise prefer over the runtime glibc on capable CPUs.
 RUN cd /mnt/rootfs/usr/lib64 \
+ && rm -rf glibc-hwcaps \
  && rm -f libc.so.6 libm.so.6 libmvec.so.1 libdl.so.2 libpthread.so.0 \
           librt.so.1 libresolv.so.2 libutil.so.1 libanl.so.1 \
           libBrokenLocale.so.1 libthread_db.so.1 libnss_*.so.2 \
+          libc_malloc_debug.so.0 libpcprofile.so libSegFault.so \
           ld-linux-x86-64.so.2
 
 # ------------------------------------------------------------------ runtime ----
 FROM registry.access.redhat.com/hi/python:3.12 AS weasyprint
 
-# Native libraries + fonts (copied selectively to avoid clobbering runtime
-# directories such as /etc/ssl/certs), then the Python virtual environment.
-COPY --from=ubi-libs /mnt/rootfs/usr/lib64/ /usr/lib64/
-COPY --from=ubi-libs /mnt/rootfs/usr/share/fonts/ /usr/share/fonts/
+# The UBI native libraries are isolated under /opt/ubi/lib64 and exposed through
+# LD_LIBRARY_PATH instead of being overlaid on /usr/lib64. This keeps the
+# hardened runtime's own libraries (glibc, openssl, libstdc++, glib2, ...)
+# authoritative: overlaying /usr/lib64 would clobber them with the older UBI
+# builds (the cause of the GLIBC_ABI_DT_RELR failure) and defeat the hardened
+# image. The UBI libs were built against an older glibc and run fine on the
+# newer runtime glibc (forward compatible).
+COPY --from=ubi-libs /mnt/rootfs/usr/lib64/            /opt/ubi/lib64/
+COPY --from=ubi-libs /mnt/rootfs/usr/share/fonts/      /usr/share/fonts/
 COPY --from=ubi-libs /mnt/rootfs/usr/share/fontconfig/ /usr/share/fontconfig/
-COPY --from=ubi-libs /mnt/rootfs/etc/fonts/ /etc/fonts/
+COPY --from=ubi-libs /mnt/rootfs/etc/fonts/            /etc/fonts/
 COPY --from=venv-builder /opt/venv /opt/venv
 
 ENV PATH="/opt/venv/bin:${PATH}" \
+    LD_LIBRARY_PATH="/opt/ubi/lib64" \
     PYTHONUNBUFFERED=1 \
     XDG_CACHE_HOME=/tmp/.cache
 

@@ -1,0 +1,22 @@
+services:
+  docusaurus_base_remote:
+    image: docusaurus:base_remote
+    container_name: docusaurus-base-remote
+    build:
+      dockerfile: docker/Dockerfile
+      target: base_image
+      context: .
+      secrets:
+        - artifactory_token
+      args:
+        CD_DEBUG: true
+        HTTP_PROXY: ${HTTP_PROXY:-http://iasproxy2.eeas.europa.eu:3128}
+        http_proxy: ${HTTP_PROXY:-http://iasproxy2.eeas.europa.eu:3128}
+        HTTPS_PROXY: ${HTTP_PROXY:-http://iasproxy2.eeas.europa.eu:3128}
+        https_proxy: ${HTTP_PROXY:-http://iasproxy2.eeas.europa.eu:3128}    
+    command: [ "/bin/bash","-c","tail -f /dev/null" ]
+
+
+secrets:
+  artifactory_token:
+    file: ./secrets/artifactory_token.txt

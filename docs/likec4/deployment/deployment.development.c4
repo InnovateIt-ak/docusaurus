@@ -1,0 +1,23 @@
+deployment {
+  dev = environment 'Development' {
+    description 'Development environment.'
+
+    developer = instanceOf customer { title 'Developer' }
+
+    devmachine = vm 'Developer Machine' {
+      technology 'Ubuntu'
+      instanceOf boutique.frontend
+      instanceOf boutique.catalogue
+      instanceOf boutique.cart
+      instanceOf boutique.checkout
+    }
+
+    containers = vm 'Shared Containers' {
+      instanceOf boutique.payments
+      instanceOf boutique.shipping
+      instanceOf boutique.db
+    }
+  }
+
+  internet internet { instanceOf customer }
+}

@@ -1,8 +1,24 @@
-.gitignore
-.docusaurus
-.idea
-compose*.yaml
-compose-*.yaml
-Makefile
+**/*.log
+**/*.dist.php
+**/*.dist
+**/*.cache
+**/._*
+**/.DS_Store
+**/.git/
+**/.gitattributes
+**/.gitignore
+**/.gitmodules
+**/.github/
+docker-compose.yaml
+docker-compose-*.yaml
+.github/
 .dockerignore
-src/components/likec4/*
+node_modules
+.idea
+
+# Ignore all secrets in /secrets
+/secrets/*
+# but do not ignore all files stating with _
+!/secrets/_*
+docker-compose*.yaml
+.docusaurus

@@ -1,10 +1,10 @@
 {
   "name": "docusaurus",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",
-    "start": "docusaurus start --host 0.0.0.0",
+    "start": "docusaurus start --port 3000 --host 0.0.0.0",
     "build": "docusaurus build",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
@@ -13,27 +13,55 @@
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
     "typecheck": "tsc",
-    "build-likec4": "likec4 build ./likec4 -o ./static/likec4 --base /likec4/",
-    "build-likec4-react": "likec4 codegen react --outfile ./src/components/likec4/likec4.generated.js"
+    "build-likec4-react": "likec4 codegen react likec4 --no-use-dot --outfile ./src/components/likec4/likec4.generated.js",
+    "build-likec4-webcomponent": "likec4 codegen webcomponent likec4 --no-use-dot -o ./static/likec4-webcomponent.js",
+    "build-likec4-static": "likec4 build likec4 --no-use-dot --output-single-file -o static/likec4",
+    "pdf": "docs-to-pdf docusaurus --version=3 --initialDocURLs=\"http://localhost:3000/docs/intro\" --coverTitle=\"EEAS — Documentation\" --outputPDFFilename=\"eeas-documentation.pdf\" --pdfMargin=\"20,20,20,20\""
+  },
+  "overrides": {
+    "joi": ">=18.2.1",
+    "tar": "^7.5.8",
+    "glob": "^10.5.0",
+    "minimatch": "^10.2.3",
+    "diff": "^5.2.2",
+    "serialize-javascript": "^7.0.5",
+    "brace-expansion": "^2.0.3",
+    "picomatch": "^4.0.4",
+    "uuid": "^11.1.1",
+    "postcss-selector-parser": "^7.1.2"
   },
   "dependencies": {
-    "@docusaurus/core": "3.10.1",
-    "@docusaurus/preset-classic": "3.10.1",
-    "@mdx-js/react": "^3.0.0",
-    "clsx": "^2.0.0",
-    "plantuml-encoder": "^1.4.0",
-    "prism-react-renderer": "^2.3.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "tldraw": "^3.14.2"
+    "@actinc/docusaurus-plugin-panzoom": "^1.0.1",
+    "@docusaurus/core": "^3.10.2",
+    "@docusaurus/preset-classic": "^3.10.2",
+    "@docusaurus/theme-live-codeblock": "^3.10.2",
+    "@docusaurus/theme-mermaid": "^3.10.2",
+    "@easyops-cn/docusaurus-search-local": "^0.51.1",
+    "@likec4/core": "^1.55.1",
+    "@likec4/diagram": "^1.55.1",
+    "@mdx-js/react": "^3.1.1",
+    "@reduxjs/toolkit": "^2.11.2",
+    "clsx": "^2.1.1",
+    "docusaurus-plugin-image-zoom": "^3.0.1",
+    "prism-react-renderer": "^2.4.1",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-redux": "^9.2.0",
+    "redoc": "^2.1.2",
+    "redocusaurus": "^2.5.0",
+    "yaml": "^2.8.3"
   },
   "devDependencies": {
+    "@docusaurus/faster": "^3.10.2",
     "@docusaurus/module-type-aliases": "3.10.1",
     "@docusaurus/tsconfig": "3.10.1",
     "@docusaurus/types": "3.10.1",
     "@mermaid-js/mermaid-cli": "^11.16.0",
-    "likec4": "^1.58.0",
-    "typescript": "~5.6.2"
+    "likec4": "^1.55.1",
+    "plantuml-encoder": "^1.4.0",
+    "puppeteer-core": "24.10.0",
+    "typescript": "~6.0.3",
+    "unist-util-visit": "^5.1.0"
   },
   "browserslist": {
     "production": [

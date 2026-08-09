@@ -200,13 +200,13 @@ export default function remarkMermaidInline() {
             })());
         };
 
-        // Pattern 1 : bloc de code ```mermaid ... ```
+        // Pattern 1 : block code ```mermaid ... ```
         visit(tree, 'code', (node) => {
             if (node.lang !== 'mermaid') return;
             render(node, async () => node.value);
         });
 
-        // Pattern 2 : lien image ![alt](chemin/vers/fichier.mmd)
+        // Pattern 2 : link image ![alt](chemin/vers/fichier.mmd)
         visit(tree, 'image', (node) => {
             if (!node.url || !/\.(mmd|mermaid)$/i.test(node.url)) return;
             if (node.url.startsWith('data:')) return;

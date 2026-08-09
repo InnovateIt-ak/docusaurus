@@ -1,0 +1,28 @@
+deployment {
+  prod = environment 'Production' {
+    description 'Production environment.'
+
+    vm1 = vm 'Web Server 1' {
+      instanceOf boutique.frontend
+      instanceOf boutique.cart
+      instanceOf boutique.catalogue
+    }
+
+    vm2 = vm 'Web Server 2' {
+      instanceOf boutique.frontend
+      instanceOf boutique.cart
+      instanceOf boutique.catalogue
+    }
+
+    appvms = vm 'Application Servers (x2)' {
+      instanceOf boutique.checkout
+      instanceOf boutique.payments
+      instanceOf boutique.shipping
+    }
+
+    dbvm1 = vm 'Database Server 1' { instanceOf boutique.db }
+    dbvm2 = vm 'Database Server 2' { instanceOf boutique.db }
+
+    dbvm1.db -> dbvm2.db 'replicates'
+  }
+}

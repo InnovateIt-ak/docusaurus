@@ -19,8 +19,17 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-.idea/
 
-# Python cache
-__pycache__/
-*.pyc
+.npmrc
+# Ignore all secrets in /secrets
+/secrets/*
+# but do not ignore all files stating with _
+!/secrets/_*
+.idea
+npm-debug.log
+/.idea/
+
+src/components/likec4
+
+output
+out
