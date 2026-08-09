@@ -28,3 +28,18 @@
   --ifm-color-primary-lightest: #4fddbf;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
+
+
+/* ---- Ported feature: legible diagrams in dark mode -------------------------
+   Diagrams are baked at build time as static, light-themed SVGs with a
+   transparent background (so WeasyPrint embeds them cleanly in the PDF). In dark
+   mode the transparent areas show the dark page, making the diagram's dark text
+   and edges illegible. Drop them on a light card so they stay readable — the
+   same content the light theme and the PDF already show. Scoped to dark mode, so
+   light mode and the (light) PDF are unaffected. */
+[data-theme='dark'] .markdown img[alt='Mermaid diagram'],
+[data-theme='dark'] .markdown img[alt='PlantUML diagram'] {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 12px;
+}
