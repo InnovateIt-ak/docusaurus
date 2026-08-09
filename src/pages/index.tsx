@@ -28,6 +28,11 @@ function HeroTop(): ReactNode {
 
   const data = usePluginData('docusaurus-plugin-home-cards') as {cards?: Card[]} | undefined;
   const cards = data?.cards ?? [];
+  // The hero CTAs point at the first section actually shown in the cards (the
+  // docs sidebar's first entry), so "Browse the documentation" reflects what's
+  // on the page and never links to a page that may not exist. Falls back to
+  // /docs/intro when there are no cards.
+  const firstSection = cards[0]?.to ?? '/docs/intro';
 
   return (
     <header className={styles.hero}>
@@ -43,12 +48,12 @@ function HeroTop(): ReactNode {
               {head} <span className={styles.grad}>{last}</span>
             </h1>
             <p className={styles.lead}>{subtitle}</p>
-            <Link className={styles.search} to="/docs/intro">
+            <Link className={styles.search} to={firstSection}>
               <span aria-hidden="true">🔎</span>
               <span>Browse the documentation…</span>
             </Link>
             <div className={styles.ctaRow}>
-              <Link className={`${styles.btn} ${styles.primary}`} to="/docs/intro">Get started →</Link>
+              <Link className={`${styles.btn} ${styles.primary}`} to={firstSection}>Get started →</Link>
             </div>
           </div>
 
