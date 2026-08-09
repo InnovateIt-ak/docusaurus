@@ -1,23 +1,316 @@
-/**
- * CSS files with the .module.css suffix will be treated as CSS modules
- * and scoped locally.
- */
+.container {
+  /* Widened to match the roomier documentation layout: at 1120px the hero and
+     cards were cramped in the middle with large empty margins on wide screens.
+     1400px reduces that dead space and lets the cards form clean rows of four. */
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.main {
+  padding-bottom: 3rem;
+}
 
-.heroBanner {
-  padding: 4rem 0;
-  text-align: center;
+.eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ifm-color-primary);
+  font-weight: 600;
+  margin: 0;
+  font-family: var(--ifm-font-family-monospace);
+}
+
+/* ---- hero ---- */
+.hero {
   position: relative;
   overflow: hidden;
 }
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: -40% 20% auto -10%;
+  height: 520px;
+  background: radial-gradient(
+    60% 60% at 30% 30%,
+    color-mix(in srgb, var(--ifm-color-primary) 12%, transparent),
+    transparent 70%
+  );
+  pointer-events: none;
+}
+.hero .container {
+  padding-top: 82px;
+  padding-bottom: 56px;
+  position: relative;
+}
 
-@media screen and (max-width: 996px) {
-  .heroBanner {
-    padding: 2rem;
+/* Desktop: pitch on the left, the "Explore" cards on the right, filling the
+   space next to the headline. Stacks to a single column below 997px. */
+.topGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 56px;
+  align-items: start;
+}
+@media (max-width: 996px) {
+  .topGrid {
+    grid-template-columns: 1fr;
+    gap: 44px;
+  }
+}
+.h1 {
+  font-size: clamp(34px, 5.4vw, 58px);
+  line-height: 1.04;
+  letter-spacing: -0.025em;
+  margin: 16px 0 0;
+  max-width: 15ch;
+  text-wrap: balance;
+  font-weight: 800;
+}
+.grad {
+  background: linear-gradient(120deg, var(--ifm-color-primary), var(--ifm-color-primary-darker));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.lead {
+  margin: 20px 0 0;
+  font-size: clamp(16px, 2vw, 19px);
+  color: var(--ifm-color-emphasis-700);
+  max-width: 58ch;
+}
+.search {
+  margin-top: 30px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 560px;
+  width: 100%;
+  background: var(--ifm-background-surface-color);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: var(--ifm-global-shadow-lw);
+  color: var(--ifm-color-emphasis-600) !important;
+  text-decoration: none;
+}
+.search:hover {
+  border-color: var(--ifm-color-primary);
+}
+.ctaRow {
+  margin-top: 22px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.btn {
+  border-radius: 10px;
+  padding: 11px 18px;
+  font-weight: 600;
+  font-size: 15px;
+  border: 1px solid transparent;
+  transition: transform 0.12s ease, background 0.12s ease;
+  text-decoration: none !important;
+}
+.primary {
+  background: var(--ifm-color-primary);
+  color: #fff !important;
+}
+.primary:hover {
+  background: var(--ifm-color-primary-darker);
+}
+.ghost {
+  background: transparent;
+  border-color: var(--ifm-color-emphasis-300);
+  color: var(--ifm-font-color-base) !important;
+}
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+/* ---- sections ---- */
+.sectionTitle {
+  font-size: 15px;
+  margin: 6px 0 0;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.sectionSub {
+  color: var(--ifm-color-emphasis-700);
+  font-size: 14px;
+  margin-top: 2px;
+}
+
+/* ---- cards ---- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin: 22px 0 8px;
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+  background: var(--ifm-background-surface-color);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 14px;
+  box-shadow: var(--ifm-global-shadow-lw);
+  transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+  text-decoration: none !important;
+  color: var(--ifm-font-color-base);
+}
+.card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--ifm-color-primary) 45%, var(--ifm-color-emphasis-200));
+  box-shadow: var(--ifm-global-shadow-md);
+}
+.ic {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  background: color-mix(in srgb, var(--ifm-color-primary) 12%, transparent);
+  transition: transform 0.16s ease;
+}
+.card:hover .ic {
+  transform: scale(1.08);
+}
+.cardTitle {
+  margin: 8px 0 0;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+}
+.cardDesc {
+  margin: 0;
+  color: var(--ifm-color-emphasis-700);
+  font-size: 14px;
+}
+.go {
+  margin-top: auto;
+  padding-top: 10px;
+  color: var(--ifm-color-primary);
+  font-weight: 600;
+  font-size: 14px;
+  transition: transform 0.16s ease;
+}
+.card:hover .go {
+  transform: translateX(3px);
+}
+
+/* ---- release strip ---- */
+.release {
+  margin: 22px 0 8px;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  background: var(--ifm-background-surface-color);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.releaseLeft {
+  padding: 26px;
+  border-right: 1px solid var(--ifm-color-emphasis-200);
+}
+.releaseTag {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 13px;
+  color: var(--ifm-color-primary);
+  font-weight: 600;
+}
+.releaseName {
+  margin: 8px 0 6px;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+}
+.releaseList {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+.releaseList li {
+  font-size: 14px;
+  color: var(--ifm-color-emphasis-700);
+  display: flex;
+  gap: 10px;
+}
+.releaseList li::before {
+  content: '→';
+  color: var(--ifm-color-primary);
+}
+.releaseRight {
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  background: var(--ifm-color-emphasis-100);
+}
+.releaseDate {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 12px;
+  color: var(--ifm-color-emphasis-600);
+}
+.releaseRight .btn {
+  align-self: flex-start;
+}
+.releaseHint {
+  font-size: 13px;
+  color: var(--ifm-color-emphasis-600);
+}
+
+@media (max-width: 720px) {
+  .release {
+    grid-template-columns: 1fr;
+  }
+  .releaseLeft {
+    border-right: 0;
+    border-bottom: 1px solid var(--ifm-color-emphasis-200);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .btn {
+    transition: none;
   }
 }
 
-.buttons {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* Entrance animation: hero and cards fade up in a gentle stagger on load. Gated
+   behind `no-preference` so that with reduced motion the elements simply render
+   at full opacity (their default) with no movement — never invisible. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .heroCol > *,
+  .cardsCol > p,
+  .cardsCol > h2,
+  .card {
+    opacity: 0;
+    animation: fadeUp 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+  /* Left column: eyebrow, title, lead, search, CTA row. */
+  .heroCol > *:nth-child(1) { animation-delay: 0.04s; }
+  .heroCol > *:nth-child(2) { animation-delay: 0.1s; }
+  .heroCol > *:nth-child(3) { animation-delay: 0.16s; }
+  .heroCol > *:nth-child(4) { animation-delay: 0.22s; }
+  .heroCol > *:nth-child(5) { animation-delay: 0.28s; }
+  /* Right column heading, then the cards. */
+  .cardsCol > p { animation-delay: 0.14s; }
+  .cardsCol > h2 { animation-delay: 0.18s; }
+  .card:nth-child(1) { animation-delay: 0.24s; }
+  .card:nth-child(2) { animation-delay: 0.3s; }
+  .card:nth-child(3) { animation-delay: 0.36s; }
+  .card:nth-child(4) { animation-delay: 0.42s; }
 }

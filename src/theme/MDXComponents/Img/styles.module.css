@@ -1,0 +1,57 @@
+.figure {
+  display: inline-block;
+  max-width: 100%;
+  margin: 0.4rem 0 1rem;
+}
+
+.figure img {
+  display: block;
+  max-width: 100%;
+  border-radius: 6px;
+}
+
+.caption {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  margin-top: 0.4rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+  font-size: 0.85rem;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.alt {
+  flex: 1 1 auto;
+  font-style: italic;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.actions {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 1.1rem;
+  align-items: center;
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 500;
+  white-space: nowrap;
+  text-decoration: none;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.action:hover {
+  color: var(--ifm-color-primary);
+}
+
+.icon {
+  flex: 0 0 auto;
+  opacity: 0.8;
+}
