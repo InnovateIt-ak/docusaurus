@@ -6,6 +6,7 @@ import {createRequire} from 'node:module';
 import remarkInclude from './src/remark/include.mjs';
 import remarkPlantUMLInline from './src/remark/plantuml-inline.mjs';
 import remarkMermaidInline from './src/remark/mermaid-inline.mjs';
+import remarkServiceNowAutolink from './src/remark/servicenow-autolink.mjs';
 import {FOOTER_CONFIG, NAV_BAR, REDOC_SPEC, WELCOME_PAGE} from './sharedConfig';
 const require = createRequire(import.meta.url);
 import {pdfMenuItems} from './pdfMenu';
@@ -69,6 +70,8 @@ const config: Config = {
                         remarkInclude,
                         remarkPlantUMLInline,
                         remarkMermaidInline,
+                        // Turn bare ServiceNow refs (INC123, CHG456, …) into links.
+                        remarkServiceNowAutolink,
                     ],
                 },
                 blog: false,
