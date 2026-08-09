@@ -3,6 +3,21 @@ import path from 'node:path';
 
 type PdfMenuItem = {to: string; label: string};
 
+// Pretty-print a menu label: turn separators into spaces and Title Case each
+// word (first letter upper, the rest lower). Keeps the "📄 PDF" list tidy no
+// matter how the label was derived — a lowercase slug ("analyse",
+// "developer-guide") or a SHOUTING one ("API", "STANDARDS") both render as
+// "Analyse", "Developer Guide", "Api", "Standards".
+function humanizeLabel(label: string): string {
+    return String(label)
+        .replace(/[_-]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .split(' ')
+        .map((w) => (w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : w))
+        .join(' ');
+}
+
 // Build the "📄 PDF" navbar dropdown from the filesystem so it mirrors the docs
 // sidebar and the PDFs CI produces. Each top-level sidebar entry gets an item:
 //   * a top-level doc file (e.g. intro.md) → its per-page PDF at /docs/<id>.pdf,
@@ -88,5 +103,5 @@ export function pdfMenuItems(): PdfMenuItem[] {
     return [
         ...items.map(({to, label}) => ({to, label})),
         {to: 'pathname:///documentation.pdf', label: 'Full documentation'},
-    ];
+    ].map(({to, label}) => ({to, label: humanizeLabel(label)}));
 }
