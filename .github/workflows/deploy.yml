@@ -33,7 +33,6 @@ jobs:
       contents: read
       pages: write
       id-token: write
-      packages: read  # pull the prebuilt WeasyPrint image from GHCR
 
     environment:
       name: github-pages
@@ -89,41 +88,18 @@ jobs:
       #     link in src/theme/DocItem/Footer),
       #   * one build/<section>.pdf per top-level docs/ section, and
       #   * a global build/documentation.pdf (all docs).
-      - name: Log in to GitHub Container Registry
-        # Lets the next step pull the prebuilt WeasyPrint image from GHCR.
-        # Non-fatal: a fork PR without package access simply falls back to a
-        # local build in the step below.
-        continue-on-error: true
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Generate PDFs with WeasyPrint
         env:
           BASE_URL: /docusaurus
         run: |
-          # Use the prebuilt WeasyPrint image from the GitHub Container
-          # Registry (published by build-weasyprint-image.yaml). Fall back to a
-          # local build on the first run, on a PR that changed the Dockerfile
-          # before the image is (re)published, or when GHCR isn't reachable
-          # (e.g. a fork PR without package access).
-          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}/weasyprint:latest"
-          if docker pull "$IMAGE" 2>/dev/null; then
-            echo "Using $IMAGE from GHCR"
-          else
-            echo "::notice::$IMAGE unavailable — building the image locally"
-            IMAGE=docusaurus-weasyprint
-            docker build -f docker/weasyprint/Dockerfile -t "$IMAGE" .
-          fi
+          docker build -f docker/weasyprint/Dockerfile -t docusaurus-weasyprint .
 
           # weasy <output-path-under-build-root> <title> [extra generator args…]
           weasy() {
             out="$1"; title="$2"; shift 2
             mkdir -p "$(dirname "$out")"
             docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" \
-              "$IMAGE" \
+              docusaurus-weasyprint \
               --build-dir=/data/build --output="/data/$out" \
               --base-url="$BASE_URL" --title="My Site — $title" \
               --eyebrow="Documentation" --toc-title="Table of Contents" "$@" \
@@ -178,7 +154,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: read  # pull the prebuilt WeasyPrint image from GHCR
 
     # PlantUML server so the remark plugin can render diagrams at build time.
     services:
@@ -228,41 +203,18 @@ jobs:
       #   * one build/docs/.../<page>.pdf per page (mirrors the page route),
       #   * one build/<section>.pdf per top-level docs/ section, and
       #   * a global build/documentation.pdf (all docs).
-      - name: Log in to GitHub Container Registry
-        # Lets the next step pull the prebuilt WeasyPrint image from GHCR.
-        # Non-fatal: a fork PR without package access simply falls back to a
-        # local build in the step below.
-        continue-on-error: true
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Generate PDFs with WeasyPrint
         env:
           BASE_URL: /
         run: |
-          # Use the prebuilt WeasyPrint image from the GitHub Container
-          # Registry (published by build-weasyprint-image.yaml). Fall back to a
-          # local build on the first run, on a PR that changed the Dockerfile
-          # before the image is (re)published, or when GHCR isn't reachable
-          # (e.g. a fork PR without package access).
-          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}/weasyprint:latest"
-          if docker pull "$IMAGE" 2>/dev/null; then
-            echo "Using $IMAGE from GHCR"
-          else
-            echo "::notice::$IMAGE unavailable — building the image locally"
-            IMAGE=docusaurus-weasyprint
-            docker build -f docker/weasyprint/Dockerfile -t "$IMAGE" .
-          fi
+          docker build -f docker/weasyprint/Dockerfile -t docusaurus-weasyprint .
 
           # weasy <output-path-under-build-root> <title> [extra generator args…]
           weasy() {
             out="$1"; title="$2"; shift 2
             mkdir -p "$(dirname "$out")"
             docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" \
-              "$IMAGE" \
+              docusaurus-weasyprint \
               --build-dir=/data/build --output="/data/$out" \
               --base-url="$BASE_URL" --title="My Site — $title" \
               --eyebrow="Documentation" --toc-title="Table of Contents" "$@" \
