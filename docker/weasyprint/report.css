@@ -747,3 +747,11 @@ body { counter-reset: chapter figure tablenum; }
 .markdown .theme-code-block.language-plaintext .token {
   color: #1a1a2e !important;
 }
+
+/* --- PDF-only: hide the on-site image/diagram action links ------------------
+   The Img theme component adds an "Open / Download" action row under each image
+   and rendered diagram (src/theme/MDXComponents/Img). Those are interactive
+   affordances that make no sense on paper, so hide them in the generated PDF.
+   The `.pdf-hide` class is added by the component next to its (hashed) module
+   class; !important beats the site stylesheet that WeasyPrint also loads. */
+.pdf-hide { display: none !important; }
