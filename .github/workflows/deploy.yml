@@ -103,6 +103,11 @@ jobs:
           echo "::warning::PlantUML server did not become ready; diagrams may render as placeholders"
 
       - name: Build Docusaurus
+        # Authenticates the changelog plugin's GitHub Releases fetch (lifts the
+        # rate limit, reads this repo's releases). The workflow's built-in
+        # GITHUB_TOKEN is enough — no personal access token (PAT) needed.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run build
 
       # Auto-discover doc content after the build and generate:
