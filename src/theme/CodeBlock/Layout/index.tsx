@@ -21,6 +21,54 @@ const COLLAPSE_THRESHOLD = 16;
 // Languages for which a language badge adds nothing (plain text blocks).
 const BADGELESS_LANGUAGES = new Set(['text', 'plain', 'none', '']);
 
+// A small coloured chip per language (label + brand-ish colour), shown next to
+// the filename — the "pheralb/code-blocks" look, kept understated. Unknown
+// languages fall back to a neutral chip built from the language name, so no
+// language ever goes unlabelled.
+const LANGUAGE_CHIPS: Record<string, {label: string; bg: string; fg: string}> = {
+  js: {label: 'JS', bg: '#f7df1e', fg: '#111'},
+  jsx: {label: 'JS', bg: '#f7df1e', fg: '#111'},
+  javascript: {label: 'JS', bg: '#f7df1e', fg: '#111'},
+  ts: {label: 'TS', bg: '#3178c6', fg: '#fff'},
+  tsx: {label: 'TS', bg: '#3178c6', fg: '#fff'},
+  typescript: {label: 'TS', bg: '#3178c6', fg: '#fff'},
+  bash: {label: '$', bg: '#4eaa25', fg: '#fff'},
+  sh: {label: '$', bg: '#4eaa25', fg: '#fff'},
+  shell: {label: '$', bg: '#4eaa25', fg: '#fff'},
+  zsh: {label: '$', bg: '#4eaa25', fg: '#fff'},
+  json: {label: '{ }', bg: '#cbcb41', fg: '#111'},
+  yaml: {label: 'YML', bg: '#cb171e', fg: '#fff'},
+  yml: {label: 'YML', bg: '#cb171e', fg: '#fff'},
+  php: {label: 'PHP', bg: '#777bb4', fg: '#fff'},
+  sql: {label: 'SQL', bg: '#e38c00', fg: '#fff'},
+  css: {label: 'CSS', bg: '#563d7c', fg: '#fff'},
+  html: {label: '<>', bg: '#e34c26', fg: '#fff'},
+  markup: {label: '<>', bg: '#e34c26', fg: '#fff'},
+  md: {label: 'MD', bg: '#519aba', fg: '#fff'},
+  mdx: {label: 'MD', bg: '#519aba', fg: '#fff'},
+  markdown: {label: 'MD', bg: '#519aba', fg: '#fff'},
+  py: {label: 'PY', bg: '#3572a5', fg: '#fff'},
+  python: {label: 'PY', bg: '#3572a5', fg: '#fff'},
+  docker: {label: 'DK', bg: '#2496ed', fg: '#fff'},
+  dockerfile: {label: 'DK', bg: '#2496ed', fg: '#fff'},
+  make: {label: 'MK', bg: '#6d8086', fg: '#fff'},
+  makefile: {label: 'MK', bg: '#6d8086', fg: '#fff'},
+};
+
+function getLanguageChip(
+  language: string,
+): {label: string; bg?: string; fg?: string} | null {
+  if (BADGELESS_LANGUAGES.has(language)) {
+    return null;
+  }
+  const known = LANGUAGE_CHIPS[language.toLowerCase()];
+  if (known) {
+    return known;
+  }
+  // Neutral fallback: first few letters, coloured by the theme (no inline bg).
+  return {label: language.slice(0, 3).toUpperCase()};
+}
+
 // A small "line numbers" glyph (three rows, each with a leading tick) that
 // inherits currentColor, matching the understated icons used elsewhere.
 function LineNumbersIcon(): ReactNode {
@@ -107,8 +155,11 @@ export default function CodeBlockLayout({className}: Props): ReactNode {
   const [collapsed, setCollapsed] = useState(collapsible);
 
   const language = metadata.language;
-  const showBadge =
-    typeof language === 'string' && !BADGELESS_LANGUAGES.has(language);
+  const chip = typeof language === 'string' ? getLanguageChip(language) : null;
+  const hasTitle = metadata.title !== undefined && metadata.title !== '';
+  // Left label: the filename when given, otherwise the language name (only when
+  // it carries a chip, so plain-text blocks stay clean).
+  const fileLabel = hasTitle ? metadata.title : chip ? language : null;
 
   // Same metadata, with line numbering forced to match the toggle. `<Content/>`
   // re-renders from this nested context; `wordWrap` is passed through unchanged
@@ -134,10 +185,18 @@ export default function CodeBlockLayout({className}: Props): ReactNode {
       });
 
   return (
-    <Container as="div" className={clsx(className, metadata.className)}>
+    <Container as="div" className={clsx(styles.card, className, metadata.className)}>
       <div className={styles.header}>
-        <span className={styles.title}>{metadata.title}</span>
-        {showBadge && <span className={styles.language}>{language}</span>}
+        <span className={styles.file}>
+          {chip && (
+            <span
+              className={styles.chip}
+              style={chip.bg ? {background: chip.bg, color: chip.fg} : undefined}>
+              {chip.label}
+            </span>
+          )}
+          {fileLabel !== null && <span className={styles.name}>{fileLabel}</span>}
+        </span>
         {/* Interactive buttons are not server-rendered (matching stock behaviour). */}
         <BrowserOnly>
           {() => (
