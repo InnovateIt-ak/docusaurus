@@ -1,0 +1,135 @@
+/* Persistent header bar: filename on the left, language badge, then the
+   always-visible action buttons. Sits above the highlighted code, sharing the
+   block's rounded top corners. */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem 0.35rem 0.9rem;
+  background: var(--ifm-color-emphasis-100);
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+  font-size: var(--ifm-code-font-size);
+}
+
+/* Filename (from ```lang title="…"). Empty when the block has no title, but it
+   still takes the free space so the badge and actions stay right-aligned. */
+.title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--ifm-font-family-monospace);
+  font-weight: 500;
+  color: var(--ifm-color-emphasis-800);
+}
+
+.language {
+  flex: 0 0 auto;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ifm-color-emphasis-600);
+  padding: 0.1rem 0.45rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 999px;
+}
+
+.actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+/* Base look for all three action buttons (line numbers, word wrap, copy). The
+   stock buttons render as `.clean-btn`; outside the floating button group they
+   would otherwise be unstyled, so give them a consistent, always-visible chip
+   style here. `line-height: 0` keeps the SVG icons from adding stray height. */
+.actions :global(.clean-btn).actionButton {
+  display: flex;
+  align-items: center;
+  color: var(--ifm-color-emphasis-700);
+  border: 1px solid transparent;
+  border-radius: var(--ifm-global-radius);
+  padding: 0.35rem;
+  line-height: 0;
+  opacity: 1;
+  transition: background var(--ifm-transition-fast) ease,
+    color var(--ifm-transition-fast) ease;
+}
+
+.actions :global(.clean-btn).actionButton:hover,
+.actions :global(.clean-btn).actionButton:focus-visible {
+  background: var(--ifm-color-emphasis-200);
+  color: var(--ifm-color-emphasis-900);
+}
+
+.actionButtonActive {
+  color: var(--ifm-color-primary) !important;
+  background: var(--ifm-color-emphasis-200);
+}
+
+.content {
+  position: relative;
+  border-bottom-left-radius: inherit;
+  border-bottom-right-radius: inherit;
+}
+
+/* Collapsed long blocks are clamped and topped off with a fade into the code
+   background so it reads as "there is more below". */
+.collapsed {
+  max-height: 24rem;
+  overflow: hidden;
+}
+
+.fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 4rem;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--prism-background-color)
+  );
+}
+
+.expand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.5rem;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.8rem;
+  color: var(--ifm-color-emphasis-700);
+  background: var(--ifm-color-emphasis-100);
+  border: none;
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+  border-bottom-left-radius: inherit;
+  border-bottom-right-radius: inherit;
+  cursor: pointer;
+  transition: background var(--ifm-transition-fast) ease,
+    color var(--ifm-transition-fast) ease;
+}
+
+.expand:hover,
+.expand:focus-visible {
+  color: var(--ifm-color-primary);
+  background: var(--ifm-color-emphasis-200);
+}
+
+.chevron {
+  transition: transform var(--ifm-transition-fast) ease;
+}
+
+.chevronUp {
+  transform: rotate(180deg);
+}
