@@ -41,9 +41,13 @@
 
 /* Match the card background to the code area, overriding the Prism theme's
    inline `background-color` on <pre> (an inline style without !important loses
-   to a class rule with it). Token/foreground colours stay from Prism. */
+   to a class rule with it). Token/foreground colours stay from Prism.
+   `--ifm-pre-background` is also realigned here: the sticky line-number gutter
+   paints itself with that variable, so without this it kept the original Prism
+   background and showed as a mismatched band beside the code. */
 .content :global(.prism-code) {
   background-color: var(--cb-body) !important;
+  --ifm-pre-background: var(--cb-body);
 }
 
 .header {
