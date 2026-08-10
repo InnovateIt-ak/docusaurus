@@ -1,0 +1,193 @@
+/* "pheralb/code-blocks" look, rendered on the stock Prism engine (no Tailwind,
+   no Shiki, PDF pipeline intact). The palette is pinned to the mockup: a
+   near-white card in light, a near-black neutral card in dark, an indigo accent,
+   and a coloured per-language chip next to the filename.
+
+   Docusaurus always stamps `data-theme` on <html>, so theming via
+   [data-theme='dark'] is reliable here. */
+
+.card {
+  --cb-body: #ffffff;
+  --cb-head: #fafafa;
+  --cb-border: #e4e4e7;
+  --cb-border-soft: #ececef;
+  --cb-name: #3f3f46;
+  --cb-chip-bg: #e4e4e7;
+  --cb-chip-fg: #3f3f46;
+  --cb-btn: #71717a;
+  --cb-btn-hover-bg: #f4f4f5;
+  --cb-btn-hover-fg: #18181b;
+  --cb-accent: #6366f1;
+
+  border: 1px solid var(--cb-border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--cb-body);
+}
+
+:global([data-theme='dark']) .card {
+  --cb-body: #0c0c0e;
+  --cb-head: #111113;
+  --cb-border: #27272a;
+  --cb-border-soft: #1c1c1f;
+  --cb-name: #e4e4e7;
+  --cb-chip-bg: #27272a;
+  --cb-chip-fg: #d4d4d8;
+  --cb-btn: #a1a1aa;
+  --cb-btn-hover-bg: #1c1c1f;
+  --cb-btn-hover-fg: #fafafa;
+  --cb-accent: #818cf8;
+}
+
+/* Match the card background to the code area, overriding the Prism theme's
+   inline `background-color` on <pre> (an inline style without !important loses
+   to a class rule with it). Token/foreground colours stay from Prism.
+   `--ifm-pre-background` is also realigned here: the sticky line-number gutter
+   paints itself with that variable, so without this it kept the original Prism
+   background and showed as a mismatched band beside the code. */
+.content :global(.prism-code) {
+  background-color: var(--cb-body) !important;
+  --ifm-pre-background: var(--cb-body);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.5rem 0.4rem 0.85rem;
+  background: var(--cb-head);
+  border-bottom: 1px solid var(--cb-border-soft);
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+}
+
+/* Left group: language chip + filename. Takes the free space so the action
+   buttons stay pinned to the right, even when there is no filename. */
+.file {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.8rem;
+  color: var(--cb-name);
+}
+
+.chip {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  padding: 0 0.28rem;
+  border-radius: 5px;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  /* Neutral fallback (unknown languages). Known chips override via inline style. */
+  background: var(--cb-chip-bg);
+  color: var(--cb-chip-fg);
+}
+
+.name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+  color: var(--cb-name);
+}
+
+.actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.1rem;
+}
+
+/* Square, always-visible icon buttons (line numbers, word wrap, copy). The
+   stock buttons render as `.clean-btn`; `line-height: 0` stops the SVG icons
+   from adding stray height. */
+.actions :global(.clean-btn).actionButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.85rem;
+  height: 1.85rem;
+  color: var(--cb-btn);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0.35rem;
+  line-height: 0;
+  opacity: 1;
+  transition: background var(--ifm-transition-fast) ease,
+    color var(--ifm-transition-fast) ease;
+}
+
+.actions :global(.clean-btn).actionButton:hover,
+.actions :global(.clean-btn).actionButton:focus-visible {
+  background: var(--cb-btn-hover-bg);
+  color: var(--cb-btn-hover-fg);
+}
+
+.actionButtonActive {
+  color: var(--cb-accent) !important;
+  background: var(--cb-btn-hover-bg);
+}
+
+.content {
+  position: relative;
+}
+
+/* Collapsed long blocks are clamped and topped off with a fade into the code
+   background so it reads as "there is more below". */
+.collapsed {
+  max-height: 24rem;
+  overflow: hidden;
+}
+
+.fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 4rem;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, var(--cb-body));
+}
+
+.expand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.5rem;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.78rem;
+  color: var(--cb-btn);
+  background: var(--cb-head);
+  border: none;
+  border-top: 1px solid var(--cb-border-soft);
+  cursor: pointer;
+  transition: background var(--ifm-transition-fast) ease,
+    color var(--ifm-transition-fast) ease;
+}
+
+.expand:hover,
+.expand:focus-visible {
+  color: var(--cb-accent);
+  background: var(--cb-btn-hover-bg);
+}
+
+.chevron {
+  transition: transform var(--ifm-transition-fast) ease;
+}
+
+.chevronUp {
+  transform: rotate(180deg);
+}
