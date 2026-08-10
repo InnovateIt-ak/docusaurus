@@ -1,5 +1,10 @@
 .figure {
-  display: inline-block;
+  /* Block-level so text that follows the image never sits on the caption's
+     line (the old inline-block let it glue to the "Download" link when the
+     image was narrower than the column). `width: fit-content` keeps the figure
+     — and its caption underline — sized to the image, not the whole column. */
+  display: block;
+  width: fit-content;
   max-width: 100%;
   margin: 0.4rem 0 1rem;
 }
