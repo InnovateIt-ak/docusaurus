@@ -1,19 +1,24 @@
 name: Build and Deploy Docusaurus
 
-# The site is served from the `gh-pages` branch
-# (Settings → Pages → Deploy from a branch → gh-pages / root). The main site
-# lives at the branch root; per-PR previews live under `pr-preview/pr-<N>/`
-# (see pr-preview.yml). This workflow publishes the main site and preserves the
-# `pr-preview/` directory, so open previews survive a master deploy.
+# Builds the site and publishes it to GitHub Pages via the Pages "GitHub
+# Actions" source (actions/deploy-pages). Deployment is intentionally NOT gated
+# to the default branch: a push to ANY branch (e.g. a PR branch) deploys to the
+# single live Pages site, overwriting the previous deployment. This lets a PR be
+# previewed on the real site without merging its code into master.
+#
+# Requires the `github-pages` environment to allow deployments from all branches
+# (Settings -> Environments -> github-pages -> Deployment branches -> No
+# restriction); otherwise non-default branches are blocked by environment rules.
 on:
   push:
     branches:
-      - master
+      - '**'
   workflow_dispatch:
 
-# One main deployment at a time (previews use their own per-PR group).
+# GitHub Pages has one live deployment. Serialise so concurrent branch pushes
+# don't race; the most recent completed deploy wins.
 concurrency:
-  group: pages-main
+  group: github-pages
   cancel-in-progress: false
 
 env:
@@ -25,11 +30,17 @@ env:
   G_BASE_URL: /docusaurus/
 
 jobs:
-  deploy-main:
+  deploy-github-pages:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # push the built site to the gh-pages branch
+      contents: read
+      pages: write
+      id-token: write
       packages: read # pull the prebuilt WeasyPrint image from GHCR
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     # PlantUML server so the remark plugin can render diagrams at build time
     # (src/remark/plantuml-inline.mjs reads PLANTUML_BUILD_URL).
@@ -159,18 +170,17 @@ jobs:
           # Global: everything.
           weasy "build/documentation.pdf" "Full documentation" --include="/docs/"
 
-      # GitHub Pages' legacy branch build would otherwise run Jekyll and drop
-      # files/dirs beginning with "_" (Docusaurus emits some). Disable it.
-      - name: Disable Jekyll
-        run: touch build/.nojekyll
+      # Publish to GitHub Pages from ANY branch (no default-branch gate): every
+      # push overwrites the single live site. Requires the github-pages
+      # environment to permit non-default branches (see the header note).
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
 
-      # Publish the built site to the root of the gh-pages branch, keeping the
-      # pr-preview/ directory so open PR previews are not wiped by a main deploy.
-      - name: Publish to gh-pages (root)
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: Upload to GitHub Pages
+        uses: actions/upload-pages-artifact@v3
         with:
-          folder: build
-          branch: gh-pages
-          clean: true
-          clean-exclude: |
-            pr-preview
+          path: build/
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
