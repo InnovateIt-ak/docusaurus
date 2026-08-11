@@ -14,11 +14,7 @@ import Button from '@theme/CodeBlock/Buttons/Button';
 import type {Props} from '@theme/CodeBlock/Layout';
 import styles from './styles.module.css';
 
-// Long code blocks are collapsed to this many lines, with a button to expand.
-// Keeps a page of long shell scripts / configs readable at a glance.
-const COLLAPSE_THRESHOLD = 16;
-
-// Languages for which a language badge adds nothing (plain text blocks).
+// Languages for which a language chip adds nothing (plain text blocks).
 const BADGELESS_LANGUAGES = new Set(['text', 'plain', 'none', '']);
 
 // A small coloured chip per language (label + brand-ish colour), shown next to
@@ -69,8 +65,7 @@ function getLanguageChip(
   return {label: language.slice(0, 3).toUpperCase()};
 }
 
-// A small "line numbers" glyph (three rows, each with a leading tick) that
-// inherits currentColor, matching the understated icons used elsewhere.
+// A small "line numbers" glyph (three rows, each with a leading tick).
 function LineNumbersIcon(): ReactNode {
   return (
     <svg
@@ -89,27 +84,9 @@ function LineNumbersIcon(): ReactNode {
   );
 }
 
-function ChevronIcon({expanded}: {expanded: boolean}): ReactNode {
-  return (
-    <svg
-      className={clsx(styles.chevron, expanded && styles.chevronUp)}
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true">
-      <path d="M6 9l6 6 6-6" />
-    </svg>
-  );
-}
-
-// Toggles line numbers on/off. It works by re-providing the code-block context
-// with a modified `lineNumbersStart`: `<Content/>` reads that value to decide
-// whether to render the numbering, so flipping it re-renders live.
+// Toggles line numbers on/off by re-providing the code-block context with a
+// modified `lineNumbersStart`: `<Content/>` reads that value to decide whether
+// to render the numbering, so flipping it re-renders live.
 function LineNumbersButton({
   enabled,
   onToggle,
@@ -134,12 +111,14 @@ function LineNumbersButton({
   );
 }
 
-// Swizzled to enrich every code block with a persistent header (filename +
-// language badge + always-visible actions), a line-numbers toggle, and
-// collapsing for long blocks. The syntax highlighting and word-wrap/copy
-// buttons remain the stock Docusaurus components — only the composition and the
-// two extra affordances are ours, so blocks authored in Markdown gain all of
-// this without any change to the docs.
+// Swizzled to enrich every code block with a persistent header (language chip +
+// filename + always-visible actions) and a line-numbers toggle, in the
+// "pheralb/code-blocks" style. The syntax highlighting and the word-wrap/copy
+// buttons remain the stock Docusaurus components, so blocks authored in Markdown
+// gain all of this without any change to the docs.
+//
+// Every code line is always rendered (no collapsing): the block prints in full
+// on paper (the PDF export) and shows all its lines by default on screen.
 export default function CodeBlockLayout({className}: Props): ReactNode {
   const {metadata, wordWrap} = useCodeBlockContext();
 
@@ -148,11 +127,6 @@ export default function CodeBlockLayout({className}: Props): ReactNode {
   const [showLineNumbers, setShowLineNumbers] = useState(
     metadata.lineNumbersStart !== undefined,
   );
-
-  // Trailing newline shouldn't inflate the count and trigger a needless collapse.
-  const lineCount = metadata.code.replace(/\n$/, '').split('\n').length;
-  const collapsible = lineCount > COLLAPSE_THRESHOLD;
-  const [collapsed, setCollapsed] = useState(collapsible);
 
   const language = metadata.language;
   const chip = typeof language === 'string' ? getLanguageChip(language) : null;
@@ -169,23 +143,10 @@ export default function CodeBlockLayout({className}: Props): ReactNode {
     lineNumbersStart: showLineNumbers ? metadata.lineNumbersStart ?? 1 : undefined,
   };
 
-  const expandLabel = collapsed
-    ? translate(
-        {
-          id: 'theme.CodeBlock.showMore',
-          message: 'Show {count} more lines',
-          description: 'Label of the button that expands a collapsed code block',
-        },
-        {count: lineCount - COLLAPSE_THRESHOLD},
-      )
-    : translate({
-        id: 'theme.CodeBlock.showLess',
-        message: 'Show less',
-        description: 'Label of the button that collapses an expanded code block',
-      });
-
   return (
-    <Container as="div" className={clsx(styles.card, className, metadata.className)}>
+    <Container
+      as="div"
+      className={clsx(styles.card, className, metadata.className)}>
       <div className={styles.header}>
         <span className={styles.file}>
           {chip && (
@@ -213,22 +174,8 @@ export default function CodeBlockLayout({className}: Props): ReactNode {
       </div>
 
       <CodeBlockContextProvider metadata={effectiveMetadata} wordWrap={wordWrap}>
-        <div className={clsx(styles.content, collapsed && styles.collapsed)}>
-          <Content />
-          {collapsed && <div className={styles.fade} aria-hidden="true" />}
-        </div>
+        <Content />
       </CodeBlockContextProvider>
-
-      {collapsible && (
-        <button
-          type="button"
-          className={styles.expand}
-          onClick={() => setCollapsed((value) => !value)}
-          aria-expanded={!collapsed}>
-          <ChevronIcon expanded={!collapsed} />
-          {expandLabel}
-        </button>
-      )}
     </Container>
   );
 }

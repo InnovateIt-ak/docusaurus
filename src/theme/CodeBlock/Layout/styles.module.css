@@ -45,7 +45,7 @@
    `--ifm-pre-background` is also realigned here: the sticky line-number gutter
    paints itself with that variable, so without this it kept the original Prism
    background and showed as a mismatched band beside the code. */
-.content :global(.prism-code) {
+.card :global(.prism-code) {
   background-color: var(--cb-body) !important;
   --ifm-pre-background: var(--cb-body);
 }
@@ -139,55 +139,22 @@
   background: var(--cb-btn-hover-bg);
 }
 
-.content {
-  position: relative;
-}
+/* --- Print / PDF ---------------------------------------------------------
+   The PDF export (WeasyPrint) already styles the code card as a dark panel.
+   Keep our header consistent with it instead of showing the light on-screen
+   header bar, and drop the interactive buttons, which mean nothing on paper. */
+@media print {
+  .header {
+    background: #21252b;
+    border-bottom-color: #181a1f;
+  }
 
-/* Collapsed long blocks are clamped and topped off with a fade into the code
-   background so it reads as "there is more below". */
-.collapsed {
-  max-height: 24rem;
-  overflow: hidden;
-}
+  .file,
+  .name {
+    color: #c8ccd4;
+  }
 
-.fade {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 4rem;
-  pointer-events: none;
-  background: linear-gradient(to bottom, transparent, var(--cb-body));
-}
-
-.expand {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  width: 100%;
-  padding: 0.5rem;
-  font-family: var(--ifm-font-family-monospace);
-  font-size: 0.78rem;
-  color: var(--cb-btn);
-  background: var(--cb-head);
-  border: none;
-  border-top: 1px solid var(--cb-border-soft);
-  cursor: pointer;
-  transition: background var(--ifm-transition-fast) ease,
-    color var(--ifm-transition-fast) ease;
-}
-
-.expand:hover,
-.expand:focus-visible {
-  color: var(--cb-accent);
-  background: var(--cb-btn-hover-bg);
-}
-
-.chevron {
-  transition: transform var(--ifm-transition-fast) ease;
-}
-
-.chevronUp {
-  transform: rotate(180deg);
+  .actions {
+    display: none;
+  }
 }
