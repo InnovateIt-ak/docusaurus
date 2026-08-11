@@ -1,4 +1,4 @@
-import {useState, type ReactNode} from 'react';
+import {useState, useEffect, type ReactNode} from 'react';
 import clsx from 'clsx';
 import BrowserOnly from '@docusaurus/BrowserOnly';
 import {translate} from '@docusaurus/Translate';
@@ -127,6 +127,13 @@ export default function CodeBlockLayout({className}: Props): ReactNode {
   const [showLineNumbers, setShowLineNumbers] = useState(
     metadata.lineNumbersStart !== undefined,
   );
+
+  // On screen, show line numbers by default. This runs only after mount, so the
+  // server-rendered HTML — which the PDF export is built from — stays without
+  // numbering (keeping the printed code card clean, no gutter artefacts).
+  useEffect(() => {
+    setShowLineNumbers(true);
+  }, []);
 
   const language = metadata.language;
   const chip = typeof language === 'string' ? getLanguageChip(language) : null;
