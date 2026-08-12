@@ -58,6 +58,7 @@
    shift once hydration settles. Light mode already matches (github on white). */
 :global([data-theme='dark']) .card :global(.prism-code),
 :global([data-theme='dark']) .card :global(.token-line),
+:global([data-theme='dark']) .card :global(.token),
 :global([data-theme='dark']) .card :global(.token.plain),
 :global([data-theme='dark']) .card :global(.token.punctuation),
 :global([data-theme='dark']) .card :global(.token.symbol) {

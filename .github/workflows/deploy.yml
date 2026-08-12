@@ -144,6 +144,7 @@ jobs:
               "$IMAGE" \
               --build-dir=/data/build --output="/data/$out" \
               --base-url="$BASE_URL" --title="$title" \
+              --stylesheet=/data/docker/weasyprint/report.css \
               --eyebrow="Documentation" "$@" \
               || echo "::warning::skipped $out (no eligible content)"
           }
