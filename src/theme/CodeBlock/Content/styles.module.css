@@ -1,0 +1,30 @@
+/* Copied from @docusaurus/theme-classic CodeBlock/Content so the ejected
+   Content below keeps the exact same layout. */
+.codeBlock {
+  --ifm-pre-background: var(--prism-background-color);
+  margin: 0;
+  padding: 0;
+}
+
+.codeBlockStandalone {
+  padding: 0;
+}
+
+.codeBlockLines {
+  font: inherit;
+  /* rtl:ignore */
+  float: left;
+  min-width: 100%;
+  padding: var(--ifm-pre-padding);
+}
+
+.codeBlockLinesWithNumbering {
+  display: table;
+  padding: var(--ifm-pre-padding) 0;
+}
+
+@media print {
+  .codeBlockLines {
+    white-space: pre-wrap;
+  }
+}
