@@ -1,18 +1,22 @@
 name: Build and Deploy Docusaurus
 
-# Adapted to run in this GitHub org (github.com / GitHub Pages), replacing the
-# upstream reusable workflows that targeted an internal CI + Artifactory. The
-# site is built with Node directly, PDFs are rendered with the WeasyPrint image
-# pulled from the GitHub Container Registry, and everything is published to
-# GitHub Pages.
+# Builds the site and publishes it to GitHub Pages via the Pages "GitHub
+# Actions" source (actions/deploy-pages). Deployment is intentionally NOT gated
+# to the default branch: a push to ANY branch (e.g. a PR branch) deploys to the
+# single live Pages site, overwriting the previous deployment. This lets a PR be
+# previewed on the real site without merging its code into master.
+#
+# Requires the `github-pages` environment to allow deployments from all branches
+# (Settings -> Environments -> github-pages -> Deployment branches -> No
+# restriction); otherwise non-default branches are blocked by environment rules.
 on:
   push:
     branches:
       - '**'
-  pull_request:
   workflow_dispatch:
 
-# Only one Pages deployment at a time.
+# GitHub Pages has one live deployment. Serialise so concurrent branch pushes
+# don't race; the most recent completed deploy wins.
 concurrency:
   group: github-pages
   cancel-in-progress: false
@@ -28,18 +32,11 @@ env:
 jobs:
   deploy-github-pages:
     runs-on: ubuntu-latest
-    # Deploy on push (any branch) or manual run. On pull_request, only for forks
-    # (an internal-branch PR is already deployed by its own push event).
-    if: >-
-      github.event_name == 'push'
-      || github.event_name == 'workflow_dispatch'
-      || (github.event_name == 'pull_request'
-          && github.event.pull_request.head.repo.full_name != github.repository)
     permissions:
       contents: read
       pages: write
       id-token: write
-      packages: read  # pull the prebuilt WeasyPrint image from GHCR
+      packages: read # pull the prebuilt WeasyPrint image from GHCR
 
     environment:
       name: github-pages
@@ -173,23 +170,17 @@ jobs:
           # Global: everything.
           weasy "build/documentation.pdf" "Full documentation" --include="/docs/"
 
-      # Publish to GitHub Pages ONLY from the default branch. GitHub Pages has a
-      # single live site, so deploying from feature branches races with (and
-      # would overwrite) the master deployment — the deploy step then fails when
-      # another deployment to the github-pages environment is already active.
-      # Other branches still build + generate PDFs above (PR validation); they
-      # just don't publish.
+      # Publish to GitHub Pages from ANY branch (no default-branch gate): every
+      # push overwrites the single live site. Requires the github-pages
+      # environment to permit non-default branches (see the header note).
       - name: Setup Pages
-        if: github.ref_name == github.event.repository.default_branch
         uses: actions/configure-pages@v4
 
       - name: Upload to GitHub Pages
-        if: github.ref_name == github.event.repository.default_branch
         uses: actions/upload-pages-artifact@v3
         with:
           path: build/
 
       - name: Deploy to GitHub Pages
         id: deployment
-        if: github.ref_name == github.event.repository.default_branch
         uses: actions/deploy-pages@v4
