@@ -215,7 +215,8 @@ const config: Config = {
         ['@docusaurus/theme-classic']: {
             colorMode: {
                 defaultMode: 'dark',
-                disableSwitch: true,
+                // Keep the light/dark toggle available (dark stays the default).
+                disableSwitch: false,
                 respectPrefersColorScheme: true,
             },
         },
