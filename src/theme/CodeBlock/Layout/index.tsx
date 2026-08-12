@@ -1,4 +1,4 @@
-import {useState, useEffect, type ReactNode} from 'react';
+import {useState, type ReactNode} from 'react';
 import clsx from 'clsx';
 import BrowserOnly from '@docusaurus/BrowserOnly';
 import {translate} from '@docusaurus/Translate';
@@ -122,18 +122,11 @@ function LineNumbersButton({
 export default function CodeBlockLayout({className}: Props): ReactNode {
   const {metadata, wordWrap} = useCodeBlockContext();
 
-  // The line-numbers toggle starts from whatever the block itself declared
-  // (```js showLineNumbers), then the reader can flip it either way.
-  const [showLineNumbers, setShowLineNumbers] = useState(
-    metadata.lineNumbersStart !== undefined,
-  );
-
-  // On screen, show line numbers by default. This runs only after mount, so the
-  // server-rendered HTML — which the PDF export is built from — stays without
-  // numbering (keeping the printed code card clean, no gutter artefacts).
-  useEffect(() => {
-    setShowLineNumbers(true);
-  }, []);
+  // Line numbers are on by default, from the server-rendered HTML onward, so the
+  // block never reflows after mount (no numbers popping in). The reader can turn
+  // them off with the toggle. The PDF export neutralises the numbering in print
+  // (see styles.module.css @media print), keeping the printed card clean.
+  const [showLineNumbers, setShowLineNumbers] = useState(true);
 
   const language = metadata.language;
   const chip = typeof language === 'string' ? getLanguageChip(language) : null;

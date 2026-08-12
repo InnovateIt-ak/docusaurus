@@ -50,6 +50,49 @@
   --ifm-pre-background: var(--cb-body);
 }
 
+/* Dark mode: paint the Prism (dracula) token colours from the very first render,
+   not only after Docusaurus re-mounts the block on hydration. On a full-page
+   load (refresh) the server HTML carries the light-theme ink; on our dark card
+   the plain text would be dark-on-dark (invisible) for a beat until the theme
+   flips. These values match the dracula theme exactly, so there is no colour
+   shift once hydration settles. Light mode already matches (github on white). */
+:global([data-theme='dark']) .card :global(.prism-code),
+:global([data-theme='dark']) .card :global(.token-line),
+:global([data-theme='dark']) .card :global(.token.plain),
+:global([data-theme='dark']) .card :global(.token.punctuation),
+:global([data-theme='dark']) .card :global(.token.symbol) {
+  color: #f8f8f2 !important;
+}
+:global([data-theme='dark']) .card :global(.token.comment) {
+  color: #6272a4 !important;
+}
+:global([data-theme='dark']) .card :global(.token.string),
+:global([data-theme='dark']) .card :global(.token.char),
+:global([data-theme='dark']) .card :global(.token.tag),
+:global([data-theme='dark']) .card :global(.token.selector) {
+  color: #ff79c6 !important;
+}
+:global([data-theme='dark']) .card :global(.token.keyword),
+:global([data-theme='dark']) .card :global(.token.variable),
+:global([data-theme='dark']) .card :global(.token.prolog),
+:global([data-theme='dark']) .card :global(.token.constant),
+:global([data-theme='dark']) .card :global(.token.builtin) {
+  color: #bd93f9 !important;
+}
+:global([data-theme='dark']) .card :global(.token.function),
+:global([data-theme='dark']) .card :global(.token.inserted) {
+  color: #50fa7b !important;
+}
+:global([data-theme='dark']) .card :global(.token.attr-name) {
+  color: #f1fa8c !important;
+}
+:global([data-theme='dark']) .card :global(.token.deleted) {
+  color: #ff5555 !important;
+}
+:global([data-theme='dark']) .card :global(.token.changed) {
+  color: #ffb86c !important;
+}
+
 .header {
   display: flex;
   align-items: center;
@@ -156,5 +199,22 @@
 
   .actions {
     display: none;
+  }
+
+  /* Line numbers are an on-screen affordance. On paper, neutralise them so the
+     numbered table layout collapses back to the normal inline flow the PDF
+     stylesheet expects for un-numbered code (no gutter, no broken layout).
+     Docusaurus hashes these class names (CSS modules), so match by substring —
+     the same way the PDF stylesheet (report.css) targets code-block internals. */
+  .card :global([class*='codeLineNumber']) {
+    display: none !important;
+  }
+
+  .card :global([class*='codeBlockLinesWithNumbering']) {
+    display: block !important;
+  }
+
+  .card :global([class*='codeLineContent']) {
+    display: inline !important;
   }
 }
