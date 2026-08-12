@@ -10,6 +10,31 @@
 // The owner/repo default to this project's Docusaurus config but can be
 // overridden via env (G_ORGANIZATION_NAME / G_PROJECT_NAME) or plugin options.
 
+// ServiceNow base + change-request link, kept in sync with
+// src/remark/servicenow-autolink.mjs (CHG -> change_request table). The CHG
+// reference is extracted here, at build time, so the value is baked into the
+// changelog global data and the client render stays hydration-safe.
+const SN_BASE = (process.env.SERVICENOW_BASE_URL || 'https://services.eeas.europa.eu').replace(/\/+$/, '');
+const CHG_RE = /\bCHG\d+\b/g;
+
+// Pull every ServiceNow change reference (e.g. CHG0012345) out of a release
+// body so they can be shown next to the version in the changelog title.
+// Duplicates are dropped while preserving first-seen order.
+function changesFromBody(body) {
+  const seen = new Set();
+  const changes = [];
+  const text = body || '';
+  CHG_RE.lastIndex = 0;
+  let match;
+  while ((match = CHG_RE.exec(text)) !== null) {
+    const number = match[0];
+    if (seen.has(number)) continue;
+    seen.add(number);
+    changes.push({number, url: `${SN_BASE}/change_request.do?sysparm_query=number=${number}`});
+  }
+  return changes;
+}
+
 /** @param {import('@docusaurus/types').LoadContext} context */
 module.exports = function changelogPlugin(context, options = {}) {
   const owner =
@@ -48,6 +73,7 @@ module.exports = function changelogPlugin(context, options = {}) {
             date: r.published_at || r.created_at,
             url: r.html_url,
             prerelease: !!r.prerelease,
+            changes: changesFromBody(r.body),
           }));
         return {owner, repo, releases};
       } catch (err) {

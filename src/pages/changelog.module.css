@@ -76,6 +76,21 @@
 .name {
   font-weight: 600;
 }
+.change {
+  font-family: var(--ifm-font-family-monospace);
+  font-weight: 600;
+  font-size: 0.78rem;
+  color: var(--ifm-color-primary);
+  border: 1px solid var(--ifm-color-primary);
+  border-radius: 999px;
+  padding: 0.05rem 0.55rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.change:hover {
+  background: color-mix(in srgb, var(--ifm-color-primary) 12%, transparent);
+  text-decoration: none;
+}
 .pre {
   font-size: 0.72rem;
   text-transform: uppercase;
