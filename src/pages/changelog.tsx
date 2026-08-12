@@ -11,6 +11,8 @@ type Release = {
   date: string;
   url: string;
   prerelease: boolean;
+  // ServiceNow change reference extracted from the release body (What's Changed).
+  change?: {number: string; url: string} | null;
 };
 
 type ChangelogData = {owner: string; repo: string; releases: Release[]};
@@ -87,6 +89,18 @@ function ReleaseCard({release, defaultOpen}: {release: Release; defaultOpen: boo
         <span className={styles.tag}>{release.tag}</span>
         {release.name && !sameVersion(release.name, release.tag) && (
           <span className={styles.name}>{release.name}</span>
+        )}
+        {release.change && (
+          <a
+            className={styles.change}
+            href={release.change.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            // Keep the link click from toggling the surrounding <details>.
+            onClick={(e) => e.stopPropagation()}
+          >
+            {release.change.number}
+          </a>
         )}
         {release.prerelease && <span className={styles.pre}>pre-release</span>}
         <span className={styles.date}>{formatDate(release.date)}</span>
