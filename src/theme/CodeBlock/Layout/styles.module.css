@@ -189,25 +189,9 @@
    header bar, and drop the interactive buttons, which mean nothing on paper. */
 @media print {
   /* The PDF code card is light (see report.css); keep our header light too and
-     just drop the interactive buttons, which mean nothing on paper. */
+     just drop the interactive buttons, which mean nothing on paper. Line
+     numbers are kept — the PDF stylesheet lays them out on the light card. */
   .actions {
     display: none;
-  }
-
-  /* Line numbers are an on-screen affordance. On paper, neutralise them so the
-     numbered table layout collapses back to the normal inline flow the PDF
-     stylesheet expects for un-numbered code (no gutter, no broken layout).
-     Docusaurus hashes these class names (CSS modules), so match by substring —
-     the same way the PDF stylesheet (report.css) targets code-block internals. */
-  .card :global([class*='codeLineNumber']) {
-    display: none !important;
-  }
-
-  .card :global([class*='codeBlockLinesWithNumbering']) {
-    display: block !important;
-  }
-
-  .card :global([class*='codeLineContent']) {
-    display: inline !important;
   }
 }

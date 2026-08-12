@@ -497,6 +497,28 @@ pre {
 .markdown .token-line {
   display: inline;
 }
+/* Line numbers on the light PDF card. The swizzled CodeBlock renders them by
+   default; restore the numbered table layout (the `.token-line { display:
+   inline }` rule above is for un-numbered blocks — a numbered line also carries
+   a hashed `codeLine_…` class, matched below) and style the gutter for a light
+   card. `codeLine_` matches only the line row, not codeLineNumber/codeLineContent. */
+.markdown [class*="codeBlockLinesWithNumbering"] {
+  display: table !important;
+}
+.markdown [class*="codeLine_"] {
+  display: table-row !important;
+}
+.markdown [class*="codeLineNumber"] {
+  display: table-cell !important;
+  text-align: right;
+  padding: 0 3mm 0 0 !important;
+  color: #9aa0aa !important;
+  background: transparent !important;
+  user-select: none;
+}
+.markdown [class*="codeLineContent"] {
+  display: table-cell !important;
+}
 /* Hide the floating "copy" button that has no meaning on paper. */
 .markdown [class*="copyButton"],
 .markdown [class*="buttonGroup"] {
