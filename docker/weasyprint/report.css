@@ -434,38 +434,27 @@ pre {
   float: none !important;
   min-width: 0 !important;
 }
-/* "Snappify"-style code card: a dark rounded panel with a window title bar and
-   three traffic-light dots, plus a One Dark syntax palette (defined below).
-   Replaces the on-screen grey box and its drop shadow. break-inside: avoid keeps
-   a block that fits on one page from being split across a page boundary; a block
-   taller than a page is still fragmented by the renderer (avoid is best-effort),
-   and the inner <pre> stays break-inside: auto so that split is clean. The title
-   bar (::before) only renders on the first fragment and the panel keeps its dark
-   background across page breaks. */
+/* Light code card in the PDF: a rounded, bordered light panel that matches the
+   on-screen light theme. break-inside: avoid keeps a block that fits on one page
+   from being split across a page boundary; a block taller than a page is still
+   fragmented by the renderer (avoid is best-effort), and the inner <pre> stays
+   break-inside: auto so that split is clean. The swizzled CodeBlock renders its
+   own header (filename + language chip), so no window/title bar is added here. */
 .markdown [class*="codeBlockContainer"] {
   box-shadow: none !important;
   break-inside: avoid;
   margin: 1.3rem 0;
   padding: 0 !important;
-  background: #282c34 !important;
+  background: #f6f8fa !important;
+  border: 0.2mm solid #d5d9e0 !important;
   border-radius: 3mm;
 }
 .markdown [class*="codeBlockContainer"]::before {
-  content: "";
-  display: block;
-  height: 7mm;
-  border-top-left-radius: 3mm;
-  border-top-right-radius: 3mm;
-  border-bottom: 0.3mm solid #181a1f;
-  background:
-          radial-gradient(circle 1.4mm at 5mm 3.5mm,    #ff5f56 98%, transparent),
-          radial-gradient(circle 1.4mm at 9.5mm 3.5mm,  #ffbd2e 98%, transparent),
-          radial-gradient(circle 1.4mm at 14mm 3.5mm,   #27c93f 98%, transparent),
-          #21252b;
+  display: none !important;
 }
 .markdown pre.prism-code {
-  background: #282c34 !important;
-  color: #abb2bf !important;
+  background: #f6f8fa !important;
+  color: #1c1e21 !important;
   border: 0 !important;
   border-radius: 0 0 3mm 3mm !important;
   margin: 0 !important;
@@ -477,51 +466,23 @@ pre {
   orphans: 2;
   widows: 2;
 }
-/* One Dark token palette — applied as a user sheet so it overrides the site's
-   on-screen Prism theme. */
-.markdown .token.comment,
-.markdown .token.prolog,
-.markdown .token.doctype,
-.markdown .token.cdata        { color: #7f848e !important; font-style: italic; }
-.markdown .token.punctuation  { color: #abb2bf !important; }
-.markdown .token.keyword,
-.markdown .token.important,
-.markdown .token.rule         { color: #c678dd !important; }
-.markdown .token.string,
-.markdown .token.char,
-.markdown .token.attr-value,
-.markdown .token.regex        { color: #98c379 !important; }
-.markdown .token.function,
-.markdown .token.class-name   { color: #61afef !important; }
-.markdown .token.number,
-.markdown .token.boolean,
-.markdown .token.constant     { color: #d19a66 !important; }
-.markdown .token.operator,
-.markdown .token.variable     { color: #56b6c2 !important; }
-.markdown .token.property,
-.markdown .token.tag,
-.markdown .token.symbol,
-.markdown .token.deleted      { color: #e06c75 !important; }
-.markdown .token.attr-name    { color: #d19a66 !important; }
-/* Docusaurus stamps an inline `color` (the light-theme ink, ~#393A34) on every
-   <div class="token-line"> and leaves "plain"/unhighlighted tokens uncoloured.
-   On the dark card that ink is near-invisible. Force the One Dark foreground as
-   the base ink (an author !important rule beats the inline style); the per-type
-   rules above still win on highlighted tokens via their higher specificity. */
+/* Keep the light-theme (github) syntax colours the site already inlines on each
+   token in the built (light-mode) HTML — do NOT override them, so the printed
+   code reads as light with the same palette as the screen. Only give the base
+   ink a solid dark value for any un-tokenised text. */
 .markdown pre.prism-code,
 .markdown .token-line,
 .markdown .token.plain {
-  color: #abb2bf !important;
+  color: #1c1e21 !important;
 }
-/* The optional code-block filename strip (Docusaurus ```lang title="...")
-   becomes dark text on the dark card; restyle it as a window sub-bar. */
+/* Optional filename strip (```lang title="...") on a light card. */
 .markdown [class*="codeBlockTitle"] {
-  background: #21252b !important;
-  color: #c8ccd4 !important;
+  background: #eef1f5 !important;
+  color: #1c1e21 !important;
   font: italic 8pt/1.2 "IBM Plex Mono", "DejaVu Sans Mono", monospace !important;
   padding: 1.6mm 5mm !important;
   margin: 0 !important;
-  border-bottom: 0.3mm solid #181a1f;
+  border-bottom: 0.2mm solid #d5d9e0;
 }
 /* Neutralise Docusaurus's line-highlight background: with inline token-lines it
    paints uneven striped bands across the dark card. Keep the card uniform for a

@@ -187,16 +187,8 @@
    Keep our header consistent with it instead of showing the light on-screen
    header bar, and drop the interactive buttons, which mean nothing on paper. */
 @media print {
-  .header {
-    background: #21252b;
-    border-bottom-color: #181a1f;
-  }
-
-  .file,
-  .name {
-    color: #c8ccd4;
-  }
-
+  /* The PDF code card is light (see report.css); keep our header light too and
+     just drop the interactive buttons, which mean nothing on paper. */
   .actions {
     display: none;
   }
