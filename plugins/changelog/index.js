@@ -15,15 +15,24 @@
 // reference is extracted here, at build time, so the value is baked into the
 // changelog global data and the client render stays hydration-safe.
 const SN_BASE = (process.env.SERVICENOW_BASE_URL || 'https://services.eeas.europa.eu').replace(/\/+$/, '');
-const CHG_RE = /\bCHG\d+\b/;
+const CHG_RE = /\bCHG\d+\b/g;
 
-// Pull the first ServiceNow change reference (e.g. CHG0012345) out of a release
-// body so it can be shown next to the version in the changelog title.
-function changeFromBody(body) {
-  const match = (body || '').match(CHG_RE);
-  if (!match) return null;
-  const number = match[0];
-  return {number, url: `${SN_BASE}/change_request.do?sysparm_query=number=${number}`};
+// Pull every ServiceNow change reference (e.g. CHG0012345) out of a release
+// body so they can be shown next to the version in the changelog title.
+// Duplicates are dropped while preserving first-seen order.
+function changesFromBody(body) {
+  const seen = new Set();
+  const changes = [];
+  const text = body || '';
+  CHG_RE.lastIndex = 0;
+  let match;
+  while ((match = CHG_RE.exec(text)) !== null) {
+    const number = match[0];
+    if (seen.has(number)) continue;
+    seen.add(number);
+    changes.push({number, url: `${SN_BASE}/change_request.do?sysparm_query=number=${number}`});
+  }
+  return changes;
 }
 
 /** @param {import('@docusaurus/types').LoadContext} context */
@@ -64,7 +73,7 @@ module.exports = function changelogPlugin(context, options = {}) {
             date: r.published_at || r.created_at,
             url: r.html_url,
             prerelease: !!r.prerelease,
-            change: changeFromBody(r.body),
+            changes: changesFromBody(r.body),
           }));
         return {owner, repo, releases};
       } catch (err) {
