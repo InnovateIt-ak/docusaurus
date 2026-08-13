@@ -85,3 +85,11 @@
 [data-theme='light'] .navbar__toggle {
   color: #ffffff;
 }
+/* The theme-toggle button's hover/focus fill defaults to a light grey
+   (--ifm-color-emphasis-200), which reads as a jarring solid white disc on the
+   blue navbar. Replace it with a subtle translucent-white overlay. */
+[data-theme='light'] .navbar .clean-btn:hover,
+[data-theme='light'] .navbar .clean-btn:focus-visible,
+[data-theme='light'] .navbar__toggle:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
