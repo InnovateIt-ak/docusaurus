@@ -43,3 +43,19 @@
   border-radius: 8px;
   padding: 12px;
 }
+
+
+/* ---- Active table-of-contents link --------------------------------------
+   Docusaurus already sets `--active` on the TOC link for the section currently
+   in view (via an IntersectionObserver). Default styling only recolors it; make
+   the current section unmistakable with a weight bump and a left accent bar
+   that lines up with the TOC's own indentation. Purely visual — no layout
+   shift, since the accent replaces transparent space in the existing padding. */
+.table-of-contents__link--active,
+.table-of-contents__link--active code {
+  font-weight: 600;
+}
+.table-of-contents__link--active {
+  border-left: 2px solid var(--ifm-color-primary);
+  padding-left: calc(var(--ifm-toc-padding-horizontal, 0.5rem) - 2px);
+}
