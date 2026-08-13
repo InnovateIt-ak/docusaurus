@@ -1,5 +1,15 @@
 ---
 sidebar_position: 2
+related:
+  - to: /docs/tutorial-basics/create-a-page
+    label: Create a page
+    icon: 📄
+  - to: /docs/tutorial-basics/deploy-your-site
+    label: Deploy your site
+    icon: 🚀
+  - to: /docs/tutorial-basics/markdown-features
+    label: Markdown features
+    icon: ✍️
 ---
 
 # Tutorial Intro

@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>EEAS Docs — Pistes d'amélioration (maquette)</title>
+<style>
+  :root {
+    --bg: #f6f8f7;
+    --surface: #ffffff;
+    --surface-2: #f0f3f2;
+    --border: #e2e8e5;
+    --text: #1a2420;
+    --muted: #5c6b64;
+    --faint: #8a9891;
+    --primary: #2e8555;
+    --primary-ink: #1b5e3a;
+    --primary-soft: #e4f3ea;
+    --eu-blue: #003399;
+    --eu-gold: #ffcc00;
+    --shadow: 0 1px 2px rgba(16,40,30,.04), 0 8px 24px rgba(16,40,30,.06);
+    --shadow-lg: 0 12px 40px rgba(16,40,30,.12);
+    --radius: 14px;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: "SF Mono", "Roboto Mono", Menlo, Consolas, monospace;
+  }
+  html[data-theme="dark"] {
+    --bg: #0e1613;
+    --surface: #16211c;
+    --surface-2: #1c2a24;
+    --border: #26362e;
+    --text: #e8f0ec;
+    --muted: #9db0a7;
+    --faint: #6c7d75;
+    --primary: #35c088;
+    --primary-ink: #7ee0b3;
+    --primary-soft: #14312270;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+    --shadow-lg: 0 12px 40px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: var(--font); background: var(--bg); color: var(--text);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--primary); text-decoration: none; }
+
+  /* ---- Top bar ---- */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: color-mix(in srgb, var(--surface) 88%, transparent);
+    backdrop-filter: saturate(1.4) blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .topbar-in {
+    max-width: 1180px; margin: 0 auto; padding: 12px 24px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -.01em; }
+  .stars { width: 30px; height: 30px; border-radius: 7px; background: var(--eu-blue);
+    display: grid; place-items: center; color: var(--eu-gold); font-size: 15px; }
+  .brand small { display:block; font-weight: 500; color: var(--muted); font-size: 11px; letter-spacing: .04em; }
+  .spacer { flex: 1; }
+  .badge-pill {
+    font-size: 12px; padding: 5px 11px; border-radius: 999px; font-weight: 600;
+    background: var(--primary-soft); color: var(--primary-ink);
+    border: 1px solid color-mix(in srgb, var(--primary) 25%, transparent);
+  }
+  .theme-btn {
+    border: 1px solid var(--border); background: var(--surface); color: var(--text);
+    width: 38px; height: 38px; border-radius: 10px; cursor: pointer; font-size: 16px;
+  }
+  .theme-btn:hover { border-color: var(--primary); }
+
+  /* ---- Hero ---- */
+  .hero { max-width: 1180px; margin: 0 auto; padding: 56px 24px 20px; }
+  .eyebrow { font-size: 12px; letter-spacing: .16em; text-transform: uppercase;
+    font-weight: 700; color: var(--primary); margin: 0 0 10px; }
+  .hero h1 { font-size: clamp(2rem, 4.5vw, 3.1rem); line-height: 1.08;
+    letter-spacing: -.03em; margin: 0 0 16px; max-width: 20ch; }
+  .hero h1 .grad { background: linear-gradient(100deg, var(--primary), var(--eu-blue));
+    -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero p.lead { font-size: 1.12rem; color: var(--muted); max-width: 62ch; margin: 0; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+  .chip { font-size: 13px; color: var(--muted); background: var(--surface); border: 1px solid var(--border);
+    padding: 7px 13px; border-radius: 999px; display: inline-flex; gap: 7px; align-items: center; }
+  .chip b { color: var(--text); }
+
+  /* ---- Legend ---- */
+  .legend { max-width: 1180px; margin: 30px auto 0; padding: 0 24px;
+    display: flex; flex-wrap: wrap; gap: 18px; align-items: center; font-size: 13px; color: var(--muted); }
+  .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-right: 6px; vertical-align: middle;}
+  .d-quick { background: #35c088; } .d-mid { background: #e0a800; } .d-big { background: #d15b5b; }
+
+  /* ---- Section ---- */
+  section.block { max-width: 1180px; margin: 0 auto; padding: 40px 24px 8px; }
+  .sec-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+  .sec-num { font-family: var(--mono); font-size: 13px; color: var(--faint); }
+  .sec-head h2 { font-size: 1.5rem; letter-spacing: -.02em; margin: 0; }
+  .sec-sub { color: var(--muted); margin: 0 0 22px; max-width: 68ch; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column;
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); border-color: color-mix(in srgb, var(--primary) 40%, var(--border)); }
+  .card-body { padding: 18px 18px 20px; }
+  .card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .card-ic { font-size: 20px; width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center;
+    background: var(--primary-soft); }
+  .card h3 { font-size: 1.06rem; margin: 0; letter-spacing: -.01em; }
+  .card .effort { margin-left: auto; font-size: 11px; font-weight: 600; color: var(--muted);
+    display: inline-flex; align-items: center; }
+  .card p.desc { color: var(--muted); font-size: .93rem; margin: 10px 0 0; }
+  .why { margin: 12px 0 0; padding-top: 12px; border-top: 1px dashed var(--border);
+    font-size: .84rem; color: var(--faint); }
+  .why b { color: var(--muted); font-weight: 600; }
+
+  /* preview frame at top of each card */
+  .pv { background: var(--surface-2); border-bottom: 1px solid var(--border);
+    padding: 18px; min-height: 148px; display: flex; align-items: center; justify-content: center; }
+
+  /* ===== mini mockups ===== */
+  /* command palette */
+  .cmdk { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    box-shadow: var(--shadow-lg); overflow: hidden; }
+  .cmdk .inp { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--border);
+    color: var(--faint); font-size: 13px; }
+  .cmdk .inp .cursor { width: 1px; height: 15px; background: var(--primary); animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .cmdk .res { padding: 6px; font-size: 12.5px; }
+  .cmdk .r { display: flex; align-items: center; gap: 9px; padding: 7px 9px; border-radius: 7px; color: var(--muted); }
+  .cmdk .r.active { background: var(--primary-soft); color: var(--primary-ink); font-weight: 600; }
+  .kbd { font-family: var(--mono); font-size: 10px; border: 1px solid var(--border); border-bottom-width: 2px;
+    border-radius: 5px; padding: 1px 5px; color: var(--muted); background: var(--surface); }
+  .cmdk .r .spacer2 { flex:1; }
+
+  /* feedback widget */
+  .fb { width: 100%; text-align: center; }
+  .fb .q { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+  .fb .btns { display: flex; gap: 8px; justify-content: center; }
+  .fb .b { border: 1px solid var(--border); background: var(--surface); border-radius: 9px; padding: 8px 16px;
+    font-size: 14px; cursor: pointer; transition: .15s; }
+  .fb .b:hover { border-color: var(--primary); transform: translateY(-2px); }
+  .fb .b.up:hover { background: var(--primary-soft); }
+  .fb .bar { margin-top: 12px; height: 6px; border-radius: 999px; background: var(--surface);
+    border: 1px solid var(--border); overflow: hidden; }
+  .fb .bar > i { display: block; height: 100%; width: 86%; background: linear-gradient(90deg,var(--primary),var(--primary-ink)); }
+  .fb .pct { font-size: 11px; color: var(--faint); margin-top: 5px; }
+
+  /* version dropdown */
+  .vd { width: 82%; }
+  .vd .sel { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 9px; padding: 9px 12px; font-size: 13px; font-weight: 600; }
+  .vd .sel .tag { margin-left:auto; font-size:10px; background: var(--primary-soft); color: var(--primary-ink);
+    padding: 2px 7px; border-radius: 999px; }
+  .vd .menu { margin-top: 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 9px;
+    box-shadow: var(--shadow); overflow: hidden; }
+  .vd .menu div { padding: 8px 12px; font-size: 13px; color: var(--muted); }
+  .vd .menu div.cur { color: var(--text); font-weight: 600; background: var(--surface-2); }
+
+  /* language toggle */
+  .i18n { display: flex; gap: 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 4px; }
+  .i18n span { font-size: 13px; padding: 6px 14px; border-radius: 999px; color: var(--muted); font-weight: 600; }
+  .i18n span.on { background: var(--eu-blue); color: #fff; }
+
+  /* llm / copy */
+  .llm { width: 100%; }
+  .llm .btnrow { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .llm .ab { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600;
+    border: 1px solid var(--border); background: var(--surface); border-radius: 9px; padding: 8px 12px; color: var(--text); }
+  .llm .ab.primary { background: var(--text); color: var(--surface); border-color: var(--text); }
+  .llm .hint { text-align: center; font-size: 11px; color: var(--faint); margin-top: 10px; font-family: var(--mono); }
+
+  /* reading progress + toc */
+  .rp { width: 100%; }
+  .rp .top { height: 4px; border-radius: 999px; background: var(--surface); overflow: hidden; border:1px solid var(--border); }
+  .rp .top > i { display:block; height:100%; width: 62%; background: linear-gradient(90deg, var(--primary), var(--eu-blue)); }
+  .rp .toc { margin-top: 14px; font-size: 12.5px; }
+  .rp .toc div { padding: 3px 0 3px 12px; border-left: 2px solid var(--border); color: var(--muted); }
+  .rp .toc div.act { border-left-color: var(--primary); color: var(--text); font-weight: 600; }
+  .rp .toc div.sub { padding-left: 26px; font-size: 12px; }
+
+  /* glossary tooltip */
+  .gl { font-size: 13.5px; color: var(--muted); text-align: center; line-height: 1.9; }
+  .gl u { text-decoration: none; border-bottom: 2px dotted var(--primary); color: var(--text); font-weight: 600; cursor: help; }
+  .gl .tip { display: inline-block; margin-top: 12px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 9px; padding: 9px 12px; font-size: 11.5px; text-align: left; box-shadow: var(--shadow); max-width: 240px; }
+  .gl .tip b { color: var(--text); }
+
+  /* status / roadmap */
+  .rm { width: 100%; font-size: 12.5px; }
+  .rm .row { display: flex; align-items: center; gap: 9px; padding: 5px 0; }
+  .rm .s { width: 9px; height: 9px; border-radius: 50%; }
+  .rm .s.done { background: var(--primary); } .rm .s.prog { background: var(--eu-gold); } .rm .s.plan { background: var(--faint); }
+  .rm .row .stg { margin-left: auto; font-size: 10px; color: var(--faint); font-family: var(--mono); }
+  .rm .row.done span:first-of-type { text-decoration: line-through; color: var(--faint); }
+
+  /* a11y meter */
+  .a11y { text-align: center; }
+  .ring { --p: 96; width: 92px; height: 92px; border-radius: 50%; margin: 0 auto;
+    background: conic-gradient(var(--primary) calc(var(--p)*1%), var(--surface) 0);
+    display: grid; place-items: center; }
+  .ring::before { content: ""; position: absolute; }
+  .ring b { width: 68px; height: 68px; background: var(--surface-2); border-radius: 50%; display: grid; place-items: center;
+    font-size: 20px; font-weight: 700; color: var(--text); }
+  .a11y .lbl { font-size: 12px; color: var(--muted); margin-top: 10px; }
+  .a11y .lbl b { color: var(--text); }
+
+  /* related pages */
+  .rel { width: 100%; font-size: 12.5px; }
+  .rel .h { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--faint); font-weight: 700; margin-bottom: 8px; }
+  .rel a { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--border);
+    border-radius: 8px; margin-bottom: 6px; background: var(--surface); color: var(--text); }
+  .rel a .arr { margin-left: auto; color: var(--primary); }
+
+  /* announcement */
+  .ann { width: 100%; }
+  .ann .bar { background: linear-gradient(90deg, var(--eu-blue), var(--primary)); color:#fff; border-radius: 9px;
+    padding: 10px 14px; font-size: 12.5px; display: flex; align-items: center; gap: 9px; font-weight: 600; }
+  .ann .bar .x { margin-left: auto; opacity: .8; }
+  .ann .under { margin-top: 10px; font-size: 11px; color: var(--faint); text-align: center; }
+
+  /* footer */
+  footer { max-width: 1180px; margin: 40px auto 0; padding: 30px 24px 60px; border-top: 1px solid var(--border);
+    color: var(--muted); font-size: 13px; }
+  footer .note { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--primary);
+    border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; }
+  footer b { color: var(--text); }
+
+  @media (max-width: 640px) { .hero { padding-top: 36px; } .topbar-in { padding: 10px 16px; } }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <div class="brand">
+      <div class="stars">★</div>
+      <div>EEAS Documentation
+        <small>Pistes d'amélioration · maquette de travail</small>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <span class="badge-pill">Proposition · non implémenté</span>
+    <button class="theme-btn" id="themeToggle" title="Basculer le thème">◐</button>
+  </div>
+</div>
+
+<div class="hero">
+  <p class="eyebrow">Feuille de route · Documentation</p>
+  <h1>Ce qu'on peut encore <span class="grad">améliorer</span> sur la plateforme.</h1>
+  <p class="lead">La base est déjà solide — homepage sur-mesure, changelog automatique, diagrammes LikeC4/PlantUML/Mermaid,
+    OpenAPI, code blocks custom, export PDF, recherche locale. Voici <b>12 pistes</b> complémentaires, classées par thème,
+    chacune avec un aperçu visuel de ce à quoi elle ressemblerait.</p>
+
+  <div class="meta-row">
+    <span class="chip">📦 <b>6</b> thèmes</span>
+    <span class="chip">✨ <b>12</b> améliorations</span>
+    <span class="chip">🎯 Priorisé par <b>impact / effort</b></span>
+    <span class="chip">🌓 Clair &amp; sombre</span>
+  </div>
+</div>
+
+<div class="legend">
+  <span><span class="dot d-quick"></span>Effort faible · quick win</span>
+  <span><span class="dot d-mid"></span>Effort moyen</span>
+  <span><span class="dot d-big"></span>Chantier plus large</span>
+</div>
+
+<!-- ============ 1. Recherche & navigation ============ -->
+<section class="block">
+  <div class="sec-head"><span class="sec-num">01</span><h2>Recherche &amp; navigation</h2></div>
+  <p class="sec-sub">Retrouver la bonne page en deux secondes, au clavier, sans quitter la page en cours.</p>
+  <div class="grid">
+
+    <div class="card">
+      <div class="pv">
+        <div class="cmdk">
+          <div class="inp">🔎 <span>archi</span><span class="cursor"></span><span style="margin-left:auto"><span class="kbd">⌘K</span></span></div>
+          <div class="res">
+            <div class="r active">📐 <span>Architecture — Vue d'ensemble</span><span class="spacer2"></span><span class="kbd">↵</span></div>
+            <div class="r">🧩 <span>Architecture — Composants LikeC4</span></div>
+            <div class="r">🗺️ <span>Diagrammes PlantUML</span></div>
+            <div class="r">📄 <span>API — spécification OpenAPI</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-top"><div class="card-ic">⌨️</div><h3>Palette de commande ⌘K</h3>
+          <span class="effort"><span class="dot d-mid"></span>moyen</span></div>
+        <p class="desc">Recherche instantanée en overlay, navigation 100 % clavier, sauts vers pages, titres et sections d'API — sans recharger.</p>
+        <p class="why"><b>Pourquoi&nbsp;:</b> la recherche locale existe déjà ; on la promeut en modal moderne (raccourci ⌘K / Ctrl-K) que les équipes techniques attendent.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="pv">
+        <div class="rp">
+          <div class="top"><i></i></div>
+          <div class="toc">
+            <div>Introduction</div>
+            <div class="act">Modèle d'architecture</div>
+            <div class="sub">Contexte C4</div>
+            <div class="sub">Conteneurs</div>
+            <div>Intégrations</div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-top"><div class="card-ic">📖</div><h3>Barre de progression &amp; TOC active</h3>
+          <span class="effort"><span class="dot d-quick"></span>faible</span></div>
+        <p class="desc">Une barre de lecture en haut de page et une table des matières qui surligne la section en cours au scroll.</p>
+        <p class="why"><b>Pourquoi&nbsp;:</b> repères de lecture sur les pages longues (archi, guides) — swizzle léger du composant TOC/DocItem.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="pv">
+        <div class="rel">
+          <div class="h">Étapes suivantes</div>
+          <a href="#">🚀 <span>Déployer en préproduction</span><span class="arr">→</span></a>
+          <a href="#">🔐 <span>Configurer l'authentification</span><span class="arr">→</span></a>
+          <a href="#">🧪 <span>Écrire les premiers tests</span><span class="arr">→</span></a>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-top"><div class="card-ic">🔗</div><h3>Pages liées &amp; « étapes suivantes »</h3>
+          <span class="effort"><span class="dot d-quick"></span>faible</span></div>
+        <p class="desc">En bas de chaque doc, des suggestions de lecture reliées par tags/front-matter pour garder le fil.</p>
+        <p class="why"><b>Pourquoi&nbsp;:</b> réduit les impasses ; guide les nouveaux dans un parcours d'onboarding cohérent.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ 2. Confiance & contribution ============ -->
+<section class="block">
+  <div class="sec-head"><span class="sec-num">02</span><h2>Confiance &amp; contribution</h2></div>
+  <p class="sec-sub">Savoir si une page est fiable, à jour, et permettre au lecteur de le signaler.</p>
+  <div class="grid">
+
+    <div class="card">
+      <div class="pv">
+        <div class="fb">
+          <div class="q">Cette page vous a-t-elle été utile&nbsp;?</div>
+          <div class="btns"><button class="b up">👍 Oui</button><button class="b">👎 Non</button></div>
+          <div class="bar"><i></i></div>
+          <div class="pct">86 % ont trouvé cette page utile · 214 votes</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-top"><div class="card-ic">💬</div><h3>Widget « Page utile&nbsp;? »</h3>
+          <span class="effort"><span class="dot d-quick"></span>faible</span></div>
+        <p class="desc">Un vote 👍/👎 en bas de page, avec champ commentaire optionnel, pour repérer les docs à retravailler.</p>
+        <p class="why"><b>Pourquoi&nbsp;:</b> boucle de feedback mesurable ; alimente une liste « pages à améliorer » sans analytics lourd.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="pv">
+        <div class="rel" style="width:88%">
+          <div class="h">Sur cette page</div>
+          <a href="#" style="cursor:default">🕓 <span>Mis à jour il y a 3 jours</span></a>
+          <a href="#" style="cursor:default">👤 <span>par a.kader · 4 contributeurs</span></a>
+          <a href="#">✏️ <span>Proposer une modification</span><span class="arr">→</span></a>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-top"><div class="card-ic">🧾</div><h3>Provenance &amp; contributeurs enrichis</h3>
+          <span class="effort"><span class="dot d-quick"></span>faible</span></div>
+        <p class="desc">Bloc « dernière mise à jour / auteurs / éditer sur GitHub » plus visible, avec avatars des contributeurs.</p>
+        <p class="why"><b>Pourquoi&nbsp;:</b> <code>showLastUpdate*</code> est déjà activé — on le met en valeur pour crédibiliser la doc.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="pv">
+        <div class="a11y">
+          <div class="ring" style="--p:96; position:relative"><b>96</b></div>
+          <div class="lbl"><b>Accessibilité</b> · WCAG 2.1 AA · contrôlé en CI</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-top"><div class="card-ic">♿</div><h3>Audit accessibilité (a11y) en CI</h3>
+          <span class="effort"><span class="dot d-mid"></span>moyen</span></div>
+        <p class="desc">Contraste, alternatives d'images, ordre des titres, navigation clavier — vérifiés automatiquement (axe / Lighthouse CI).</p>
+        <p class="why"><b>Pourquoi&nbsp;:</b> exigence forte pour une institution publique de l'UE ; empêche les régressions à la PR.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ 3. Internationalisation ============ -->
+<section class="block">
+  <div class="sec-head"><span class="sec-num">03</span><h2>Internationalisation</h2></div>
+  <p class="sec-sub">Un contexte UE&nbsp;: proposer la documentation en plusieurs langues.</p>
+  <div class="grid">
+
+    <div class="card">
+      <div class="pv">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
+          <div class="i18n"><span class="on">FR</span><span>EN</span><span>DE</span></div>
+          <div style="font-size:12px;color:var(--faint)">/fr/docs/intro · /en/docs/intro · /de/docs/intro</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-top"><div class="card-ic">🌍</div><h3>Documentation multilingue (i18n)</h3>
+          <span class="effort"><span class="dot d-big"></span>chantier</span></div>
+        <p class="desc">Sélecteur de langue dans la barre + arborescence <code>i18n/</code>. Démarrer FR/EN, structure prête pour d'autres langues.</p>
+        <p class="why"><b>Pourquoi&nbsp;:</b> Docusaurus gère i18n nativement ; <code>locales</code> est déjà là (EN seul). Gros gain d'audience UE.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="pv">
+        <div class="gl">
+          Le <u>SES</u> échange avec le <u>CID</u> via le bus.
+          <span class="tip"><b>SES</b> — Secure Exchange Service. Passerelle chiffrée pour les échanges inter-délégations.</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-top"><div class="card-ic">📚</div><h3>Glossaire &amp; infobulles de termes</h3>
+          <span class="effort"><span class="dot d-mid"></span>moyen</span></div>
+        <p class="desc">Les acronymes (SES, CID, EEAS…) deviennent des termes survolables qui affichent leur définition en tooltip.</p>
+        <p class="why"><b>Pourquoi&nbsp;:</b> même approche que l'auto-lien ServiceNow existant — un remark plugin + un fichier <code>glossary.yml</code>.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="pv">
+        <div class="ann">
+          <div class="bar">📣 <span>Release v2.4 — nouveaux diagrammes d'architecture</span><span class="x">✕</span></div>
+          <div class="under">Bandeau piloté depuis la dernière GitHub Release</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-top"><div class="card-ic">📢</div><h3>Bandeau d'annonce automatique</h3>
+          <span class="effort"><span class="dot d-quick"></span>faible</span></div>
+        <p class="desc">Un <code>announcementBar</code> qui reprend la dernière release ou un avis important, refermable et mémorisé.</p>
+        <p class="why"><b>Pourquoi&nbsp;:</b> réutilise le plugin changelog déjà en place ; signale les nouveautés sans toucher aux pages.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ 4. IA & lisibilité machine ============ -->
+<section class="block">
+  <div class="sec-head"><span class="sec-num">04</span><h2>IA &amp; lisibilité machine</h2></div>
+  <p class="sec-sub">Rendre la documentation exploitable par les assistants IA et copiable en un clic.</p>
+  <div class="grid">
+
+    <div class="card">
+      <div class="pv">
+        <div class="llm">
+          <div class="btnrow">
+            <span class="ab primary">📋 Copier en Markdown</span>
+            <span class="ab">💬 Ouvrir dans ChatGPT</span>
+            <span class="ab">🤖 Voir en .md</span>
+          </div>
+          <div class="hint">/llms.txt · /llms-full.txt</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-top"><div class="card-ic">🤖</div><h3>« Copier pour LLM » &amp; llms.txt</h3>
+          <span class="effort"><span class="dot d-mid"></span>moyen</span></div>
+        <p class="desc">Bouton « copier la page en Markdown », version <code>.md</code> brute par page, et fichiers <code>llms.txt</code> générés au build.</p>
+        <p class="why"><b>Pourquoi&nbsp;:</b> standard émergent ; permet aux équipes de coller une doc dans un assistant sans copier du HTML.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="pv">
+        <div class="vd">
+          <div class="sel">📌 <span>Version 2.x</span><span class="tag">actuelle</span></div>
+          <div class="menu">
+            <div class="cur">2.x — actuelle</div>
+            <div>1.x — maintenue</div>
+            <div>next — brouillon</div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-top"><div class="card-ic">🗂️</div><h3>Versionnement de la documentation</h3>
+          <span class="effort"><span class="dot d-big"></span>chantier</span></div>
+        <p class="desc">Sélecteur de version + dossiers <code>versioned_docs</code> pour figer la doc à chaque release majeure.</p>
+        <p class="why"><b>Pourquoi&nbsp;:</b> les lecteurs d'anciennes versions retrouvent la doc correspondante ; feature native Docusaurus.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="pv">
+        <div class="rm">
+          <div class="row done"><span class="s done"></span><span>Recherche locale</span><span class="stg">livré</span></div>
+          <div class="row done"><span class="s done"></span><span>Export PDF</span><span class="stg">livré</span></div>
+          <div class="row"><span class="s prog"></span><span>Palette ⌘K</span><span class="stg">en cours</span></div>
+          <div class="row"><span class="s plan"></span><span>i18n FR/EN</span><span class="stg">prévu</span></div>
+          <div class="row"><span class="s plan"></span><span>Versionnement</span><span class="stg">prévu</span></div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-top"><div class="card-ic">🧭</div><h3>Page publique Roadmap / Statut</h3>
+          <span class="effort"><span class="dot d-quick"></span>faible</span></div>
+        <p class="desc">Une page « Roadmap » listant livré / en cours / prévu — générée depuis un simple fichier de données ou les issues GitHub.</p>
+        <p class="why"><b>Pourquoi&nbsp;:</b> transparence sur l'évolution de la plateforme ; réutilise le style des cartes home existantes.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <div class="note">
+    <b>Note.</b> Cette page est une <b>maquette statique de proposition</b> — rien n'est encore branché dans le site.
+    Chaque carte représente une amélioration candidate ; l'aperçu illustre le rendu cible. L'objectif est de choisir
+    ensemble lesquelles implémenter, dans quel ordre.
+  </div>
+  <p><b>Suggestion de séquencement.</b> Commencer par les quick wins à fort impact&nbsp;:
+    ① widget « Page utile ? », ② barre de progression + TOC active, ③ bandeau d'annonce automatique, ④ pages liées.
+    Puis les chantiers structurants&nbsp;: palette ⌘K, glossaire, « Copier pour LLM », audit a11y — et enfin
+    i18n et versionnement, qui touchent l'arborescence.</p>
+  <p style="margin-top:18px;color:var(--faint)">EEAS Documentation · maquette de travail · thème clair/sombre pris en charge</p>
+</footer>
+
+<script>
+  (function () {
+    var t = document.getElementById('themeToggle');
+    var root = document.documentElement;
+    t.addEventListener('click', function () {
+      root.setAttribute('data-theme', root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      root.setAttribute('data-theme', 'dark');
+    }
+  })();
+</script>
+</body>
+</html>

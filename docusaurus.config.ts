@@ -85,7 +85,8 @@ const config: Config = {
             {
                 specs: REDOC_SPEC as any,
                 theme: {
-                    primaryColor: '#1890ff',
+                    // EU institutional blue, matching the site primary (custom.css).
+                    primaryColor: '#004494',
                 },
             },
         ],
