@@ -59,3 +59,25 @@
   border-left: 2px solid var(--ifm-color-primary);
   padding-left: calc(var(--ifm-toc-padding-horizontal, 0.5rem) - 2px);
 }
+
+
+/* ---- Light-mode top navbar: EU-blue background ---------------------------
+   In light mode the top navbar (NOT the left sidebar) is painted EU blue.
+   Overriding the Infima navbar variables (rather than .navbar directly) keeps
+   links, the brand title, the theme toggle and the mobile hamburger legible,
+   since they all read from these tokens. Scoped to light mode only, so dark
+   mode and the (light) PDF are untouched. */
+[data-theme='light'] .navbar {
+  --ifm-navbar-background-color: rgb(0, 68, 148);
+  --ifm-navbar-link-color: #ffffff;
+  --ifm-navbar-link-hover-color: #ffcc00; /* EU gold on hover */
+}
+[data-theme='light'] .navbar__title,
+[data-theme='light'] .navbar__brand:hover .navbar__title {
+  color: #ffffff;
+}
+/* Theme toggle + mobile hamburger icons inherit currentColor. */
+[data-theme='light'] .navbar .clean-btn,
+[data-theme='light'] .navbar__toggle {
+  color: #ffffff;
+}
