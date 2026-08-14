@@ -3,13 +3,13 @@ sidebar_position: 2
 related:
   - to: /docs/tutorial-basics/create-a-page
     label: Create a page
-    icon: 📄
+    icon: file-text
   - to: /docs/tutorial-basics/deploy-your-site
     label: Deploy your site
-    icon: 🚀
+    icon: rocket
   - to: /docs/tutorial-basics/markdown-features
     label: Markdown features
-    icon: ✍️
+    icon: pen-line
 ---
 
 # Tutorial Intro

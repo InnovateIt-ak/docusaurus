@@ -6,6 +6,7 @@ import {useDoc} from '@docusaurus/plugin-content-docs/client';
 import Translate from '@docusaurus/Translate';
 import RelatedDocs, {type RelatedItem} from '@site/src/components/RelatedDocs';
 import DocProvenance from '@site/src/components/DocProvenance';
+import Icon from '@site/src/components/Icon';
 import styles from './styles.module.css';
 
 type Props = WrapperProps<typeof FooterType>;
@@ -41,10 +42,11 @@ export default function FooterWrapper(props: Props): ReactNode {
             <RelatedDocs items={related} />
             <div className={styles.pdfDownload}>
                 <a href={pdfHref} target="_blank" rel="noopener noreferrer">
+                    <Icon name="pdf" size={16} />{' '}
                     <Translate
                         id="theme.docs.pdfDownload.label"
                         description="Label of the per-page PDF download link at the bottom of a doc page">
-                        📄 Download this page as PDF
+                        Download this page as PDF
                     </Translate>
                 </a>
             </div>

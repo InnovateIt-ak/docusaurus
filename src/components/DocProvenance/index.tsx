@@ -1,5 +1,6 @@
 import {useEffect, useState, type ReactNode} from 'react';
 import Translate, {translate} from '@docusaurus/Translate';
+import Icon from '@site/src/components/Icon';
 import styles from './styles.module.css';
 
 type Props = {
@@ -70,9 +71,7 @@ export default function DocProvenance({
       <div className={styles.meta}>
         {hasDate && (
           <span className={styles.item}>
-            <span className={styles.icon} aria-hidden="true">
-              🕓
-            </span>
+            <Icon name="clock" className={styles.icon} />
             <Translate
               id="theme.docs.provenance.updated"
               description="Prefix before the last-updated date in the provenance block">
@@ -88,9 +87,7 @@ export default function DocProvenance({
         )}
         {lastUpdatedBy && (
           <span className={styles.item}>
-            <span className={styles.icon} aria-hidden="true">
-              👤
-            </span>
+            <Icon name="user" className={styles.icon} />
             <Translate
               id="theme.docs.provenance.by"
               description="Prefix before the last-update author in the provenance block">
@@ -106,7 +103,7 @@ export default function DocProvenance({
           href={editUrl}
           target="_blank"
           rel="noopener noreferrer">
-          <span aria-hidden="true">✏️</span>{' '}
+          <Icon name="edit" size={15} />{' '}
           {translate({
             id: 'theme.docs.provenance.edit',
             message: 'Edit this page',
