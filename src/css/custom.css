@@ -94,6 +94,16 @@
   background: rgba(255, 255, 255, 0.15);
 }
 
+/* ---- Enriched provenance block -------------------------------------------
+   The swizzled DocItem/Footer renders a styled "provenance" block (last updated
+   / author / edit on GitHub) via src/components/DocProvenance. Hide the stock
+   footer's plain edit-meta row so the two don't duplicate; the tags row is
+   untouched. */
+.theme-doc-footer-edit-meta-row {
+  display: none;
+}
+
+
 /* ---- Markdown table headers: EU-blue, matching the navbar and the PDF ------
    The generated PDF paints table headers EU blue (docker/weasyprint/report.css)
    and the light-mode navbar uses the same institutional blue. Bring that to the

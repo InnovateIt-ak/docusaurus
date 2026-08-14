@@ -49,8 +49,8 @@
 }
 
 .icon {
-  font-size: 1.15rem;
-  line-height: 1;
+  flex: none;
+  color: var(--ifm-color-primary);
 }
 
 .label {
@@ -59,9 +59,9 @@
 }
 
 .arrow {
+  flex: none;
   margin-left: auto;
   color: var(--ifm-color-primary);
-  font-weight: 700;
   transition: transform 0.15s ease;
 }
 .item:hover .arrow {

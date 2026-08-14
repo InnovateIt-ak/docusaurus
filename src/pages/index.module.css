@@ -108,6 +108,10 @@
   font-weight: 600;
   font-size: 15px;
   border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   transition: transform 0.12s ease, background 0.12s ease;
   text-decoration: none !important;
 }
@@ -171,7 +175,7 @@
   border-radius: 10px;
   display: grid;
   place-items: center;
-  font-size: 20px;
+  color: var(--ifm-color-primary);
   background: color-mix(in srgb, var(--ifm-color-primary) 12%, transparent);
   transition: transform 0.16s ease;
 }
@@ -191,6 +195,9 @@
 .go {
   margin-top: auto;
   padding-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   color: var(--ifm-color-primary);
   font-weight: 600;
   font-size: 14px;

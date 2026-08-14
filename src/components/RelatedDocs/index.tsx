@@ -1,6 +1,7 @@
 import type {ReactNode} from 'react';
 import Link from '@docusaurus/Link';
 import Translate from '@docusaurus/Translate';
+import Icon, {isIconName} from '@site/src/components/Icon';
 import styles from './styles.module.css';
 
 // A single related-doc entry. Authors write these in a page's front matter as
@@ -49,15 +50,11 @@ export default function RelatedDocs({items}: {items?: RelatedItem[]}): ReactNode
         {links.map((l) => (
           <li key={l.to}>
             <Link className={styles.item} to={l.to}>
-              {l.icon && (
-                <span className={styles.icon} aria-hidden="true">
-                  {l.icon}
-                </span>
+              {l.icon && isIconName(l.icon) && (
+                <Icon name={l.icon} size={18} className={styles.icon} />
               )}
               <span className={styles.label}>{l.label}</span>
-              <span className={styles.arrow} aria-hidden="true">
-                →
-              </span>
+              <Icon name="arrow-right" size={16} className={styles.arrow} />
             </Link>
           </li>
         ))}

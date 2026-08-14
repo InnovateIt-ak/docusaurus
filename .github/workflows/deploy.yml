@@ -55,6 +55,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          # Full history so Docusaurus can read each doc's real last-commit date
+          # and author (showLastUpdateTime / showLastUpdateAuthor). A shallow
+          # clone would make those fall back to the build time.
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
