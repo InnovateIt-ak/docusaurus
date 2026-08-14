@@ -30,6 +30,8 @@ import {
   CircleHelp,
   Database,
   Search,
+  Folder,
+  ExternalLink,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -75,6 +77,8 @@ const REGISTRY = {
   help: CircleHelp,
   database: Database,
   search: Search,
+  folder: Folder,
+  'external-link': ExternalLink,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof REGISTRY;
