@@ -95,6 +95,9 @@ const config: Config = {
         // Changelog: fetch GitHub Releases at build time and expose them as
         // global data for the /changelog page (plugins/changelog).
         './plugins/changelog',
+        // Command palette (⌘K): index every doc as global data for the
+        // client-side jump-to-page palette (src/components/CommandPalette).
+        './plugins/command-palette',
         // Home cards: derive the landing-page cards from the real docs sidebar
         // (plugins/home-cards). `icons`: emoji override per label; `extraCards`:
         // cross-cutting cards that are not docs sections.
