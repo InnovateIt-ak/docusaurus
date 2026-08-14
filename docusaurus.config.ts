@@ -208,8 +208,12 @@ const config: Config = {
                 '.markdown img[alt="Mermaid diagram"]',
             ].join(', '),
             background: {
+                // White in both themes: the zoom targets are mostly Mermaid
+                // diagrams (dark strokes/text on a transparent background), which
+                // are illegible on a dark backdrop. White keeps them readable —
+                // consistent with the light card they already get in dark mode.
                 light: 'rgb(255, 255, 255)',
-                dark: 'rgb(50, 50, 50)',
+                dark: 'rgb(255, 255, 255)',
             },
             config: {
                 margin: 0,
