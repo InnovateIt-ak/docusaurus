@@ -5,6 +5,7 @@ import type {WrapperProps} from '@docusaurus/types';
 import {useDoc} from '@docusaurus/plugin-content-docs/client';
 import Translate from '@docusaurus/Translate';
 import RelatedDocs, {type RelatedItem} from '@site/src/components/RelatedDocs';
+import DocProvenance from '@site/src/components/DocProvenance';
 import styles from './styles.module.css';
 
 type Props = WrapperProps<typeof FooterType>;
@@ -29,6 +30,14 @@ export default function FooterWrapper(props: Props): ReactNode {
     return (
         <>
             <Footer {...props} />
+            {/* Enriched provenance block. The stock footer's plain edit/last-updated
+                row is hidden via custom.css so this replaces it (the tags row is
+                kept). Data comes straight from Docusaurus's doc metadata. */}
+            <DocProvenance
+                editUrl={metadata.editUrl}
+                lastUpdatedAt={metadata.lastUpdatedAt}
+                lastUpdatedBy={metadata.lastUpdatedBy}
+            />
             <RelatedDocs items={related} />
             <div className={styles.pdfDownload}>
                 <a href={pdfHref} target="_blank" rel="noopener noreferrer">
