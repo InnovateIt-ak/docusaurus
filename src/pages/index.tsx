@@ -3,6 +3,7 @@ import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import {usePluginData} from '@docusaurus/useGlobalData';
+import Icon, {isIconName} from '@site/src/components/Icon';
 import styles from './index.module.css';
 
 type Release = {tag: string; name: string; body: string; date: string; url: string};
@@ -49,11 +50,13 @@ function HeroTop(): ReactNode {
             </h1>
             <p className={styles.lead}>{subtitle}</p>
             <Link className={styles.search} to={firstSection}>
-              <span aria-hidden="true">🔎</span>
+              <Icon name="search" size={16} />
               <span>Browse the documentation…</span>
             </Link>
             <div className={styles.ctaRow}>
-              <Link className={`${styles.btn} ${styles.primary}`} to={firstSection}>Get started →</Link>
+              <Link className={`${styles.btn} ${styles.primary}`} to={firstSection}>
+                Get started <Icon name="arrow-right" size={16} />
+              </Link>
             </div>
           </div>
 
@@ -65,10 +68,14 @@ function HeroTop(): ReactNode {
               <div className={styles.grid}>
                 {cards.slice(0, 4).map((c) => (
                   <Link key={c.title} className={styles.card} to={c.to}>
-                    <div className={styles.ic}>{c.icon}</div>
+                    <div className={styles.ic}>
+                      <Icon name={isIconName(c.icon) ? c.icon : 'file-text'} size={24} />
+                    </div>
                     <h3 className={styles.cardTitle}>{c.title}</h3>
                     <p className={styles.cardDesc}>{c.desc}</p>
-                    <span className={styles.go}>{c.cta} →</span>
+                    <span className={styles.go}>
+                      {c.cta} <Icon name="arrow-right" size={15} />
+                    </span>
                   </Link>
                 ))}
               </div>
@@ -112,7 +119,7 @@ function LatestRelease(): ReactNode {
         <div className={styles.releaseRight}>
           <span className={styles.releaseDate}>Released {formatDate(latest.date)}</span>
           <Link className={`${styles.btn} ${styles.primary}`} to="/changelog">
-            Read the full notes →
+            Read the full notes <Icon name="arrow-right" size={16} />
           </Link>
           <span className={styles.releaseHint}>
             The changelog lists every GitHub Release automatically.

@@ -10,6 +10,26 @@ import {
   BookOpen,
   FlaskConical,
   Lock,
+  Compass,
+  GraduationCap,
+  BarChart3,
+  Landmark,
+  Plug,
+  Library,
+  SlidersHorizontal,
+  ScrollText,
+  Code,
+  Map,
+  RefreshCw,
+  Wrench,
+  Truck,
+  Cloud,
+  ShieldCheck,
+  Settings,
+  Ruler,
+  CircleHelp,
+  Database,
+  Search,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -17,21 +37,44 @@ import {
 // through this map so the project uses ONE coherent icon set (Lucide) instead of
 // OS-dependent emoji. Icons inherit the text color via `currentColor`, so they
 // pick up the EU-blue accent / theme automatically. Add a semantic name here to
-// make it available to authors (e.g. RelatedDocs front-matter `icon`).
+// make it available to authors (RelatedDocs front-matter `icon`) and to the
+// home-cards plugin (plugins/home-cards/index.js emits these names).
 const REGISTRY = {
+  // Doc chrome
   clock: Clock,
   user: User,
   edit: Pencil,
   'pen-line': Pencil,
   'arrow-right': ArrowRight,
+  pdf: FileDown,
+  // Shared / home-card semantic icons (keep in sync with the plugin's map)
   rocket: Rocket,
   'file-text': FileText,
   page: FileText,
-  pdf: FileDown,
   book: BookOpen,
   flask: FlaskConical,
   test: FlaskConical,
   lock: Lock,
+  compass: Compass,
+  'graduation-cap': GraduationCap,
+  'bar-chart': BarChart3,
+  landmark: Landmark,
+  plug: Plug,
+  library: Library,
+  sliders: SlidersHorizontal,
+  'scroll-text': ScrollText,
+  code: Code,
+  map: Map,
+  refresh: RefreshCw,
+  wrench: Wrench,
+  truck: Truck,
+  cloud: Cloud,
+  shield: ShieldCheck,
+  settings: Settings,
+  ruler: Ruler,
+  help: CircleHelp,
+  database: Database,
+  search: Search,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof REGISTRY;
