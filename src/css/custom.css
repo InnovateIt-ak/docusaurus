@@ -143,20 +143,20 @@
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--ifm-color-primary) 22%, transparent);
 }
 
+/* Solid white pill with dark text on the EU-blue navbar. The search-hint keys
+   (ctrl/K) read their text/background from these same vars, so keeping them
+   dark-on-white (not white-on-white) is what keeps the hint legible. */
 [data-theme='light'] .navbar {
-  --ifm-navbar-search-input-background-color: rgba(255, 255, 255, 0.15);
-  --ifm-navbar-search-input-color: #ffffff;
-  --ifm-navbar-search-input-placeholder-color: rgba(255, 255, 255, 0.75);
-}
-[data-theme='light'] .navbar__search-input {
-  border-color: rgba(255, 255, 255, 0.35);
-}
-[data-theme='light'] .navbar__search-input:focus {
-  background-color: #ffffff;
+  --ifm-navbar-search-input-background-color: #ffffff;
   --ifm-navbar-search-input-color: var(--ifm-font-color-base);
   --ifm-navbar-search-input-placeholder-color: var(--ifm-color-emphasis-500);
+}
+[data-theme='light'] .navbar__search-input {
+  border-color: rgba(255, 255, 255, 0.55);
+}
+[data-theme='light'] .navbar__search-input:focus {
   border-color: #ffffff;
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4);
 }
 
 @media (max-width: 996px) {
