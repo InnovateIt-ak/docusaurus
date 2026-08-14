@@ -7,8 +7,7 @@ import {
   type ReactNode,
 } from 'react';
 import {usePluginData} from '@docusaurus/useGlobalData';
-import {useHistory} from '@docusaurus/router';
-import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import Link from '@docusaurus/Link';
 import Icon from '@site/src/components/Icon';
 import styles from './styles.module.css';
 
@@ -29,21 +28,22 @@ function score(item: Item, q: string): number {
 // A ⌘K command palette: fuzzy-jump to any doc page, with a fallback that hands
 // the query to the site's full-text search page (/search). Mounted once for the
 // whole app via the swizzled theme/Root.
+//
+// Navigation goes through Docusaurus's <Link> (not history.push) so the site
+// baseUrl and client-side routing are handled exactly like every other link —
+// permalinks already carry the baseUrl. Keyboard "Enter" clicks the active row.
 export default function CommandPalette(): ReactNode {
   const data = usePluginData('docusaurus-plugin-command-palette') as
     | {items?: Item[]}
     | undefined;
   const items = useMemo(() => data?.items ?? [], [data]);
 
-  const history = useHistory();
-  const {siteConfig} = useDocusaurusContext();
-  const baseUrl = siteConfig.baseUrl || '/';
-
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const restoreRef = useRef<HTMLElement | null>(null);
+  const rowRefs = useRef<(HTMLAnchorElement | null)[]>([]);
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -67,37 +67,6 @@ export default function CommandPalette(): ReactNode {
     setOpen(false);
     setQuery('');
   }, []);
-
-  // A doc permalink already carries the site baseUrl; the router history has the
-  // baseUrl as its basename, so strip it before pushing to avoid doubling it.
-  const pushPermalink = useCallback(
-    (permalink: string) => {
-      let path = permalink;
-      if (baseUrl !== '/' && permalink.startsWith(baseUrl)) {
-        path = '/' + permalink.slice(baseUrl.length);
-      }
-      close();
-      history.push(path);
-    },
-    [baseUrl, close, history],
-  );
-
-  const runSearch = useCallback(() => {
-    const q = query.trim();
-    close();
-    history.push(`/search?q=${encodeURIComponent(q)}`);
-  }, [query, close, history]);
-
-  const activate = useCallback(
-    (index: number) => {
-      if (hasSearchRow && index === results.length) {
-        runSearch();
-      } else if (results[index]) {
-        pushPermalink(results[index].permalink);
-      }
-    },
-    [hasSearchRow, results, runSearch, pushPermalink],
-  );
 
   // Global open/close shortcut: ⌘K / Ctrl-K.
   useEffect(() => {
@@ -135,7 +104,8 @@ export default function CommandPalette(): ReactNode {
       setActive((a) => (rowCount ? (a - 1 + rowCount) % rowCount : 0));
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      activate(active);
+      // Trigger the active row's <Link> so baseUrl + SPA routing are applied.
+      rowRefs.current[active]?.click();
     }
   };
 
@@ -171,38 +141,45 @@ export default function CommandPalette(): ReactNode {
 
         <ul className={styles.results} role="listbox" aria-label="Results">
           {results.map((it, i) => (
-            <li
-              key={it.permalink}
-              role="option"
-              aria-selected={active === i}
-              className={active === i ? styles.rowActive : styles.row}
-              onMouseMove={() => setActive(i)}
-              onClick={() => activate(i)}>
-              <Icon name="file-text" size={16} className={styles.rowIcon} />
-              <span className={styles.rowText}>
-                <span className={styles.rowTitle}>{it.title}</span>
-                {it.description ? (
-                  <span className={styles.rowDesc}>{it.description}</span>
-                ) : null}
-              </span>
-              {active === i && <kbd className={styles.kbd}>↵</kbd>}
+            <li key={it.permalink} role="option" aria-selected={active === i}>
+              <Link
+                ref={(el: HTMLAnchorElement | null) => {
+                  rowRefs.current[i] = el;
+                }}
+                to={it.permalink}
+                className={active === i ? styles.rowActive : styles.row}
+                onMouseMove={() => setActive(i)}
+                onClick={close}>
+                <Icon name="file-text" size={16} className={styles.rowIcon} />
+                <span className={styles.rowText}>
+                  <span className={styles.rowTitle}>{it.title}</span>
+                  {it.description ? (
+                    <span className={styles.rowDesc}>{it.description}</span>
+                  ) : null}
+                </span>
+                {active === i && <kbd className={styles.kbd}>↵</kbd>}
+              </Link>
             </li>
           ))}
 
           {hasSearchRow && (
-            <li
-              role="option"
-              aria-selected={active === results.length}
-              className={active === results.length ? styles.rowActive : styles.row}
-              onMouseMove={() => setActive(results.length)}
-              onClick={() => activate(results.length)}>
-              <Icon name="search" size={16} className={styles.rowIcon} />
-              <span className={styles.rowText}>
-                <span className={styles.rowTitle}>
-                  Search “{query.trim()}” in all pages
+            <li role="option" aria-selected={active === results.length}>
+              <Link
+                ref={(el: HTMLAnchorElement | null) => {
+                  rowRefs.current[results.length] = el;
+                }}
+                to={`/search?q=${encodeURIComponent(query.trim())}`}
+                className={active === results.length ? styles.rowActive : styles.row}
+                onMouseMove={() => setActive(results.length)}
+                onClick={close}>
+                <Icon name="search" size={16} className={styles.rowIcon} />
+                <span className={styles.rowText}>
+                  <span className={styles.rowTitle}>
+                    Search “{query.trim()}” in all pages
+                  </span>
                 </span>
-              </span>
-              {active === results.length && <kbd className={styles.kbd}>↵</kbd>}
+                {active === results.length && <kbd className={styles.kbd}>↵</kbd>}
+              </Link>
             </li>
           )}
 
