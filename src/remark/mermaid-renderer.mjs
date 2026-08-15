@@ -14,6 +14,7 @@
 import readline from 'node:readline';
 import puppeteer from 'puppeteer';
 import {renderMermaid} from '@mermaid-js/mermaid-cli';
+import {MERMAID_CONFIG} from './mermaid-theme.mjs';
 
 const CHROMIUM_PATH = process.env.PUPPETEER_EXECUTABLE_PATH || undefined;
 
@@ -58,16 +59,13 @@ function enqueue(request) {
             const browser = await getBrowser();
             const {data} = await renderMermaid(browser, request.source, 'svg', {
                 backgroundColor: 'transparent',
-                // Rendre les libellés en <text> SVG plutôt qu'en <foreignObject>
-                // (HTML). WeasyPrint ne sait pas rendre <foreignObject> : sans
-                // cela, le diagramme sort dans le PDF avec des boîtes et des
-                // flèches vides, sans aucun texte. `htmlLabels: false` force des
-                // éléments <text> que WeasyPrint affiche correctement, sur le
-                // site comme dans le PDF.
-                mermaidConfig: {
-                    htmlLabels: false,
-                    flowchart: {htmlLabels: false},
-                },
+                // Palette, typographie et habillage des diagrammes : voir
+                // mermaid-theme.mjs. Le thème y est centralisé car le CSS du
+                // site ne peut pas l'atteindre — le SVG est inliné dans une
+                // <img>, que le CSS de la page ne traverse pas. Il embarque
+                // aussi `htmlLabels: false`, indispensable au PDF WeasyPrint,
+                // qui ne rend pas <foreignObject>.
+                mermaidConfig: MERMAID_CONFIG,
             });
             send({id: request.id, ok: true, svg: Buffer.from(data).toString('utf8')});
         } catch (err) {

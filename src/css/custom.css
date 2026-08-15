@@ -34,18 +34,36 @@
 }
 
 
-/* ---- Ported feature: legible diagrams in dark mode -------------------------
-   Diagrams are baked at build time as static, light-themed SVGs with a
-   transparent background (so WeasyPrint embeds them cleanly in the PDF). In dark
-   mode the transparent areas show the dark page, making the diagram's dark text
-   and edges illegible. Drop them on a light card so they stay readable — the
-   same content the light theme and the PDF already show. Scoped to dark mode, so
-   light mode and the (light) PDF are unaffected. */
+/* ---- Diagram frame (Mermaid / PlantUML) -----------------------------------
+   Diagrams are baked at build time into static, light-themed SVGs, inlined as
+   data-URL <img>. An <img> is a replaced element: page CSS stops at its border,
+   so nothing here can reach a node, an edge or a label — the look of the diagram
+   itself lives in src/remark/mermaid-theme.mjs, which is applied at render time
+   and therefore also holds for the PDF.
+
+   What CSS *can* do is the frame around the image, and that is this rule: a
+   white card that both centres the diagram and keeps it legible. The white
+   background is what makes dark mode work at all — the SVGs have a transparent
+   background (so WeasyPrint embeds them cleanly), so without it the diagram's
+   dark text and edges would sit on the dark page. Web-only: the PDF is produced
+   by WeasyPrint from docker/weasyprint/report.css and never reads this file. */
+.markdown img[alt='Mermaid diagram'],
+.markdown img[alt='PlantUML diagram'] {
+  display: block;
+  margin-inline: auto;
+  max-width: 100%;
+  background: #ffffff;
+  padding: 16px;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+/* On the dark page the emphasis border reads as a light halo; drop it back to a
+   thin dark edge so the card looks cut out of the page rather than outlined. */
 [data-theme='dark'] .markdown img[alt='Mermaid diagram'],
 [data-theme='dark'] .markdown img[alt='PlantUML diagram'] {
-  background: #ffffff;
-  border-radius: 8px;
-  padding: 12px;
+  border-color: rgba(0, 0, 0, 0.25);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
 
