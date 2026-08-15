@@ -302,6 +302,24 @@ const themeVariables = {
     altSectionBkgColor: 'transparent',
     todayLineColor: ACCENT,
 
+    // C4 et « architecture » embarquent leur propre palette (bleus en dur dans
+    // Mermaid). Seules ces clés-là sont thémables ; le reste — remplissage des
+    // systèmes C4, icônes du jeu « architecture » — se règle dans le diagramme
+    // lui-même, via `UpdateElementStyle` / `UpdateRelStyle` pour C4. Voir la
+    // page docs/mermaid-diagrams.mdx.
+    personBkg: WHITE,
+    personBorder: INK,
+    boundaryColor: SOFT,
+    componentLabelColor: INK,
+    nodeBkg: WHITE,
+    nodeBorder: INK,
+    nodeTextColor: INK,
+    archEdgeColor: MUTED,
+    archEdgeArrowColor: MUTED,
+    archEdgeWidth: '1',
+    archGroupBorderColor: RULE_SOLID,
+    archGroupBorderWidth: '1',
+
     // Séries catégorielles : l'accent ouvre, les tons éditoriaux suivent. Le
     // libellé de part reste en encre, et les parts sont séparées par du papier.
     pie1: SERIES[0],
