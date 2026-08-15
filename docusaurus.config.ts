@@ -95,6 +95,9 @@ const config: Config = {
         // Changelog: fetch GitHub Releases at build time and expose them as
         // global data for the /changelog page (plugins/changelog).
         './plugins/changelog',
+        // Command palette (⌘K): index every doc as global data for the
+        // client-side jump-to-page palette (src/components/CommandPalette).
+        './plugins/command-palette',
         // Home cards: derive the landing-page cards from the real docs sidebar
         // (plugins/home-cards). `icons`: emoji override per label; `extraCards`:
         // cross-cutting cards that are not docs sections.
@@ -205,8 +208,12 @@ const config: Config = {
                 '.markdown img[alt="Mermaid diagram"]',
             ].join(', '),
             background: {
+                // White in both themes: the zoom targets are mostly Mermaid
+                // diagrams (dark strokes/text on a transparent background), which
+                // are illegible on a dark backdrop. White keeps them readable —
+                // consistent with the light card they already get in dark mode.
                 light: 'rgb(255, 255, 255)',
-                dark: 'rgb(50, 50, 50)',
+                dark: 'rgb(255, 255, 255)',
             },
             config: {
                 margin: 0,
