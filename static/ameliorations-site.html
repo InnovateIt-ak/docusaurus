@@ -1,0 +1,965 @@
+<title>Parcours du lecteur EEAS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<style>
+  :root {
+    --paper:      #f4f6f8;
+    --surface:    #ffffff;
+    --surface-2:  #eef1f6;
+    --ink:        #0f1826;
+    --ink-soft:   #38465c;
+    --muted:      #5c6779;
+    --line:       #d8dfe8;
+    --line-soft:  #e7ecf2;
+    --accent:     #004494;
+    --accent-ink: #ffffff;
+    --accent-wash:#e3ebf6;
+    --deep-ground:#0a1b33;
+    --deep-ink:   #dce7f5;
+    --ok:         #14624a;
+    --ok-bg:      #dff0e8;
+    --ready:      #8a5a00;
+    --ready-bg:   #f8eedb;
+
+    --sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:      #0c1119;
+      --surface:    #141c27;
+      --surface-2:  #1b2533;
+      --ink:        #e7edf5;
+      --ink-soft:   #c3cedd;
+      --muted:      #8d9bae;
+      --line:       #2a3646;
+      --line-soft:  #202b39;
+      --accent:     #5c9fe0;
+      --accent-ink: #0b1220;
+      --accent-wash:#17273a;
+      --deep-ground:#060e1a;
+      --deep-ink:   #cfe0f2;
+      --ok:         #6fc9a4;
+      --ok-bg:      #12302a;
+      --ready:      #e3b25c;
+      --ready-bg:   #372a15;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper:      #0c1119;
+    --surface:    #141c27;
+    --surface-2:  #1b2533;
+    --ink:        #e7edf5;
+    --ink-soft:   #c3cedd;
+    --muted:      #8d9bae;
+    --line:       #2a3646;
+    --line-soft:  #202b39;
+    --accent:     #5c9fe0;
+    --accent-ink: #0b1220;
+    --accent-wash:#17273a;
+    --deep-ground:#060e1a;
+    --deep-ink:   #cfe0f2;
+    --ok:         #6fc9a4;
+    --ok-bg:      #12302a;
+    --ready:      #e3b25c;
+    --ready-bg:   #372a15;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--accent); text-underline-offset: 2px; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 clamp(1.1rem, 4vw, 3rem); }
+
+  /* ---------- masthead ---------- */
+
+  .masthead {
+    padding: clamp(2.5rem, 6vw, 4.5rem) 0 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+  }
+  .kicker {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.1rem;
+  }
+  .kicker b { color: var(--accent); font-weight: 600; }
+  h1 {
+    font-family: var(--sans);
+    font-weight: 800;
+    letter-spacing: -0.032em;
+    text-wrap: balance;
+    font-size: clamp(2.1rem, 5.6vw, 3.4rem);
+    line-height: 1.04;
+    margin: 0;
+    max-width: 18ch;
+  }
+  .standfirst { max-width: 62ch; color: var(--ink-soft); font-size: 1.06rem; margin: 0; }
+
+  /* ---------- shipped strip ---------- */
+
+  .shipped {
+    background: var(--deep-ground);
+    color: var(--deep-ink);
+    border-radius: 3px;
+    padding: 1.5rem clamp(1.1rem, 3vw, 2rem) 1.7rem;
+    margin-bottom: 2.6rem;
+  }
+  .shipped h2 {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #8fb4dd;
+    margin: 0 0 1rem;
+    font-weight: 500;
+  }
+  .shipped ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.7rem 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+  .shipped li {
+    font-family: var(--sans);
+    font-size: 0.92rem;
+    line-height: 1.4;
+    display: grid;
+    grid-template-columns: 1.2rem minmax(0, 1fr);
+    gap: 0.5rem;
+    align-items: baseline;
+  }
+  .shipped li::before { content: "✓"; color: #6fc9a4; font-weight: 700; }
+  .shipped p {
+    margin: 1.1rem 0 0;
+    font-size: 0.92rem;
+    color: #9db6d4;
+    max-width: 68ch;
+  }
+
+  /* ---------- journey ---------- */
+
+  .journey {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 3rem;
+  }
+  .leg {
+    padding: 1.25rem 1.2rem 1.4rem 0;
+    border-right: 1px solid var(--line-soft);
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  .leg:last-child { border-right: 0; }
+  .leg:hover .leg-name { color: var(--accent); }
+  .leg-step {
+    font-family: var(--mono);
+    font-size: 0.63rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: block;
+  }
+  .leg-name {
+    font-family: var(--sans);
+    font-weight: 750;
+    font-size: 1.05rem;
+    letter-spacing: -0.015em;
+    display: block;
+    margin: 0.4rem 0 0.25rem;
+  }
+  .leg-count {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- sections ---------- */
+
+  section { margin-bottom: 3.6rem; scroll-margin-top: 1.5rem; }
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.9rem;
+    flex-wrap: wrap;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 0.6rem;
+    margin-bottom: 0.9rem;
+  }
+  .sec-head h2 {
+    font-family: var(--sans);
+    font-weight: 790;
+    letter-spacing: -0.022em;
+    font-size: clamp(1.4rem, 3.2vw, 1.9rem);
+    margin: 0;
+  }
+  .sec-head .n {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .lede { margin: 0 0 1.7rem; color: var(--muted); max-width: 66ch; font-size: 1rem; }
+
+  .cards { display: grid; gap: 1.1rem; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1.35rem 1.45rem 1.5rem;
+    scroll-margin-top: 1.5rem;
+  }
+  .card:target { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-wash); }
+
+  .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; margin-bottom: 0.7rem; }
+  .ref {
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 0.74rem;
+    letter-spacing: 0.04em;
+    color: var(--accent-ink);
+    background: var(--accent);
+    padding: 0.16rem 0.42rem;
+    border-radius: 2px;
+  }
+  .chip {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.45rem;
+    border-radius: 2px;
+    border: 1px solid var(--line);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .chip.ready { color: var(--ready); background: var(--ready-bg); border-color: transparent; }
+  .chip.conf  { color: var(--ok);    background: var(--ok-bg);    border-color: transparent; }
+
+  .card h3 {
+    font-family: var(--sans);
+    font-weight: 720;
+    letter-spacing: -0.015em;
+    font-size: 1.12rem;
+    line-height: 1.3;
+    margin: 0 0 0.9rem;
+    text-wrap: balance;
+  }
+
+  .split { display: grid; gap: 1rem 2rem; grid-template-columns: minmax(0, 1fr); }
+  @media (min-width: 720px) { .split { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+  .split > div > h4 {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 0.4rem;
+    font-weight: 500;
+  }
+  .split > div.now > h4 { color: var(--muted); }
+  .split > div.next > h4 { color: var(--accent); }
+  .split p { margin: 0; color: var(--ink-soft); font-size: 0.97rem; }
+  .split .next p { color: var(--ink); }
+  @media (min-width: 720px) {
+    .split .next { border-left: 1px solid var(--line-soft); padding-left: 2rem; }
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.86em;
+    background: var(--surface-2);
+    padding: 0.08em 0.32em;
+    border-radius: 2px;
+    color: var(--ink);
+    word-break: break-word;
+  }
+  .locs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 1rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--line-soft);
+    font-family: var(--mono);
+    font-size: 0.73rem;
+    color: var(--muted);
+  }
+  .locs span + span::before { content: "·"; margin-right: 0.4rem; color: var(--line); }
+
+  /* ---------- closing ---------- */
+
+  .closing { border-top: 3px solid var(--ink); padding-top: 1.6rem; margin: 1rem 0 5rem; }
+  .rubric {
+    font-family: var(--sans);
+    font-weight: 750;
+    font-size: 0.82rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 1rem;
+  }
+  .steps { list-style: none; margin: 1rem 0 0; padding: 0; display: grid; gap: 0.9rem; max-width: 70ch; counter-reset: s; }
+  .steps li {
+    counter-increment: s;
+    display: grid;
+    grid-template-columns: 3.4rem minmax(0, 1fr);
+    gap: 0.6rem;
+    align-items: baseline;
+    color: var(--ink-soft);
+    font-size: 0.99rem;
+  }
+  .steps li::before {
+    content: "Lot " counter(s);
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .colophon {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-top: 2.6rem;
+    line-height: 1.9;
+  }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="kicker">
+      <span>Expérience du site</span>
+      <span>Dépôt <b>docusaurus</b></span>
+      <span>15 août 2026</span>
+    </div>
+    <h1>Parcours du lecteur EEAS</h1>
+    <p class="standfirst">
+      Quinze propositions sur le site lui-même — ce que le lecteur trouve, lit et retient —
+      classées selon son parcours. Trois d'entre elles ne demandent aucun développement :
+      le travail existe déjà dans le dépôt, il n'est simplement branché nulle part.
+    </p>
+  </header>
+
+  <div class="shipped">
+    <h2>Déjà livré depuis la maquette précédente</h2>
+    <ul>
+      <li>Palette de commande ⌘K</li>
+      <li>Sommaire actif et barre de progression</li>
+      <li>Bloc « étapes suivantes » en fin de page</li>
+      <li>Provenance enrichie (date, auteur, édition)</li>
+    </ul>
+    <p>
+      La maquette <code>static/mockups/improvements.html</code> proposait huit chantiers ;
+      quatre sont en ligne. Les quatre restants — retour lecteur, i18n, glossaire, bandeau
+      d'annonce — sont repris ci-dessous, avec ce que la lecture du code a fait apparaître depuis.
+    </p>
+  </div>
+
+  <nav class="journey" aria-label="Parcours">
+    <a class="leg" href="#trouver">
+      <span class="leg-step">Étape 1</span>
+      <span class="leg-name">Trouver</span>
+      <span class="leg-count">4 propositions</span>
+    </a>
+    <a class="leg" href="#lire">
+      <span class="leg-step">Étape 2</span>
+      <span class="leg-name">Lire</span>
+      <span class="leg-count">4 propositions</span>
+    </a>
+    <a class="leg" href="#publier">
+      <span class="leg-step">Étape 3</span>
+      <span class="leg-name">Publier</span>
+      <span class="leg-count">3 propositions</span>
+    </a>
+    <a class="leg" href="#revenir">
+      <span class="leg-step">Étape 4</span>
+      <span class="leg-name">Revenir</span>
+      <span class="leg-count">3 propositions</span>
+    </a>
+    <a class="leg" href="#machine">
+      <span class="leg-step">Étape 5</span>
+      <span class="leg-name">Réutiliser</span>
+      <span class="leg-count">1 proposition</span>
+    </a>
+  </nav>
+
+  <!-- ============ TROUVER ============ -->
+  <section id="trouver">
+    <div class="sec-head">
+      <h2>Trouver</h2>
+      <span class="n">Étape 1 · 4 propositions</span>
+    </div>
+    <p class="lede">
+      Le site propose aujourd'hui trois chemins vers une page : la barre latérale, la
+      recherche, et la palette ⌘K. Les trois reposent sur la même arborescence de fichiers.
+    </p>
+
+    <div class="cards">
+
+      <article class="card" id="s01">
+        <div class="meta">
+          <span class="ref">S-01</span>
+          <span class="chip">Navigation</span>
+          <span class="chip conf">Configuration</span>
+        </div>
+        <h3>La barre latérale est entièrement autogénérée</h3>
+        <div class="split">
+          <div class="now">
+            <h4>Aujourd'hui</h4>
+            <p>
+              <code>sidebars.ts</code> tient en une règle : <code>autogenerated</code> sur la
+              racine. L'ordre dépend de <code>sidebar_position</code> puis de l'alphabet, les
+              libellés sont ceux des dossiers (<code>tutorial-basics</code>), aucune catégorie
+              n'a de page d'accueil, et tout est déplié. À seize pages cela passe ; c'est le
+              genre de choix qui devient illisible sans prévenir.
+            </p>
+          </div>
+          <div class="next">
+            <h4>Proposition</h4>
+            <p>
+              Passer à une barre latérale explicite, écrite comme un sommaire de document :
+              catégories nommées, ordre éditorial, <code>collapsed: true</code> au-delà du
+              premier niveau, et <code>link: {type: 'generated-index'}</code> pour que chaque
+              section ait une page d'entrée plutôt qu'un simple repli.
+            </p>
+          </div>
+        </div>
+        <div class="locs"><span>sidebars.ts</span><span>docs/</span></div>
+      </article>
+
+      <article class="card" id="s02">
+        <div class="meta">
+          <span class="ref">S-02</span>
+          <span class="chip">Navigation</span>
+          <span class="chip">Contenu</span>
+        </div>
+        <h3>Aucune navigation transverse : il n'existe que l'arbre</h3>
+        <div class="split">
+          <div class="now">
+            <h4>Aujourd'hui</h4>
+            <p>
+              Un seul <code>tags: [greetings]</code> dans tout <code>docs/</code>, hérité du
+              tutoriel de démonstration. Une page ne peut donc appartenir qu'à un seul endroit.
+              Or « toutes les pages qui parlent d'authentification » traverse
+              <code>architecture/</code>, <code>plantuml/</code> et les guides.
+            </p>
+          </div>
+          <div class="next">
+            <h4>Proposition</h4>
+            <p>
+              Un vocabulaire de tags court et fermé — par système, par équipe, par type de
+              document — et la page d'index que Docusaurus génère gratuitement à partir d'eux.
+              Le coût est éditorial, pas technique : c'est décider du vocabulaire, puis
+              l'appliquer.
+            </p>
+          </div>
+        </div>
+        <div class="locs"><span>docs/**/*.md · front matter</span></div>
+      </article>
+
+      <article class="card" id="s03">
+        <div class="meta">
+          <span class="ref">S-03</span>
+          <span class="chip">Navigation</span>
+          <span class="chip">Développement</span>
+        </div>
+        <h3>La palette ⌘K ne connaît que les titres de page</h3>
+        <div class="split">
+          <div class="now">
+            <h4>Aujourd'hui</h4>
+            <p>
+              <code>plugins/command-palette</code> indexe titre, permalien et description.
+              Sur une page longue, la palette dépose le lecteur en haut, à lui de chercher la
+              section. Et elle ne sait faire qu'une chose : naviguer.
+            </p>
+          </div>
+          <div class="next">
+            <h4>Proposition</h4>
+            <p>
+              Indexer aussi les titres de section avec leur ancre — la donnée est disponible
+              dans le contenu chargé du plugin docs, comme les titres de page. Puis ajouter de
+              vraies commandes : télécharger le PDF de la page, ouvrir le changelog, basculer
+              le thème, copier le lien. C'est ce qui sépare une palette de commandes d'un
+              second champ de recherche.
+            </p>
+          </div>
+        </div>
+        <div class="locs"><span>plugins/command-palette/index.js</span><span>src/components/CommandPalette/</span></div>
+      </article>
+
+      <article class="card" id="s04">
+        <div class="meta">
+          <span class="ref">S-04</span>
+          <span class="chip">Navigation</span>
+          <span class="chip">Développement</span>
+        </div>
+        <h3>La page 404 est un cul-de-sac</h3>
+        <div class="split">
+          <div class="now">
+            <h4>Aujourd'hui</h4>
+            <p>
+              La 404 par défaut de Docusaurus : un titre, une phrase, aucune issue. D'autant
+              plus visible que la vérification des liens internes est désactivée côté build —
+              les liens morts arrivent donc jusqu'au lecteur.
+            </p>
+          </div>
+          <div class="next">
+            <h4>Proposition</h4>
+            <p>
+              Swizzler <code>NotFound</code> : le champ de recherche, les entrées principales
+              de la documentation, et un lien « signaler ce lien mort » pré-rempli avec l'URL
+              d'origine. Une page 404 utile transforme une impasse en signalement.
+            </p>
+          </div>
+        </div>
+        <div class="locs"><span>src/theme/NotFound/ (à créer)</span></div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ============ LIRE ============ -->
+  <section id="lire">
+    <div class="sec-head">
+      <h2>Lire</h2>
+      <span class="n">Étape 2 · 4 propositions</span>
+    </div>
+    <p class="lede">
+      La mise en page des articles est déjà soignée — blocs de code personnalisés, zoom sur
+      les diagrammes, provenance, étapes suivantes. Ce qui manque tient au contexte : ce que
+      la page raconte, et si on peut s'y fier.
+    </p>
+
+    <div class="cards">
+
+      <article class="card" id="s05">
+        <div class="meta">
+          <span class="ref">S-05</span>
+          <span class="chip">Contenu</span>
+          <span class="chip conf">Configuration</span>
+        </div>
+        <h3>Les pages n'ont pas de résumé, et cela se voit partout</h3>
+        <div class="split">
+          <div class="now">
+            <h4>Aujourd'hui</h4>
+            <p>
+              Un seul <code>description</code> dans tout <code>docs/</code>. La conséquence est
+              en chaîne : la palette ⌘K affiche des entrées sans sous-titre, la recherche
+              n'a pas d'extrait fiable à montrer, et tout lien partagé dans un fil de discussion
+              s'affiche avec la description du site entier au lieu de celle de la page.
+            </p>
+          </div>
+          <div class="next">
+            <h4>Proposition</h4>
+            <p>
+              Rendre <code>description</code> obligatoire en front matter, vérifié au build.
+              Une phrase par page — c'est la donnée qui alimente le plus de surfaces pour le
+              moindre effort.
+            </p>
+          </div>
+        </div>
+        <div class="locs"><span>docs/**/*.md · front matter</span><span>plugins/command-palette/index.js</span></div>
+      </article>
+
+      <article class="card" id="s06">
+        <div class="meta">
+          <span class="ref">S-06</span>
+          <span class="chip">Confiance</span>
+          <span class="chip ready">Donnée déjà là</span>
+        </div>
+        <h3>Rien ne distingue une page à jour d'une page oubliée</h3>
+        <div class="split">
+          <div class="now">
+            <h4>Aujourd'hui</h4>
+            <p>
+              Le bloc de provenance affiche la date de dernière modification, et laisse le
+              lecteur l'interpréter. Une page écrite il y a trois ans a exactement la même
+              apparence qu'une page écrite hier — sur une documentation d'architecture, c'est
+              la principale source de méfiance.
+            </p>
+          </div>
+          <div class="next">
+            <h4>Proposition</h4>
+            <p>
+              Un front matter <code>status: draft | stable | deprecated</code> rendu en badge
+              sous le titre, et un avertissement automatique au-delà d'un seuil de fraîcheur
+              (douze mois). <code>DocProvenance</code> calcule déjà l'âge de la page : il ne
+              manque que le seuil et l'affichage.
+            </p>
+          </div>
+        </div>
+        <div class="locs"><span>src/components/DocProvenance/index.tsx</span><span>src/theme/DocItem/Footer/</span></div>
+      </article>
+
+      <article class="card" id="s07">
+        <div class="meta">
+          <span class="ref">S-07</span>
+          <span class="chip">Identité</span>
+          <span class="chip conf">Configuration</span>
+        </div>
+        <h3>Les liens partagés portent l'identité de Docusaurus</h3>
+        <div class="split">
+          <div class="now">
+            <h4>Aujourd'hui</h4>
+            <p>
+              <code>themeConfig.image</code> pointe encore sur
+              <code>img/docusaurus-social-card.jpg</code>, et <code>static/img/</code> contient
+              toujours <code>docusaurus.png</code> et les trois illustrations
+              <code>undraw_docusaurus_*.svg</code>. Chaque lien collé dans une conversation
+              affiche donc la vignette du générateur, pas celle du projet.
+            </p>
+          </div>
+          <div class="next">
+            <h4>Proposition</h4>
+            <p>
+              Une carte sociale aux couleurs du site pour commencer, puis — si l'effort se
+              justifie — une carte générée par page au build, portant le titre et la section.
+              Nettoyer au passage les fichiers de démonstration restants.
+            </p>
+          </div>
+        </div>
+        <div class="locs"><span>docusaurus.config.ts:163</span><span>static/img/</span></div>
+      </article>
+
+      <article class="card" id="s08">
+        <div class="meta">
+          <span class="ref">S-08</span>
+          <span class="chip">Lecture</span>
+          <span class="chip">Développement</span>
+        </div>
+        <h3>Le PDF de la page n'existe qu'une fois la page finie</h3>
+        <div class="split">
+          <div class="now">
+            <h4>Aujourd'hui</h4>
+            <p>
+              Le lien « télécharger cette page en PDF » est placé tout en bas de l'article,
+              et le menu PDF de la barre de navigation ne propose que les exports globaux.
+              Un lecteur qui arrive pour emporter le document doit d'abord le faire défiler
+              en entier pour découvrir que l'export existe.
+            </p>
+          </div>
+          <div class="next">
+            <h4>Proposition</h4>
+            <p>
+              Remonter l'action en tête d'article, à hauteur du titre, groupée avec un bouton
+              de copie du lien. Le PDF par page est déjà produit par la CI et nommé de façon
+              prévisible : c'est un déplacement, pas une fonctionnalité.
+            </p>
+          </div>
+        </div>
+        <div class="locs"><span>src/theme/DocItem/Footer/index.tsx</span><span>pdfMenu.ts</span></div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ============ PUBLIER ============ -->
+  <section id="publier">
+    <div class="sec-head">
+      <h2>Publier ce qui existe déjà</h2>
+      <span class="n">Étape 3 · 3 propositions</span>
+    </div>
+    <p class="lede">
+      La section la plus rentable : trois fonctionnalités sont construites, testées et
+      présentes dans le dépôt, mais aucun chemin du site n'y mène. Il ne s'agit pas de
+      développer, il s'agit de brancher.
+    </p>
+
+    <div class="cards">
+
+      <article class="card" id="s09">
+        <div class="meta">
+          <span class="ref">S-09</span>
+          <span class="chip ready">Prêt, non branché</span>
+          <span class="chip conf">Configuration</span>
+        </div>
+        <h3>La référence d'API n'est publiée nulle part</h3>
+        <div class="split">
+          <div class="now">
+            <h4>Aujourd'hui</h4>
+            <p>
+              <code>redocusaurus</code> est déclaré dans les presets, avec le bleu
+              institutionnel réglé sur <code>#004494</code>. Mais dans
+              <code>sharedConfig.ts</code>, <code>REDOC_SPEC</code> vaut <code>[]</code> —
+              alors que <code>openapi/petstore.yaml</code> existe à la racine du dépôt et dans
+              <code>docs/</code>. Le moteur tourne à vide : aucune page d'API n'est produite.
+            </p>
+          </div>
+          <div class="next">
+            <h4>Proposition</h4>
+            <p>
+              Déclarer la spécification dans <code>REDOC_SPEC</code> et ajouter l'entrée
+              correspondante à la barre de navigation. Deux valeurs à écrire. Reste à trancher
+              si la spécification de démonstration doit être remplacée par la vraie avant
+              publication.
+            </p>
+          </div>
+        </div>
+        <div class="locs"><span>sharedConfig.ts:1</span><span>docusaurus.config.ts:83-92</span><span>openapi/petstore.yaml</span></div>
+      </article>
+
+      <article class="card" id="s10">
+        <div class="meta">
+          <span class="ref">S-10</span>
+          <span class="chip ready">Prêt, non branché</span>
+          <span class="chip conf">Configuration</span>
+        </div>
+        <h3>Le diaporama d'architecture LikeC4 n'est accessible que par son adresse</h3>
+        <div class="split">
+          <div class="now">
+            <h4>Aujourd'hui</h4>
+            <p>
+              <code>src/pages/likec4.tsx</code> est une visionneuse complète : navigation au
+              clavier, lecture automatique, plein écran, synchronisation de la vue courante
+              avec l'URL. Le modèle <code>likec4/</code> est là, la génération est câblée dans
+              <code>package.json</code>. Rien — ni barre de navigation, ni barre latérale, ni
+              page d'accueil — n'y conduit.
+            </p>
+          </div>
+          <div class="next">
+            <h4>Proposition</h4>
+            <p>
+              Une entrée « Architecture » dans la barre de navigation et une carte sur la page
+              d'accueil, à côté des PDF et du changelog. Le travail est fait ; il manque un
+              lien. C'est aussi la fonctionnalité la plus démonstrative du site.
+            </p>
+          </div>
+        </div>
+        <div class="locs"><span>src/pages/likec4.tsx</span><span>sharedConfig.ts · NAV_BAR</span><span>plugins/home-cards/index.js</span></div>
+      </article>
+
+      <article class="card" id="s11">
+        <div class="meta">
+          <span class="ref">S-11</span>
+          <span class="chip ready">Prêt, non branché</span>
+          <span class="chip conf">Configuration</span>
+        </div>
+        <h3>Le pied de page ne contient qu'une ligne de copyright</h3>
+        <div class="split">
+          <div class="now">
+            <h4>Aujourd'hui</h4>
+            <p>
+              Dans <code>sharedConfig.ts</code>, toutes les colonnes de
+              <code>FOOTER_CONFIG.links</code> sont commentées : il ne reste que le copyright.
+              Sur un site institutionnel, c'est précisément là que le lecteur cherche le
+              contact, les mentions légales et le plan du site.
+            </p>
+          </div>
+          <div class="next">
+            <h4>Proposition</h4>
+            <p>
+              Trois colonnes : <em>Documentation</em> (les sections principales),
+              <em>Ressources</em> (PDF, changelog, référence d'API), <em>Projet</em> (dépôt,
+              contact, signaler un problème). La structure est déjà écrite dans le fichier —
+              il s'agit de la décommenter et de remplacer les liens de démonstration.
+            </p>
+          </div>
+        </div>
+        <div class="locs"><span>sharedConfig.ts · FOOTER_CONFIG</span></div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ============ REVENIR ============ -->
+  <section id="revenir">
+    <div class="sec-head">
+      <h2>Revenir</h2>
+      <span class="n">Étape 4 · 3 propositions</span>
+    </div>
+    <p class="lede">
+      Trois manques qui ne se voient pas depuis une page seule : rien ne remonte du lecteur,
+      rien ne lui signale un changement, rien ne situe la documentation dans le temps.
+    </p>
+
+    <div class="cards">
+
+      <article class="card" id="s12">
+        <div class="meta">
+          <span class="ref">S-12</span>
+          <span class="chip">Retour</span>
+          <span class="chip">Développement</span>
+        </div>
+        <h3>Aucun signal ne remonte du lecteur</h3>
+        <div class="split">
+          <div class="now">
+            <h4>Aujourd'hui</h4>
+            <p>
+              Rien ne permet de savoir quelles pages posent problème. Le seul canal est le
+              ticket, c'est-à-dire le lecteur le plus motivé — celui dont on a le moins besoin
+              d'entendre parler, statistiquement.
+            </p>
+          </div>
+          <div class="next">
+            <h4>Proposition</h4>
+            <p>
+              Un bloc « Cette page vous a-t-elle aidé ? » en fin d'article, dont le « non »
+              ouvre un ticket GitHub pré-rempli avec l'URL et le titre de la page. Ni collecte,
+              ni service tiers, ni cookie : deux boutons et un lien. Le signal utile est le
+              volume de « non » par page, pas la note.
+            </p>
+          </div>
+        </div>
+        <div class="locs"><span>src/theme/DocItem/Footer/index.tsx</span></div>
+      </article>
+
+      <article class="card" id="s13">
+        <div class="meta">
+          <span class="ref">S-13</span>
+          <span class="chip">Annonce</span>
+          <span class="chip ready">Donnée déjà là</span>
+        </div>
+        <h3>Aucun canal pour signaler un changement</h3>
+        <div class="split">
+          <div class="now">
+            <h4>Aujourd'hui</h4>
+            <p>
+              <code>announcementBar</code> n'est pas configuré et
+              <code>WELCOME_PAGE.message</code> vaut <code>null</code>. Une migration, une
+              coupure, une nouvelle section : rien ne peut être annoncé autrement qu'en
+              modifiant une page que personne ne relira.
+            </p>
+          </div>
+          <div class="next">
+            <h4>Proposition</h4>
+            <p>
+              Activer <code>announcementBar</code>, alimenté par la dernière release —
+              <code>plugins/changelog</code> récupère déjà ces données au build et la page
+              d'accueil les affiche. Le bandeau devient alors automatique : il suit les
+              releases sans intervention.
+            </p>
+          </div>
+        </div>
+        <div class="locs"><span>docusaurus.config.ts · themeConfig</span><span>plugins/changelog/index.js</span></div>
+      </article>
+
+      <article class="card" id="s14">
+        <div class="meta">
+          <span class="ref">S-14</span>
+          <span class="chip">Cycle de vie</span>
+          <span class="chip">À trancher</span>
+        </div>
+        <h3>Une seule version de la documentation, sans le dire</h3>
+        <div class="split">
+          <div class="now">
+            <h4>Aujourd'hui</h4>
+            <p>
+              Le site décrit implicitement l'état courant. Un lecteur qui exploite une version
+              antérieure du produit lit une documentation qui ne correspond pas à ce qu'il a
+              sous les yeux, sans aucun avertissement.
+            </p>
+          </div>
+          <div class="next">
+            <h4>Proposition</h4>
+            <p>
+              À n'ouvrir que si plusieurs versions du produit sont réellement supportées en
+              parallèle. Le versionnement Docusaurus duplique le contenu à maintenir : c'est un
+              engagement éditorial durable, pas un réglage. La décision se prend avant, jamais
+              après. À défaut, afficher au moins la version décrite sur la page d'accueil.
+            </p>
+          </div>
+        </div>
+        <div class="locs"><span>docusaurus.config.ts · docs preset</span></div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ============ MACHINE ============ -->
+  <section id="machine">
+    <div class="sec-head">
+      <h2>Réutiliser</h2>
+      <span class="n">Étape 5 · 1 proposition</span>
+    </div>
+    <p class="lede">
+      Le lecteur n'est plus toujours humain, et une partie des questions sur cette
+      documentation sera posée à un assistant plutôt qu'à la recherche du site.
+    </p>
+
+    <div class="cards">
+
+      <article class="card" id="s15">
+        <div class="meta">
+          <span class="ref">S-15</span>
+          <span class="chip">Machine</span>
+          <span class="chip">Développement</span>
+        </div>
+        <h3>Le contenu n'est disponible qu'en HTML rendu</h3>
+        <div class="split">
+          <div class="now">
+            <h4>Aujourd'hui</h4>
+            <p>
+              Le Markdown source existe dans le dépôt, mais le site ne publie que sa version
+              habillée. Un assistant interrogé sur cette documentation doit donc reconstituer
+              le texte à partir de la page, avec la barre latérale, le pied de page et les
+              diagrammes au milieu.
+            </p>
+          </div>
+          <div class="next">
+            <h4>Proposition</h4>
+            <p>
+              Publier un <code>llms.txt</code> — un sommaire lisible par machine — et exposer
+              le Markdown brut à côté de chaque page, avec un bouton « copier la page en
+              Markdown ». Le contenu existe déjà ; c'est un plugin de build qui écrit des
+              fichiers supplémentaires, pas une transformation du site.
+            </p>
+          </div>
+        </div>
+        <div class="locs"><span>plugins/ (à créer)</span><span>src/theme/DocItem/</span></div>
+      </article>
+
+    </div>
+  </section>
+
+  <div class="closing">
+    <h2 class="rubric">Découpage proposé</h2>
+    <p class="standfirst" style="max-width: 70ch;">
+      Quatre lots, du plus rentable au plus engageant. Le premier ne contient que des
+      valeurs de configuration et rend visible du travail déjà payé.
+    </p>
+    <ol class="steps">
+      <li>Brancher l'existant : la référence d'API <strong>(S-09)</strong>, le diaporama d'architecture <strong>(S-10)</strong>, le pied de page <strong>(S-11)</strong>. Aucun développement, effet immédiat sur ce que le site donne à voir.</li>
+      <li>Rendre le contenu descriptible : <code>description</code> obligatoire <strong>(S-05)</strong>, badges de statut et seuil de fraîcheur <strong>(S-06)</strong>, carte sociale du projet <strong>(S-07)</strong>. Ces trois-là s'alimentent mutuellement.</li>
+      <li>Ouvrir la navigation : barre latérale explicite <strong>(S-01)</strong>, tags <strong>(S-02)</strong>, palette étendue aux sections et aux commandes <strong>(S-03)</strong>, page 404 utile <strong>(S-04)</strong>.</li>
+      <li>Installer les boucles longues : retour lecteur <strong>(S-12)</strong>, bandeau d'annonce automatique <strong>(S-13)</strong>, lisibilité machine <strong>(S-15)</strong>. Trancher le versionnement <strong>(S-14)</strong> avant d'y toucher.</li>
+    </ol>
+    <p class="colophon">
+      Complément à la revue technique (ameliorations.html) et à la maquette
+      mockups/improvements.html · aucun fichier source modifié · état du dépôt au commit 796e732.
+    </p>
+  </div>
+
+</div>
