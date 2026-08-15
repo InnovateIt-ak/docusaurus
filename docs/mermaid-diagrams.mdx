@@ -1,27 +1,26 @@
 ---
 sidebar_position: 8
-title: Diagrammes Mermaid
-description: Tous les types de diagrammes Mermaid rendus par le pipeline du site, avec leur source.
+title: Mermaid diagrams
+description: Every Mermaid diagram type the site's pipeline can render, with its source.
 ---
 
-# Diagrammes Mermaid
+# Mermaid diagrams
 
-Chaque diagramme de cette page est rendu **au build**, pas dans le navigateur.
-Un bloc <code>```mermaid</code> est intercepté par un plugin remark
-(`src/remark/mermaid-inline.mjs`), rendu en SVG par un Chromium headless, puis
-inliné en image data-URL. La page finale ne dépend d'aucun service, et le PDF —
-généré par WeasyPrint, qui n'exécute aucun JavaScript — embarque exactement le
-même SVG.
+Every diagram on this page is rendered **at build time**, not in the browser.
+A <code>```mermaid</code> block is intercepted by a remark plugin
+(`src/remark/mermaid-inline.mjs`), rendered to SVG by a headless Chromium, then
+inlined as a data-URL image. The published page depends on no service at all,
+and the PDF — produced by WeasyPrint, which runs no JavaScript — embeds exactly
+the same SVG.
 
-Tous les exemples ci-dessous sont rendus avec le thème du site
-(`src/remark/mermaid-theme.mjs`) : papier blanc, encre ardoise, et **un seul**
-accent tangerine, dépensé là où le sens est focal. Les nœuds étant blancs eux
-aussi, ce sont leurs filets qui les dessinent — le thème n'emploie aucun aplat
-de fond.
+All the examples below use the site theme (`src/remark/mermaid-theme.mjs`):
+white paper, slate ink, and **one** tangerine accent, spent where the meaning is
+focal. Nodes are white too, so it is their hairlines that draw them — the theme
+uses no background fills.
 
-## Les deux syntaxes
+## The two syntaxes
 
-Un bloc de code, pour un diagramme qui vit avec son texte :
+A code block, for a diagram that lives with its text:
 
 ````markdown
 ```mermaid
@@ -30,35 +29,34 @@ flowchart LR
 ```
 ````
 
-Ou un lien image vers un fichier `.mmd` / `.mermaid`, pour un diagramme partagé
-entre plusieurs pages :
+Or an image link to a `.mmd` / `.mermaid` file, for a diagram shared across
+several pages:
 
 ```markdown
-![Schéma d'authentification](../diagrammes/auth.mmd)
+![Authentication flow](../diagrams/auth.mmd)
 ```
 
 ---
 
 ## Flowchart
 
-Le type le plus courant : un enchaînement d'étapes et de décisions. La forme
-porte le sens — rectangle pour une action, losange pour une décision, cylindre
-pour un stockage.
+The most common type: a chain of steps and decisions. Shape carries meaning —
+a rectangle for an action, a diamond for a decision, a cylinder for storage.
 
 ```mermaid
 flowchart LR
     classDef focal fill:#fdece4,stroke:#eb6c36,stroke-width:1.2px
 
-    Client[Client HTTP] --> GW{Passerelle}
-    GW -->|jeton valide| API[Service API]
-    GW -->|refus| Log[(Journal d'audit)]
+    Client[HTTP client] --> GW{Gateway}
+    GW -->|valid token| API[API service]
+    GW -->|rejected| Log[(Audit log)]
 
     subgraph Backend
         API --> DB[(PostgreSQL)]
         API --> Cache[(Redis)]
     end
 
-    DB --> Export([Export PDF])
+    DB --> Export([PDF export])
     Export:::focal
 ```
 
@@ -69,52 +67,52 @@ flowchart LR
 flowchart LR
     classDef focal fill:#fdece4,stroke:#eb6c36,stroke-width:1.2px
 
-    Client[Client HTTP] --> GW{Passerelle}
-    GW -->|jeton valide| API[Service API]
-    GW -->|refus| Log[(Journal d'audit)]
+    Client[HTTP client] --> GW{Gateway}
+    GW -->|valid token| API[API service]
+    GW -->|rejected| Log[(Audit log)]
 
     subgraph Backend
         API --> DB[(PostgreSQL)]
         API --> Cache[(Redis)]
     end
 
-    DB --> Export([Export PDF])
+    DB --> Export([PDF export])
     Export:::focal
 ```
 
 </details>
 
-Le `classDef focal` ci-dessus est la façon recommandée de **dépenser l'accent** :
-un nœud, deux au maximum par diagramme. Au-delà, le signal « voici l'important »
-s'efface.
+The `classDef focal` above is the recommended way to **spend the accent**: one
+node, two at most per diagram. Beyond that, the "this is what matters" signal
+fades.
 
 ### Orientations
 
-`LR` (gauche → droite), `RL`, `TD` / `TB` (haut → bas), `BT`. Les flux de
-traitement se lisent mieux en `LR`, les hiérarchies en `TD`.
+`LR` (left to right), `RL`, `TD` / `TB` (top down), `BT`. Processing flows read
+better in `LR`, hierarchies in `TD`.
 
 ```mermaid
 flowchart TD
-    Racine --> A[Branche A]
-    Racine --> B[Branche B]
-    A --> A1[Feuille]
-    A --> A2[Feuille]
-    B --> B1[Feuille]
+    Root --> A[Branch A]
+    Root --> B[Branch B]
+    A --> A1[Leaf]
+    A --> A2[Leaf]
+    B --> B1[Leaf]
 ```
 
-### Formes
+### Shapes
 
-Mermaid 11 expose un catalogue de formes via la syntaxe `@{ shape: … }`, bien
-plus large que les crochets historiques.
+Mermaid 11 exposes a shape catalogue through the `@{ shape: … }` syntax, far
+wider than the historical bracket forms.
 
 ```mermaid
 flowchart LR
-    A@{ shape: stadium, label: "Début" }
-    B@{ shape: rect, label: "Traitement" }
-    C@{ shape: hex, label: "Préparation" }
-    D@{ shape: cyl, label: "Base" }
+    A@{ shape: stadium, label: "Start" }
+    B@{ shape: rect, label: "Process" }
+    C@{ shape: hex, label: "Prepare" }
+    D@{ shape: cyl, label: "Database" }
     E@{ shape: doc, label: "Document" }
-    F@{ shape: diamond, label: "Décision" }
+    F@{ shape: diamond, label: "Decision" }
 
     A --> B --> C --> D
     C --> E
@@ -126,12 +124,12 @@ flowchart LR
 
 ```text
 flowchart LR
-    A@{ shape: stadium, label: "Début" }
-    B@{ shape: rect, label: "Traitement" }
-    C@{ shape: hex, label: "Préparation" }
-    D@{ shape: cyl, label: "Base" }
+    A@{ shape: stadium, label: "Start" }
+    B@{ shape: rect, label: "Process" }
+    C@{ shape: hex, label: "Prepare" }
+    D@{ shape: cyl, label: "Database" }
     E@{ shape: doc, label: "Document" }
-    F@{ shape: diamond, label: "Décision" }
+    F@{ shape: diamond, label: "Decision" }
 
     A --> B --> C --> D
     C --> E
@@ -140,14 +138,14 @@ flowchart LR
 
 </details>
 
-### Types de liens
+### Link types
 
 ```mermaid
 flowchart LR
-    A -->|flèche| B
+    A -->|arrow| B
     B --- C
-    C -.->|pointillé| D
-    D ==>|épais| E
+    C -.->|dotted| D
+    D ==>|thick| E
     E ~~~ F
     F --o G
     G --x H
@@ -155,38 +153,38 @@ flowchart LR
 
 ---
 
-## Diagramme de séquence
+## Sequence diagram
 
-Pour un échange dans le temps entre plusieurs participants : appels d'API,
-protocoles d'authentification, chorégraphie de services.
+For an exchange over time between several participants: API calls,
+authentication protocols, service choreography.
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor U as Utilisateur
-    participant W as Application web
+    actor U as User
+    participant W as Web app
     participant A as API
-    participant D as Base
+    participant D as Database
 
-    U->>W: Ouvre le tableau de bord
+    U->>W: Opens the dashboard
     W->>A: GET /widgets
     activate A
     A->>D: SELECT …
-    D-->>A: 42 lignes
+    D-->>A: 42 rows
     A-->>W: 200 OK
     deactivate A
 
-    Note over W,A: La réponse est mise en cache 5 minutes
+    Note over W,A: The response is cached for 5 minutes
 
-    alt Cache valide
-        W-->>U: Rendu immédiat
-    else Cache expiré
-        W->>A: Revalidation
+    alt Cache is fresh
+        W-->>U: Renders immediately
+    else Cache expired
+        W->>A: Revalidate
         A-->>W: 304 Not Modified
     end
 
-    loop Toutes les 30 s
-        W->>A: Ping de session
+    loop Every 30 s
+        W->>A: Session ping
     end
 ```
 
@@ -196,71 +194,71 @@ sequenceDiagram
 ```text
 sequenceDiagram
     autonumber
-    actor U as Utilisateur
-    participant W as Application web
+    actor U as User
+    participant W as Web app
     participant A as API
-    participant D as Base
+    participant D as Database
 
-    U->>W: Ouvre le tableau de bord
+    U->>W: Opens the dashboard
     W->>A: GET /widgets
     activate A
     A->>D: SELECT …
-    D-->>A: 42 lignes
+    D-->>A: 42 rows
     A-->>W: 200 OK
     deactivate A
 
-    Note over W,A: La réponse est mise en cache 5 minutes
+    Note over W,A: The response is cached for 5 minutes
 
-    alt Cache valide
-        W-->>U: Rendu immédiat
-    else Cache expiré
-        W->>A: Revalidation
+    alt Cache is fresh
+        W-->>U: Renders immediately
+    else Cache expired
+        W->>A: Revalidate
         A-->>W: 304 Not Modified
     end
 
-    loop Toutes les 30 s
-        W->>A: Ping de session
+    loop Every 30 s
+        W->>A: Session ping
     end
 ```
 
 </details>
 
-La `Note` prend l'accent tangerine : c'est le seul élément d'un diagramme de
-séquence qu'un auteur ajoute *pour attirer l'œil*.
+The `Note` takes the tangerine accent: it is the one element of a sequence
+diagram an author adds *to draw the eye*.
 
 ---
 
-## Diagramme de classes
+## Class diagram
 
-La structure d'un modèle objet : attributs, méthodes, visibilité, héritage,
+The structure of an object model: attributes, methods, visibility, inheritance,
 composition.
 
 ```mermaid
 classDiagram
     class Document {
-        +String titre
-        +Date publieLe
+        +String title
+        +Date publishedAt
         #String slug
         +render() String
         +toPdf() Buffer
     }
 
     class Page {
-        +String gabarit
+        +String template
     }
 
     class Article {
-        +String auteur
+        +String author
         +Tag[] tags
     }
 
     class Tag {
-        +String nom
+        +String name
     }
 
-    Document <|-- Page : hérite
-    Document <|-- Article : hérite
-    Article "1" o-- "*" Tag : porte
+    Document <|-- Page : extends
+    Document <|-- Article : extends
+    Article "1" o-- "*" Tag : carries
 ```
 
 <details>
@@ -269,59 +267,59 @@ classDiagram
 ```text
 classDiagram
     class Document {
-        +String titre
-        +Date publieLe
+        +String title
+        +Date publishedAt
         #String slug
         +render() String
         +toPdf() Buffer
     }
 
     class Page {
-        +String gabarit
+        +String template
     }
 
     class Article {
-        +String auteur
+        +String author
         +Tag[] tags
     }
 
     class Tag {
-        +String nom
+        +String name
     }
 
-    Document <|-- Page : hérite
-    Document <|-- Article : hérite
-    Article "1" o-- "*" Tag : porte
+    Document <|-- Page : extends
+    Document <|-- Article : extends
+    Article "1" o-- "*" Tag : carries
 ```
 
 </details>
 
 ---
 
-## Diagramme d'états
+## State diagram
 
-Le cycle de vie d'une entité : quels états existent, et par quelle transition on
-passe de l'un à l'autre.
+The life cycle of an entity: which states exist, and which transition moves it
+from one to the next.
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Brouillon
+    [*] --> Draft
 
-    Brouillon --> Relecture : soumettre
-    Relecture --> Brouillon : demander des corrections
-    Relecture --> Publie : valider
+    Draft --> Review : submit
+    Review --> Draft : request changes
+    Review --> Published : approve
 
-    state Publie {
-        [*] --> EnLigne
-        EnLigne --> Archive : archiver
-        Archive --> EnLigne : republier
+    state Published {
+        [*] --> Live
+        Live --> Archived : archive
+        Archived --> Live : restore
     }
 
-    Publie --> [*] : supprimer
+    Published --> [*] : delete
 
-    note right of Relecture
-        Deux validations
-        sont requises
+    note right of Review
+        Two approvals
+        are required
     end note
 ```
 
@@ -330,23 +328,23 @@ stateDiagram-v2
 
 ```text
 stateDiagram-v2
-    [*] --> Brouillon
+    [*] --> Draft
 
-    Brouillon --> Relecture : soumettre
-    Relecture --> Brouillon : demander des corrections
-    Relecture --> Publie : valider
+    Draft --> Review : submit
+    Review --> Draft : request changes
+    Review --> Published : approve
 
-    state Publie {
-        [*] --> EnLigne
-        EnLigne --> Archive : archiver
-        Archive --> EnLigne : republier
+    state Published {
+        [*] --> Live
+        Live --> Archived : archive
+        Archived --> Live : restore
     }
 
-    Publie --> [*] : supprimer
+    Published --> [*] : delete
 
-    note right of Relecture
-        Deux validations
-        sont requises
+    note right of Review
+        Two approvals
+        are required
     end note
 ```
 
@@ -354,42 +352,42 @@ stateDiagram-v2
 
 ---
 
-## Diagramme entité-relation
+## Entity-relationship diagram
 
-Le schéma d'une base : tables, colonnes, clés et cardinalités.
+A database schema: tables, columns, keys and cardinalities.
 
 ```mermaid
 erDiagram
-    UTILISATEURS ||--o{ ARTICLES : rédige
-    UTILISATEURS ||--o{ COMMENTAIRES : poste
-    ARTICLES ||--o{ COMMENTAIRES : reçoit
-    ARTICLES }o--|| ESPACES : appartient
+    USERS ||--o{ ARTICLES : writes
+    USERS ||--o{ COMMENTS : posts
+    ARTICLES ||--o{ COMMENTS : receives
+    ARTICLES }o--|| SPACES : belongs_to
 
-    UTILISATEURS {
+    USERS {
         bigint id PK
         string email UK "NOT NULL"
-        string nom
-        timestamp cree_le
+        string name
+        timestamp created_at
     }
 
     ARTICLES {
         bigint id PK
-        bigint auteur_id FK
-        int espace_id FK
-        string titre "NOT NULL"
-        text corps
-        string statut "brouillon|publie"
+        bigint author_id FK
+        int space_id FK
+        string title "NOT NULL"
+        text body
+        string status "draft|published"
     }
 
-    COMMENTAIRES {
+    COMMENTS {
         bigint id PK
         bigint article_id FK
-        text corps
+        text body
     }
 
-    ESPACES {
+    SPACES {
         int id PK
-        string nom
+        string name
     }
 ```
 
@@ -398,36 +396,36 @@ erDiagram
 
 ```text
 erDiagram
-    UTILISATEURS ||--o{ ARTICLES : rédige
-    UTILISATEURS ||--o{ COMMENTAIRES : poste
-    ARTICLES ||--o{ COMMENTAIRES : reçoit
-    ARTICLES }o--|| ESPACES : appartient
+    USERS ||--o{ ARTICLES : writes
+    USERS ||--o{ COMMENTS : posts
+    ARTICLES ||--o{ COMMENTS : receives
+    ARTICLES }o--|| SPACES : belongs_to
 
-    UTILISATEURS {
+    USERS {
         bigint id PK
         string email UK "NOT NULL"
-        string nom
-        timestamp cree_le
+        string name
+        timestamp created_at
     }
 
     ARTICLES {
         bigint id PK
-        bigint auteur_id FK
-        int espace_id FK
-        string titre "NOT NULL"
-        text corps
-        string statut "brouillon|publie"
+        bigint author_id FK
+        int space_id FK
+        string title "NOT NULL"
+        text body
+        string status "draft|published"
     }
 
-    COMMENTAIRES {
+    COMMENTS {
         bigint id PK
         bigint article_id FK
-        text corps
+        text body
     }
 
-    ESPACES {
+    SPACES {
         int id PK
-        string nom
+        string name
     }
 ```
 
@@ -437,26 +435,26 @@ erDiagram
 
 ## Gantt
 
-Un planning : phases, durées, dépendances, chemin critique. Les tâches marquées
-`crit` prennent l'accent.
+A schedule: phases, durations, dependencies, critical path. Tasks marked `crit`
+take the accent.
 
 ```mermaid
 gantt
-    title Refonte de la documentation
+    title Documentation overhaul
     dateFormat YYYY-MM-DD
     axisFormat %d/%m
 
-    section Cadrage
-        Audit de l'existant      :done,   a1, 2026-01-05, 10d
-        Arborescence cible       :done,   a2, after a1, 5d
+    section Scoping
+        Audit the existing docs  :done,   a1, 2026-01-05, 10d
+        Target information tree  :done,   a2, after a1, 5d
 
-    section Rédaction
+    section Writing
         Guides                   :active, b1, 2026-01-26, 20d
-        Référence API            :        b2, after b1, 15d
+        API reference            :        b2, after b1, 15d
 
-    section Mise en ligne
-        Recette                  :crit,   c1, after b2, 7d
-        Bascule                  :milestone, c2, after c1, 0d
+    section Release
+        Acceptance testing       :crit,   c1, after b2, 7d
+        Cutover                  :milestone, c2, after c1, 0d
 ```
 
 <details>
@@ -464,61 +462,60 @@ gantt
 
 ```text
 gantt
-    title Refonte de la documentation
+    title Documentation overhaul
     dateFormat YYYY-MM-DD
     axisFormat %d/%m
 
-    section Cadrage
-        Audit de l'existant      :done,   a1, 2026-01-05, 10d
-        Arborescence cible       :done,   a2, after a1, 5d
+    section Scoping
+        Audit the existing docs  :done,   a1, 2026-01-05, 10d
+        Target information tree  :done,   a2, after a1, 5d
 
-    section Rédaction
+    section Writing
         Guides                   :active, b1, 2026-01-26, 20d
-        Référence API            :        b2, after b1, 15d
+        API reference            :        b2, after b1, 15d
 
-    section Mise en ligne
-        Recette                  :crit,   c1, after b2, 7d
-        Bascule                  :milestone, c2, after c1, 0d
+    section Release
+        Acceptance testing       :crit,   c1, after b2, 7d
+        Cutover                  :milestone, c2, after c1, 0d
 ```
 
 </details>
 
 ---
 
-## Camembert
+## Pie chart
 
-Une répartition, quand les parts sont peu nombreuses et franchement
-différentes. La première part prend l'accent.
+A breakdown, when the slices are few and clearly different. The first slice
+takes the accent.
 
 ```mermaid
 pie showData
-    title Répartition des pages
+    title Pages by section
     "Guides" : 45
-    "Référence API" : 30
+    "API reference" : 30
     "Architecture" : 15
-    "Tutoriels" : 10
+    "Tutorials" : 10
 ```
 
 ---
 
 ## Quadrant
 
-Positionner des options sur deux axes — effort contre valeur, risque contre
-impact.
+Position options on two axes — effort against value, risk against impact.
 
 ```mermaid
 quadrantChart
-    title Priorisation du chantier documentaire
-    x-axis "Effort faible" --> "Effort élevé"
-    y-axis "Valeur faible" --> "Valeur forte"
-    quadrant-1 À planifier
-    quadrant-2 À faire maintenant
-    quadrant-3 À ignorer
-    quadrant-4 À déléguer
-    "Référence API": [0.75, 0.85]
-    "Guide de prise en main": [0.30, 0.80]
-    "Traductions": [0.85, 0.35]
-    "Refonte du thème": [0.45, 0.25]
+    title Prioritising the documentation work
+    x-axis "Low effort" --> "High effort"
+    y-axis "Low value" --> "High value"
+    quadrant-1 Plan it
+    quadrant-2 Do it now
+    quadrant-3 Drop it
+    quadrant-4 Delegate it
+    "API reference": [0.75, 0.85]
+    "Getting started guide": [0.30, 0.80]
+    "Translations": [0.85, 0.35]
+    "Theme rework": [0.45, 0.25]
 ```
 
 <details>
@@ -526,56 +523,56 @@ quadrantChart
 
 ```text
 quadrantChart
-    title Priorisation du chantier documentaire
-    x-axis "Effort faible" --> "Effort élevé"
-    y-axis "Valeur faible" --> "Valeur forte"
-    quadrant-1 À planifier
-    quadrant-2 À faire maintenant
-    quadrant-3 À ignorer
-    quadrant-4 À déléguer
-    "Référence API": [0.75, 0.85]
-    "Guide de prise en main": [0.30, 0.80]
-    "Traductions": [0.85, 0.35]
-    "Refonte du thème": [0.45, 0.25]
+    title Prioritising the documentation work
+    x-axis "Low effort" --> "High effort"
+    y-axis "Low value" --> "High value"
+    quadrant-1 Plan it
+    quadrant-2 Do it now
+    quadrant-3 Drop it
+    quadrant-4 Delegate it
+    "API reference": [0.75, 0.85]
+    "Getting started guide": [0.30, 0.80]
+    "Translations": [0.85, 0.35]
+    "Theme rework": [0.45, 0.25]
 ```
 
 </details>
 
 ---
 
-## Diagramme d'exigences
+## Requirement diagram
 
-Tracer des exigences et ce qui les satisfait ou les vérifie — utile pour un
-dossier de conformité.
+Trace requirements and what satisfies or verifies them — useful for a compliance
+file.
 
 ```mermaid
 requirementDiagram
 
-requirement disponibilite {
+requirement availability {
 id: "REQ-1"
-text: Le site reste disponible 99.9 pourcent du temps.
+text: The site stays available 99.9 percent of the time.
 risk: high
 verifymethod: test
 }
 
-functionalRequirement cache {
+functionalRequirement caching {
 id: "REQ-2"
-text: Les pages sont servies depuis un cache.
+text: Pages are served from a cache.
 risk: medium
 verifymethod: demonstration
 }
 
-element supervision {
-type: supervision
+element monitoring {
+type: monitoring
 }
 
 element cdn {
 type: infrastructure
 }
 
-cdn - satisfies -> cache
-supervision - verifies -> disponibilite
-cache - derives -> disponibilite
+cdn - satisfies -> caching
+monitoring - verifies -> availability
+caching - derives -> availability
 ```
 
 <details>
@@ -584,31 +581,31 @@ cache - derives -> disponibilite
 ```text
 requirementDiagram
 
-requirement disponibilite {
+requirement availability {
 id: "REQ-1"
-text: Le site reste disponible 99.9 pourcent du temps.
+text: The site stays available 99.9 percent of the time.
 risk: high
 verifymethod: test
 }
 
-functionalRequirement cache {
+functionalRequirement caching {
 id: "REQ-2"
-text: Les pages sont servies depuis un cache.
+text: Pages are served from a cache.
 risk: medium
 verifymethod: demonstration
 }
 
-element supervision {
-type: supervision
+element monitoring {
+type: monitoring
 }
 
 element cdn {
 type: infrastructure
 }
 
-cdn - satisfies -> cache
-supervision - verifies -> disponibilite
-cache - derives -> disponibilite
+cdn - satisfies -> caching
+monitoring - verifies -> availability
+caching - derives -> availability
 ```
 
 </details>
@@ -617,23 +614,23 @@ cache - derives -> disponibilite
 
 ## Git graph
 
-Une stratégie de branches, expliquée par l'exemple.
+A branching strategy, explained by example.
 
 ```mermaid
 gitGraph
     commit id: "init"
-    commit id: "thème"
+    commit id: "theme"
     branch feature/mermaid
     checkout feature/mermaid
-    commit id: "plugin remark"
+    commit id: "remark plugin"
     commit id: "palette"
     checkout main
     branch hotfix
-    commit id: "correctif CI"
+    commit id: "CI fix"
     checkout main
     merge hotfix tag: "v1.0.1"
     checkout feature/mermaid
-    commit id: "galerie"
+    commit id: "gallery"
     checkout main
     merge feature/mermaid tag: "v1.1.0"
 ```
@@ -644,18 +641,18 @@ gitGraph
 ```text
 gitGraph
     commit id: "init"
-    commit id: "thème"
+    commit id: "theme"
     branch feature/mermaid
     checkout feature/mermaid
-    commit id: "plugin remark"
+    commit id: "remark plugin"
     commit id: "palette"
     checkout main
     branch hotfix
-    commit id: "correctif CI"
+    commit id: "CI fix"
     checkout main
     merge hotfix tag: "v1.0.1"
     checkout feature/mermaid
-    commit id: "galerie"
+    commit id: "gallery"
     checkout main
     merge feature/mermaid tag: "v1.1.0"
 ```
@@ -666,36 +663,36 @@ gitGraph
 
 ## C4
 
-Le modèle C4 pour l'architecture : contexte, conteneurs, composants. Utile quand
-il faut montrer qui parle à quoi, et par quel protocole.
+The C4 model for architecture: context, containers, components. Useful when you
+need to show who talks to what, and over which protocol.
 
 ```mermaid
 C4Context
-    title Contexte du portail documentaire
+    title Documentation portal context
 
-    Person(lecteur, "Lecteur", "Consulte la documentation")
-    Person(auteur, "Auteur", "Rédige en Markdown")
+    Person(reader, "Reader", "Reads the documentation")
+    Person(author, "Author", "Writes in Markdown")
 
-    System(portail, "Portail Docusaurus", "Site statique et exports PDF")
+    System(portal, "Docusaurus portal", "Static site and PDF exports")
 
-    System_Ext(github, "GitHub", "Dépôt et intégration continue")
-    System_Ext(sso, "Fournisseur SSO", "Authentification")
+    System_Ext(github, "GitHub", "Repository and continuous integration")
+    System_Ext(sso, "SSO provider", "Authentication")
 
-    Rel(lecteur, portail, "Consulte", "HTTPS")
-    Rel(auteur, github, "Pousse du Markdown", "git")
-    Rel(github, portail, "Déclenche le build", "Actions")
-    Rel(portail, sso, "Délègue l'authentification", "OIDC")
+    Rel(reader, portal, "Browses", "HTTPS")
+    Rel(author, github, "Pushes Markdown", "git")
+    Rel(github, portal, "Triggers the build", "Actions")
+    Rel(portal, sso, "Delegates authentication", "OIDC")
 
-    UpdateElementStyle(lecteur, $bgColor="#ffffff", $borderColor="#2d3142", $fontColor="#2d3142")
-    UpdateElementStyle(auteur, $bgColor="#ffffff", $borderColor="#2d3142", $fontColor="#2d3142")
-    UpdateElementStyle(portail, $bgColor="#fdece4", $borderColor="#eb6c36", $fontColor="#2d3142")
+    UpdateElementStyle(reader, $bgColor="#ffffff", $borderColor="#2d3142", $fontColor="#2d3142")
+    UpdateElementStyle(author, $bgColor="#ffffff", $borderColor="#2d3142", $fontColor="#2d3142")
+    UpdateElementStyle(portal, $bgColor="#fdece4", $borderColor="#eb6c36", $fontColor="#2d3142")
     UpdateElementStyle(github, $bgColor="#f5f5f5", $borderColor="#bfc0c0", $fontColor="#2d3142")
     UpdateElementStyle(sso, $bgColor="#f5f5f5", $borderColor="#bfc0c0", $fontColor="#2d3142")
 
-    UpdateRelStyle(lecteur, portail, $textColor="#4f5d75", $lineColor="#4f5d75", $offsetY="-20")
-    UpdateRelStyle(auteur, github, $textColor="#4f5d75", $lineColor="#4f5d75", $offsetY="-20")
-    UpdateRelStyle(github, portail, $textColor="#4f5d75", $lineColor="#4f5d75", $offsetY="-30", $offsetX="-60")
-    UpdateRelStyle(portail, sso, $textColor="#4f5d75", $lineColor="#4f5d75", $offsetY="-20")
+    UpdateRelStyle(reader, portal, $textColor="#4f5d75", $lineColor="#4f5d75", $offsetY="-20")
+    UpdateRelStyle(author, github, $textColor="#4f5d75", $lineColor="#4f5d75", $offsetY="-20")
+    UpdateRelStyle(github, portal, $textColor="#4f5d75", $lineColor="#4f5d75", $offsetY="-30", $offsetX="-60")
+    UpdateRelStyle(portal, sso, $textColor="#4f5d75", $lineColor="#4f5d75", $offsetY="-20")
 ```
 
 <details>
@@ -703,113 +700,113 @@ C4Context
 
 ```text
 C4Context
-    title Contexte du portail documentaire
+    title Documentation portal context
 
-    Person(lecteur, "Lecteur", "Consulte la documentation")
-    Person(auteur, "Auteur", "Rédige en Markdown")
+    Person(reader, "Reader", "Reads the documentation")
+    Person(author, "Author", "Writes in Markdown")
 
-    System(portail, "Portail Docusaurus", "Site statique et exports PDF")
+    System(portal, "Docusaurus portal", "Static site and PDF exports")
 
-    System_Ext(github, "GitHub", "Dépôt et intégration continue")
-    System_Ext(sso, "Fournisseur SSO", "Authentification")
+    System_Ext(github, "GitHub", "Repository and continuous integration")
+    System_Ext(sso, "SSO provider", "Authentication")
 
-    Rel(lecteur, portail, "Consulte", "HTTPS")
-    Rel(auteur, github, "Pousse du Markdown", "git")
-    Rel(github, portail, "Déclenche le build", "Actions")
-    Rel(portail, sso, "Délègue l'authentification", "OIDC")
+    Rel(reader, portal, "Browses", "HTTPS")
+    Rel(author, github, "Pushes Markdown", "git")
+    Rel(github, portal, "Triggers the build", "Actions")
+    Rel(portal, sso, "Delegates authentication", "OIDC")
 
-    UpdateElementStyle(lecteur, $bgColor="#ffffff", $borderColor="#2d3142", $fontColor="#2d3142")
-    UpdateElementStyle(auteur, $bgColor="#ffffff", $borderColor="#2d3142", $fontColor="#2d3142")
-    UpdateElementStyle(portail, $bgColor="#fdece4", $borderColor="#eb6c36", $fontColor="#2d3142")
+    UpdateElementStyle(reader, $bgColor="#ffffff", $borderColor="#2d3142", $fontColor="#2d3142")
+    UpdateElementStyle(author, $bgColor="#ffffff", $borderColor="#2d3142", $fontColor="#2d3142")
+    UpdateElementStyle(portal, $bgColor="#fdece4", $borderColor="#eb6c36", $fontColor="#2d3142")
     UpdateElementStyle(github, $bgColor="#f5f5f5", $borderColor="#bfc0c0", $fontColor="#2d3142")
     UpdateElementStyle(sso, $bgColor="#f5f5f5", $borderColor="#bfc0c0", $fontColor="#2d3142")
 
-    UpdateRelStyle(lecteur, portail, $textColor="#4f5d75", $lineColor="#4f5d75", $offsetY="-20")
-    UpdateRelStyle(auteur, github, $textColor="#4f5d75", $lineColor="#4f5d75", $offsetY="-20")
-    UpdateRelStyle(github, portail, $textColor="#4f5d75", $lineColor="#4f5d75", $offsetY="-30", $offsetX="-60")
-    UpdateRelStyle(portail, sso, $textColor="#4f5d75", $lineColor="#4f5d75", $offsetY="-20")
+    UpdateRelStyle(reader, portal, $textColor="#4f5d75", $lineColor="#4f5d75", $offsetY="-20")
+    UpdateRelStyle(author, github, $textColor="#4f5d75", $lineColor="#4f5d75", $offsetY="-20")
+    UpdateRelStyle(github, portal, $textColor="#4f5d75", $lineColor="#4f5d75", $offsetY="-30", $offsetX="-60")
+    UpdateRelStyle(portal, sso, $textColor="#4f5d75", $lineColor="#4f5d75", $offsetY="-20")
 ```
 
 </details>
 
-C4 n'hérite que partiellement du thème du site : Mermaid y code ses bleus en
-dur, et le thème ne peut reprendre la main que sur quelques clés. Les directives
-`UpdateElementStyle` et `UpdateRelStyle` ci-dessus font le reste — c'est aussi
-comme cela qu'on désigne le système focal, ici le portail, en tangerine. Seul le
-pictogramme des personnes garde son bleu d'origine.
+C4 only partly inherits the site theme: Mermaid hardcodes its blues there, and
+the theme can reclaim only a few keys. The `UpdateElementStyle` and
+`UpdateRelStyle` directives above do the rest — and that is also how you mark
+the focal system, here the portal, in tangerine. Only the person pictogram keeps
+its original blue.
 
 ---
 
-## Carte mentale
+## Mind map
 
-Pour dégrossir un périmètre, ou donner le plan d'un site en un coup d'œil.
+To rough out a scope, or give the plan of a site at a glance.
 
 ```mermaid
 mindmap
     root((Documentation))
         Guides
-            Prise en main
+            Getting started
             Installation
-            Dépannage
-        Référence
-            API REST
+            Troubleshooting
+        Reference
+            REST API
             CLI
-            Variables d'environnement
+            Environment variables
         Architecture
-            Contexte
-            Conteneurs
-            Décisions
-        Publication
-            Site statique
-            Exports PDF
+            Context
+            Containers
+            Decisions
+        Publishing
+            Static site
+            PDF exports
 ```
 
 ---
 
-## Frise chronologique
+## Timeline
 
 ```mermaid
 timeline
-    title Historique du portail
-    2023 : Premiers Markdown dans le dépôt
-    2024 : Passage à Docusaurus
-         : Exports PDF automatisés
-    2025 : Diagrammes rendus au build
-         : Recherche locale
-    2026 : Thème unifié site et PDF
+    title Portal history
+    2023 : First Markdown files in the repository
+    2024 : Moved to Docusaurus
+         : Automated PDF exports
+    2025 : Diagrams rendered at build time
+         : Local search
+    2026 : One theme for site and PDF
 ```
 
 ---
 
 ## Sankey
 
-Des flux et leurs volumes : d'où vient le trafic, où il se perd.
+Flows and their volumes: where traffic comes from, where it drops off.
 
 ```mermaid
 sankey-beta
 
-"Recherche","Accueil",1200
-"Lien direct","Accueil",600
-"Reseaux sociaux","Accueil",240
-"Accueil","Guides",900
-"Accueil","Reference",640
-"Accueil","Sortie",500
+"Search","Home",1200
+"Direct","Home",600
+"Social","Home",240
+"Home","Guides",900
+"Home","Reference",640
+"Home","Exit",500
 "Guides","Reference",320
-"Guides","Sortie",580
-"Reference","Sortie",960
+"Guides","Exit",580
+"Reference","Exit",960
 ```
 
 ---
 
-## Graphique XY
+## XY chart
 
-Barres et courbes sur un même repère, pour une série chiffrée.
+Bars and lines on the same axes, for a numeric series.
 
 ```mermaid
 xychart-beta
-    title "Pages vues par mois"
-    x-axis ["jan", "fev", "mar", "avr", "mai", "juin"]
-    y-axis "Milliers de vues" 0 --> 60
+    title "Page views per month"
+    x-axis ["jan", "feb", "mar", "apr", "may", "jun"]
+    y-axis "Thousands of views" 0 --> 60
     bar [12, 18, 24, 31, 44, 52]
     line [12, 18, 24, 31, 44, 52]
 ```
@@ -818,16 +815,16 @@ xychart-beta
 
 ## Block
 
-Une disposition en grille, quand la position compte plus que les liens : couches
-d'une architecture, découpage d'un écran.
+A grid layout, for when position matters more than links: architecture layers,
+the regions of a screen.
 
 ```mermaid
 block-beta
     columns 3
 
-    navigateur["Navigateur"]:3
+    browser["Browser"]:3
     space:3
-    cdn["CDN"] api["API"] statique["Fichiers statiques"]
+    cdn["CDN"] api["API"] static["Static files"]
     space:3
     db[("PostgreSQL")]:3
 ```
@@ -839,9 +836,9 @@ block-beta
 block-beta
     columns 3
 
-    navigateur["Navigateur"]:3
+    browser["Browser"]:3
     space:3
-    cdn["CDN"] api["API"] statique["Fichiers statiques"]
+    cdn["CDN"] api["API"] static["Static files"]
     space:3
     db[("PostgreSQL")]:3
 ```
@@ -852,60 +849,60 @@ block-beta
 
 ## Packet
 
-La structure binaire d'un en-tête ou d'une trame, bit à bit.
+The binary layout of a header or a frame, bit by bit.
 
 ```mermaid
 packet-beta
-    0-15: "Port source"
-    16-31: "Port destination"
-    32-63: "Numéro de séquence"
-    64-95: "Numéro d'acquittement"
+    0-15: "Source port"
+    16-31: "Destination port"
+    32-63: "Sequence number"
+    64-95: "Acknowledgement number"
     96-99: "Offset"
-    100-105: "Réservé"
-    106-111: "Drapeaux"
-    112-127: "Fenêtre"
+    100-105: "Reserved"
+    106-111: "Flags"
+    112-127: "Window"
 ```
 
 ---
 
 ## Kanban
 
-L'état d'un tableau de travail, figé dans la documentation.
+The state of a work board, frozen into the documentation.
 
 ```mermaid
 kanban
-    À faire
-        t1[Traduire les guides]
-        t2[Documenter le CLI]
-    En cours
-        t3[Galerie de diagrammes]
-    Terminé
-        t4[Thème unifié]
-        t5[Exports PDF]
+    To do
+        t1[Translate the guides]
+        t2[Document the CLI]
+    In progress
+        t3[Diagram gallery]
+    Done
+        t4[Unified theme]
+        t5[PDF exports]
 ```
 
 ---
 
 ## Architecture
 
-Services et groupes, avec les icônes intégrées (`cloud`, `database`, `disk`,
+Services and groups, with the built-in icons (`cloud`, `database`, `disk`,
 `internet`, `server`).
 
 ```mermaid
 architecture-beta
     group public(internet)[Public]
-    group prive(cloud)[Prive]
+    group private(cloud)[Private]
 
-    service navigateur(internet)[Navigateur] in public
+    service browser(internet)[Browser] in public
     service cdn(server)[CDN] in public
-    service api(server)[API] in prive
-    service base(database)[PostgreSQL] in prive
-    service fichiers(disk)[Stockage] in prive
+    service api(server)[API] in private
+    service db(database)[PostgreSQL] in private
+    service files(disk)[Object storage] in private
 
-    navigateur:R --> L:cdn
+    browser:R --> L:cdn
     cdn:R --> L:api
-    api:R --> L:base
-    api:B --> T:fichiers
+    api:R --> L:db
+    api:B --> T:files
 ```
 
 <details>
@@ -914,38 +911,38 @@ architecture-beta
 ```text
 architecture-beta
     group public(internet)[Public]
-    group prive(cloud)[Prive]
+    group private(cloud)[Private]
 
-    service navigateur(internet)[Navigateur] in public
+    service browser(internet)[Browser] in public
     service cdn(server)[CDN] in public
-    service api(server)[API] in prive
-    service base(database)[PostgreSQL] in prive
-    service fichiers(disk)[Stockage] in prive
+    service api(server)[API] in private
+    service db(database)[PostgreSQL] in private
+    service files(disk)[Object storage] in private
 
-    navigateur:R --> L:cdn
+    browser:R --> L:cdn
     cdn:R --> L:api
-    api:R --> L:base
-    api:B --> T:fichiers
+    api:R --> L:db
+    api:B --> T:files
 ```
 
 </details>
 
-Les arêtes et les cadres de groupe suivent le thème ; les **icônes**, elles,
-viennent du jeu d'icônes de Mermaid et gardent leur bleu. C'est le seul endroit
-de la page où une couleur échappe au système.
+Edges and group frames follow the theme; the **icons** come from Mermaid's own
+icon set and keep their blue. That is the only place on this page where a colour
+escapes the system.
 
 ---
 
 ## Radar
 
-Comparer plusieurs profils sur les mêmes critères.
+Compare several profiles against the same criteria.
 
 ```mermaid
 radar-beta
-    axis lisibilite["Lisibilité"], fraicheur["Fraîcheur"], couverture["Couverture"]
-    axis exemples["Exemples"], recherche["Recherche"]
-    curve avant["Avant refonte"]{60, 40, 55, 30, 45}
-    curve apres["Après refonte"]{85, 80, 75, 90, 80}
+    axis clarity["Clarity"], freshness["Freshness"], coverage["Coverage"]
+    axis examples["Examples"], search["Search"]
+    curve before["Before the overhaul"]{60, 40, 55, 30, 45}
+    curve after["After the overhaul"]{85, 80, 75, 90, 80}
     max 100
 ```
 
@@ -954,10 +951,10 @@ radar-beta
 
 ```text
 radar-beta
-    axis lisibilite["Lisibilité"], fraicheur["Fraîcheur"], couverture["Couverture"]
-    axis exemples["Exemples"], recherche["Recherche"]
-    curve avant["Avant refonte"]{60, 40, 55, 30, 45}
-    curve apres["Après refonte"]{85, 80, 75, 90, 80}
+    axis clarity["Clarity"], freshness["Freshness"], coverage["Coverage"]
+    axis examples["Examples"], search["Search"]
+    curve before["Before the overhaul"]{60, 40, 55, 30, 45}
+    curve after["After the overhaul"]{85, 80, 75, 90, 80}
     max 100
 ```
 
@@ -967,22 +964,21 @@ radar-beta
 
 ## Treemap
 
-Des proportions imbriquées : le poids de chaque section, et de quoi elle est
-faite.
+Nested proportions: the weight of each section, and what it is made of.
 
 ```mermaid
 treemap-beta
     "Documentation"
         "Guides"
-            "Prise en main": 18
+            "Getting started": 18
             "Installation": 12
-            "Dépannage": 9
-        "Référence"
-            "API REST": 22
+            "Troubleshooting": 9
+        "Reference"
+            "REST API": 22
             "CLI": 8
         "Architecture"
-            "Décisions": 14
-            "Vues C4": 6
+            "Decisions": 14
+            "C4 views": 6
 ```
 
 <details>
@@ -992,15 +988,15 @@ treemap-beta
 treemap-beta
     "Documentation"
         "Guides"
-            "Prise en main": 18
+            "Getting started": 18
             "Installation": 12
-            "Dépannage": 9
-        "Référence"
-            "API REST": 22
+            "Troubleshooting": 9
+        "Reference"
+            "REST API": 22
             "CLI": 8
         "Architecture"
-            "Décisions": 14
-            "Vues C4": 6
+            "Decisions": 14
+            "C4 views": 6
 ```
 
 </details>
@@ -1009,18 +1005,18 @@ treemap-beta
 
 ## ZenUML
 
-Une seconde syntaxe de séquence, plus proche du code — pratique quand le
-diagramme est dérivé d'une implémentation.
+A second sequence syntax, closer to code — handy when the diagram is derived
+from an implementation.
 
 ```mermaid
 zenuml
-    title Création d'un article
-    @Actor Auteur
+    title Creating an article
+    @Actor Author
     @Boundary API
-    @Database Base
+    @Database Store
 
-    Auteur->API.creer(article) {
-        API->Base.insert(article) {
+    Author->API.create(article) {
+        API->Store.insert(article) {
             return id
         }
         return 201
@@ -1032,13 +1028,13 @@ zenuml
 
 ```text
 zenuml
-    title Création d'un article
-    @Actor Auteur
+    title Creating an article
+    @Actor Author
     @Boundary API
-    @Database Base
+    @Database Store
 
-    Auteur->API.creer(article) {
-        API->Base.insert(article) {
+    Author->API.create(article) {
+        API->Store.insert(article) {
             return id
         }
         return 201
@@ -1049,44 +1045,43 @@ zenuml
 
 ---
 
-## Limites du pipeline
+## Pipeline limits
 
-Quatre choses à connaître avant d'écrire un diagramme ici. Elles découlent
-toutes du même choix : un seul SVG sert le site **et** le PDF.
+Four things worth knowing before writing a diagram here. They all follow from
+one choice: a single SVG serves the site **and** the PDF.
 
-### Le parcours utilisateur (`journey`) n'est pas utilisable
+### The user journey (`journey`) is not usable
 
-C'est le seul type que Mermaid rend avec des éléments `<foreignObject>`, c'est-à-dire
-du HTML posé dans le SVG. WeasyPrint ne sait pas les rendre : le diagramme sort
-du PDF avec ses boîtes vides, sans aucun texte. Tous les autres types
-respectent le réglage `htmlLabels: false` et restent en `<text>` SVG. Pour un
-parcours, utiliser une frise chronologique ou un diagramme d'états.
+It is the only type Mermaid renders with `<foreignObject>` elements — HTML
+placed inside the SVG. WeasyPrint cannot render those: the diagram comes out of
+the PDF with empty boxes and no text at all. Every other type honours the
+`htmlLabels: false` setting and stays in SVG `<text>`. For a journey, use a
+timeline or a state diagram instead.
 
-### Certains libellés débordent de leur boîte
+### Some labels overflow their box
 
-Sur les diagrammes entité-relation, de classes et d'états, un libellé long peut
-dépasser légèrement son cadre. C'est une limite connue de `htmlLabels: false`,
-réglage imposé par le PDF. Le contournement est de raccourcir le libellé, ou
-d'en déplacer une partie dans une note.
+On entity-relationship, class and state diagrams, a long label can slightly
+overrun its frame. This is a known limitation of `htmlLabels: false`, a setting
+the PDF forces on us. The workaround is to shorten the label, or move part of it
+into a note.
 
-### Les couleurs se règlent au thème, pas dans le diagramme
+### Colours are set in the theme, not in the diagram
 
-Le CSS du site ne peut pas atteindre l'intérieur d'un diagramme : le SVG est
-inliné dans une balise `<img>`, que le CSS ne traverse pas. Toute la palette est
-donc centralisée dans `src/remark/mermaid-theme.mjs`. Les directives `style` et
-`classDef` d'un diagramme restent possibles pour un cas ponctuel — voir le
-`classDef focal` du premier exemple — mais tout ce qui est systématique a sa
-place dans le thème.
+Site CSS cannot reach inside a diagram: the SVG is inlined in an `<img>`, which
+CSS does not cross. The whole palette therefore lives in
+`src/remark/mermaid-theme.mjs`. A diagram's own `style` and `classDef`
+directives remain available for a one-off — see the `classDef focal` in the
+first example — but anything systematic belongs in the theme.
 
-### Un seul accent par diagramme
+### One accent per diagram
 
-Le thème réserve le tangerine aux éléments focaux par construction : notes,
-tâches critiques, première part d'un camembert. Un diagramme qui met tout en
-avant ne met rien en avant : deux nœuds accentués au maximum.
+The theme reserves tangerine for elements that are focal by construction: notes,
+critical tasks, the first slice of a pie. A diagram that highlights everything
+highlights nothing: two accented nodes at most.
 
-## Si un diagramme ne se rend pas
+## When a diagram fails to render
 
-Le build ne s'arrête pas : le bloc est remplacé par un encadré qui conserve la
-source et affiche l'erreur. Cherchez `[mermaid]` dans le journal de build pour
-la cause. Pour faire échouer le build à la place — utile en CI — lancez-le avec
+The build does not stop: the block is replaced by a visible box that keeps the
+source and shows the error. Search the build log for `[mermaid]` to find the
+cause. To fail the build instead — useful in CI — run it with
 `MERMAID_STRICT=1`.
