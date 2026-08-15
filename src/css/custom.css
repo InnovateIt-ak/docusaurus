@@ -34,18 +34,42 @@
 }
 
 
-/* ---- Ported feature: legible diagrams in dark mode -------------------------
-   Diagrams are baked at build time as static, light-themed SVGs with a
-   transparent background (so WeasyPrint embeds them cleanly in the PDF). In dark
-   mode the transparent areas show the dark page, making the diagram's dark text
-   and edges illegible. Drop them on a light card so they stay readable — the
-   same content the light theme and the PDF already show. Scoped to dark mode, so
-   light mode and the (light) PDF are unaffected. */
+/* ---- Diagram frame (Mermaid / PlantUML) -----------------------------------
+   Diagrams are baked at build time into static, light-themed SVGs, inlined as
+   data-URL <img>. An <img> is a replaced element: page CSS stops at its border,
+   so nothing here can reach a node, an edge or a label — the look of the diagram
+   itself lives in src/remark/mermaid-theme.mjs, which is applied at render time
+   and therefore also holds for the PDF.
+
+   What CSS *can* do is the frame around the image, and that is this rule: it
+   lays down the diagram's paper. The paper is white — the same ground the PDF
+   page has, so a diagram looks identical in both — and it is what makes dark
+   mode work at all: the SVGs have a transparent background (so WeasyPrint
+   embeds them cleanly), so without it the diagram's dark text and edges would
+   sit on the dark page. On white paper the nodes, white too, read by their ink
+   hairline rather than by their fill; the theme drops its background fills to
+   match (src/remark/mermaid-theme.mjs).
+
+   Hairline border and 8px radius, no shadow — the diagram system builds depth
+   from rules, never from shadows, and the PDF (WeasyPrint) could not render a
+   shadow anyway. Paper stays white in both themes because the SVG inside is
+   baked light-only. Web-only: the PDF is produced from
+   docker/weasyprint/report.css and never reads this file. */
+.markdown img[alt='Mermaid diagram'],
+.markdown img[alt='PlantUML diagram'] {
+  display: block;
+  margin-inline: auto;
+  max-width: 100%;
+  background: #ffffff; /* paper */
+  padding: 20px;
+  border: 1px solid rgba(45, 49, 66, 0.12); /* rule */
+  border-radius: 8px;
+}
+/* On the dark page a 12%-ink hairline disappears; swap it for an edge that
+   separates the paper from the page instead. */
 [data-theme='dark'] .markdown img[alt='Mermaid diagram'],
 [data-theme='dark'] .markdown img[alt='PlantUML diagram'] {
-  background: #ffffff;
-  border-radius: 8px;
-  padding: 12px;
+  border-color: rgba(0, 0, 0, 0.4);
 }
 
 

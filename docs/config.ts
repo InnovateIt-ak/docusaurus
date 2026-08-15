@@ -35,7 +35,7 @@ export const NAV_BAR={
         },
         {to: '/likec4', label: 'Architecture', position: 'left'},
         {
-            href: 'https://github.eeas.europa.eu',
+            href: 'https://github.com/InnovateIt-ak/docusaurus',
             label: 'GitHub',
             position: 'right',
         }
