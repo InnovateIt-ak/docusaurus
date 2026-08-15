@@ -42,15 +42,17 @@
    and therefore also holds for the PDF.
 
    What CSS *can* do is the frame around the image, and that is this rule: it
-   lays down the diagram system's `paper` — white-smoke #f5f5f5, deliberately not
-   pure white, so the white-filled nodes read as raised against it. The paper is
-   also what makes dark mode work at all: the SVGs have a transparent background
-   (so WeasyPrint embeds them cleanly), so without it the diagram's dark text and
-   edges would sit on the dark page.
+   lays down the diagram's paper. The paper is white — the same ground the PDF
+   page has, so a diagram looks identical in both — and it is what makes dark
+   mode work at all: the SVGs have a transparent background (so WeasyPrint
+   embeds them cleanly), so without it the diagram's dark text and edges would
+   sit on the dark page. On white paper the nodes, white too, read by their ink
+   hairline rather than by their fill; the theme drops its background fills to
+   match (src/remark/mermaid-theme.mjs).
 
    Hairline border and 8px radius, no shadow — the diagram system builds depth
    from rules, never from shadows, and the PDF (WeasyPrint) could not render a
-   shadow anyway. Paper stays light in both themes because the SVG inside is
+   shadow anyway. Paper stays white in both themes because the SVG inside is
    baked light-only. Web-only: the PDF is produced from
    docker/weasyprint/report.css and never reads this file. */
 .markdown img[alt='Mermaid diagram'],
@@ -58,7 +60,7 @@
   display: block;
   margin-inline: auto;
   max-width: 100%;
-  background: #f5f5f5; /* paper — white-smoke */
+  background: #ffffff; /* paper */
   padding: 20px;
   border: 1px solid rgba(45, 49, 66, 0.12); /* rule */
   border-radius: 8px;

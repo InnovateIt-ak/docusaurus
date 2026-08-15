@@ -17,9 +17,9 @@
 // D'OÙ VIENT CETTE PALETTE
 // ------------------------
 // Du système « Diagram Design » (github.com/cathrynlavery/diagram-design), dont
-// style-guide.md donne les rôles sémantiques repris tels quels ci-dessous :
-// papier blanc-fumée, encre ardoise, gris-bleu pour le secondaire, et UN accent
-// tangerine. Trois règles y sont structurantes, et sont respectées ici :
+// style-guide.md donne les rôles sémantiques repris ci-dessous : encre ardoise,
+// gris-bleu pour le secondaire, et UN accent tangerine. Trois règles y sont
+// structurantes, et sont respectées ici :
 //
 //   * Un seul accent. Deux accents effacent le signal « voici l'important ».
 //     L'accent n'est donc dépensé que là où le sens est focal par construction :
@@ -52,16 +52,20 @@
 //   des <text> SVG. C'est aussi pourquoi le CSS ci-dessous cible `text` /
 //   `tspan` en plus des classes Mermaid.
 // * Fond transparent — le PDF est clair, et le site pose lui-même le papier
-//   derrière l'image (custom.css). Le papier n'est donc pas dans le SVG : les
-//   nœuds sont blancs et cernés d'un filet encre, ce qui les fait lire aussi
-//   bien sur le papier du site que sur la page blanche du PDF.
+//   blanc derrière l'image (custom.css). Le papier n'est donc pas dans le SVG :
+//   les nœuds sont blancs et cernés d'un filet encre, ce qui les fait lire
+//   identiquement sur le site et sur la page blanche du PDF.
 // * Palette claire — le même SVG sert les deux thèmes du site et le PDF ; un
 //   thème sombre ici rendrait le PDF illisible.
 
 // --- Tokens ------------------------------------------------------------------
 // Nommés par rôle sémantique, comme dans le style-guide d'origine.
-const PAPER = '#f5f5f5'; // blanc-fumée : le papier (posé par custom.css)
-const PAPER_2 = '#ececec'; // second fond : boîtes d'étiquette, bandeaux
+// Écart assumé au guide d'origine, qui demande un papier chaud plutôt qu'un
+// blanc pur : le papier est ici blanc. Conséquence, les nœuds — blancs eux
+// aussi, rôle « backend » — ne se détachent plus par leur remplissage mais par
+// leur filet encre. Tous les aplats de fond du thème disparaissent donc au
+// profit de contours : c'est la raison des `transparent` plus bas.
+const PAPER = '#ffffff'; // le papier (posé par custom.css)
 const WHITE = '#ffffff'; // remplissage des nœuds principaux (rôle « backend »)
 const INK = '#2d3142'; // encre : texte et filets principaux
 const MUTED = '#4f5d75'; // gris-bleu : texte secondaire, arêtes
@@ -70,6 +74,7 @@ const RULE = 'rgba(45, 49, 66, 0.12)'; // filet discret
 const RULE_SOLID = '#bfc0c0'; // filet appuyé, lignes de base
 const INK_05 = 'rgba(45, 49, 66, 0.05)'; // rôle « store » : réservoirs, activations
 const INK_03 = 'rgba(45, 49, 66, 0.03)'; // rôle « external » : hors périmètre
+const GRID = '#e2e5ea'; // quadrillage des axes (Gantt, graphique XY)
 const ACCENT = '#eb6c36'; // tangerine : le seul accent
 const ACCENT_TINT = 'rgba(235, 108, 54, 0.08)'; // fond des éléments accentués
 
@@ -177,6 +182,17 @@ const themeCSS = `
     fill: ${INK};
   }
 
+  /* Graduations d'axe (Gantt, graphique XY). Mermaid pose stroke="currentColor"
+     en attribut de présentation sur le trait, et la règle qu'il génère vise le
+     groupe parent : l'attribut l'emporte sur la valeur héritée, et le trait sort
+     noir. Une règle CSS visant le trait lui-même, elle, gagne. */
+  .grid .tick line,
+  .axis line,
+  .axis path {
+    stroke: ${GRID};
+    stroke-width: 1px;
+  }
+
   /* Séquence : acteurs cernés d'encre, lignes de vie et cadres en filet. */
   .actor {
     stroke-width: 1px;
@@ -255,7 +271,9 @@ const themeVariables = {
     edgeLabelBackground: PAPER,
 
     // Sous-graphes : une frontière quasi transparente, pas un bloc coloré.
-    clusterBkg: INK_03,
+    // Le sous-graphe est une frontière, pas un bloc : aucun aplat, seul le
+    // filet pointillé le délimite.
+    clusterBkg: 'transparent',
     clusterBorder: RULE_SOLID,
 
     // Notes : l'auteur écrit une note pour attirer l'œil — c'est là qu'on
@@ -271,7 +289,7 @@ const themeVariables = {
     actorLineColor: RULE_SOLID,
     signalColor: MUTED,
     signalTextColor: MUTED,
-    labelBoxBkgColor: PAPER_2,
+    labelBoxBkgColor: WHITE,
     labelBoxBorderColor: RULE_SOLID,
     labelTextColor: INK,
     loopTextColor: MUTED,
@@ -296,9 +314,10 @@ const themeVariables = {
     doneTaskBorderColor: RULE_SOLID,
     critBkgColor: ACCENT_TINT,
     critBorderColor: ACCENT,
-    gridColor: RULE,
-    sectionBkgColor: INK_03,
-    sectionBkgColor2: PAPER_2,
+    gridColor: GRID,
+    // Bandeaux de section alternés : un rang nu, l'autre à peine teinté.
+    sectionBkgColor: 'transparent',
+    sectionBkgColor2: INK_03,
     altSectionBkgColor: 'transparent',
     todayLineColor: ACCENT,
 
@@ -319,6 +338,24 @@ const themeVariables = {
     archEdgeWidth: '1',
     archGroupBorderColor: RULE_SOLID,
     archGroupBorderWidth: '1',
+
+    // Graphique XY : Mermaid lui donne sa propre palette (un jaune très pâle
+    // par défaut, illisible sur papier blanc). On la remplace par la série
+    // catégorielle, l'accent ouvrant sur la première courbe.
+    xyChart: {
+        backgroundColor: 'transparent',
+        titleColor: INK,
+        dataLabelColor: INK,
+        xAxisTitleColor: INK,
+        xAxisLabelColor: INK,
+        xAxisTickColor: GRID,
+        xAxisLineColor: RULE_SOLID,
+        yAxisTitleColor: INK,
+        yAxisLabelColor: INK,
+        yAxisTickColor: GRID,
+        yAxisLineColor: RULE_SOLID,
+        plotColorPalette: SERIES.join(','),
+    },
 
     // Séries catégorielles : l'accent ouvre, les tons éditoriaux suivent. Le
     // libellé de part reste en encre, et les parts sont séparées par du papier.
