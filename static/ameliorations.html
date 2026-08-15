@@ -1,0 +1,1042 @@
+<title>Chantiers Docusaurus EEAS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<style>
+  :root {
+    --paper:      #f4f6f8;
+    --surface:    #ffffff;
+    --surface-2:  #eef1f6;
+    --ink:        #0f1826;
+    --ink-soft:   #38465c;
+    --muted:      #5c6779;
+    --line:       #d8dfe8;
+    --line-soft:  #e7ecf2;
+    --accent:     #004494;
+    --accent-ink: #ffffff;
+    --accent-wash:#e3ebf6;
+    --sev-bug:    #a3232b;
+    --sev-bug-bg: #f7e6e7;
+    --sev-warn:   #8a5a00;
+    --sev-warn-bg:#f8eedb;
+    --sev-gain:   #14624a;
+    --sev-gain-bg:#dff0e8;
+
+    --sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:      #0c1119;
+      --surface:    #141c27;
+      --surface-2:  #1b2533;
+      --ink:        #e7edf5;
+      --ink-soft:   #c3cedd;
+      --muted:      #8d9bae;
+      --line:       #2a3646;
+      --line-soft:  #202b39;
+      --accent:     #5c9fe0;
+      --accent-ink: #0b1220;
+      --accent-wash:#17273a;
+      --sev-bug:    #f08a90;
+      --sev-bug-bg: #3a1d20;
+      --sev-warn:   #e3b25c;
+      --sev-warn-bg:#372a15;
+      --sev-gain:   #6fc9a4;
+      --sev-gain-bg:#12302a;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper:      #0c1119;
+    --surface:    #141c27;
+    --surface-2:  #1b2533;
+    --ink:        #e7edf5;
+    --ink-soft:   #c3cedd;
+    --muted:      #8d9bae;
+    --line:       #2a3646;
+    --line-soft:  #202b39;
+    --accent:     #5c9fe0;
+    --accent-ink: #0b1220;
+    --accent-wash:#17273a;
+    --sev-bug:    #f08a90;
+    --sev-bug-bg: #3a1d20;
+    --sev-warn:   #e3b25c;
+    --sev-warn-bg:#372a15;
+    --sev-gain:   #6fc9a4;
+    --sev-gain-bg:#12302a;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible, .idx a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 clamp(1.1rem, 4vw, 3rem) 5rem;
+  }
+
+  /* ---------- masthead ---------- */
+
+  .masthead {
+    border-bottom: 3px solid var(--ink);
+    padding: clamp(2.5rem, 6vw, 4.5rem) 0 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+  }
+  .kicker {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.1rem;
+  }
+  .kicker b { color: var(--accent); font-weight: 600; }
+  h1 {
+    font-family: var(--sans);
+    font-weight: 800;
+    letter-spacing: -0.032em;
+    text-wrap: balance;
+    font-size: clamp(2.1rem, 5.6vw, 3.4rem);
+    line-height: 1.04;
+    margin: 0;
+  }
+  .standfirst {
+    max-width: 62ch;
+    color: var(--ink-soft);
+    font-size: 1.06rem;
+    margin: 0;
+  }
+
+  /* ---------- triage band ---------- */
+
+  .band {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    border-bottom: 1px solid var(--line);
+  }
+  .stat {
+    padding: 1.3rem 1.4rem 1.5rem 0;
+    border-right: 1px solid var(--line-soft);
+  }
+  .stat:last-child { border-right: 0; }
+  .stat .n {
+    font-family: var(--sans);
+    font-weight: 800;
+    font-size: 2.2rem;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+    display: block;
+  }
+  .stat .l {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: block;
+    margin-top: 0.5rem;
+  }
+  .stat.hot .n { color: var(--accent); }
+
+  /* ---------- matrix ---------- */
+
+  .matrix-block {
+    padding: 2.6rem 0 2.2rem;
+    border-bottom: 1px solid var(--line);
+    display: grid;
+    gap: 1.6rem 3rem;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+  @media (min-width: 860px) {
+    .matrix-block { grid-template-columns: minmax(0, 1fr) 27ch; }
+  }
+  h2.rubric {
+    font-family: var(--sans);
+    font-weight: 750;
+    font-size: 0.82rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 1.1rem;
+  }
+  .plot {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    min-height: 260px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+  .quad-hot {
+    position: absolute;
+    inset: 0 66.6% 33.3% 0;
+    background: var(--accent-wash);
+  }
+  .grid-v, .grid-h {
+    position: absolute;
+    background: var(--line-soft);
+  }
+  .grid-v { top: 0; bottom: 0; width: 1px; }
+  .grid-h { left: 0; right: 0; height: 1px; }
+  .quad-label {
+    position: absolute;
+    top: 0.6rem;
+    left: 0.75rem;
+    font-family: var(--mono);
+    font-size: 0.63rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .dot {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 0.2rem 0.38rem;
+    border-radius: 2px;
+    background: var(--surface-2);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .dot:hover, .dot:focus-visible {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+  }
+  .dot.is-bug { border-color: var(--sev-bug); color: var(--sev-bug); background: var(--sev-bug-bg); }
+  .dot.is-bug:hover, .dot.is-bug:focus-visible { background: var(--sev-bug); color: var(--surface); }
+  .axis {
+    font-family: var(--mono);
+    font-size: 0.63rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.55rem;
+  }
+  .axis-y {
+    position: absolute;
+    left: -0.4rem;
+    top: 50%;
+    transform: translate(-100%, -50%) rotate(180deg);
+    writing-mode: vertical-rl;
+    font-family: var(--mono);
+    font-size: 0.63rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  @media (max-width: 640px) { .axis-y { display: none; } }
+  .aside-note {
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+    margin: 0 0 1rem;
+  }
+  .aside-note:last-child { margin-bottom: 0; }
+  .aside-note strong { color: var(--ink); }
+
+  /* ---------- shell + index ---------- */
+
+  .shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3rem;
+    padding-top: 2.8rem;
+  }
+  @media (min-width: 1080px) {
+    .shell { grid-template-columns: 15rem minmax(0, 1fr); gap: 4rem; }
+    .idx { position: sticky; top: 2rem; align-self: start; }
+  }
+  .idx ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.55rem; }
+  .idx a {
+    font-family: var(--sans);
+    font-size: 0.86rem;
+    line-height: 1.35;
+    color: var(--ink-soft);
+    text-decoration: none;
+    display: flex;
+    gap: 0.6rem;
+    padding-bottom: 0.55rem;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .idx a:hover { color: var(--accent); }
+  .idx .c {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- sections + cards ---------- */
+
+  section { margin-bottom: 3.4rem; scroll-margin-top: 1.5rem; }
+  section > h2 {
+    font-family: var(--sans);
+    font-weight: 780;
+    letter-spacing: -0.02em;
+    font-size: clamp(1.35rem, 3vw, 1.75rem);
+    margin: 0 0 0.35rem;
+    text-wrap: balance;
+  }
+  section > .lede {
+    margin: 0 0 1.6rem;
+    color: var(--muted);
+    max-width: 64ch;
+    font-size: 0.99rem;
+  }
+
+  .cards { display: grid; gap: 1.1rem; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1.35rem 1.45rem 1.5rem;
+    scroll-margin-top: 1.5rem;
+  }
+  .card:target { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-wash); }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 0.7rem;
+  }
+  .ref {
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 0.74rem;
+    letter-spacing: 0.04em;
+    color: var(--accent-ink);
+    background: var(--accent);
+    padding: 0.16rem 0.42rem;
+    border-radius: 2px;
+  }
+  .chip {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.45rem;
+    border-radius: 2px;
+    border: 1px solid var(--line);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .chip.bug  { color: var(--sev-bug);  background: var(--sev-bug-bg);  border-color: transparent; }
+  .chip.warn { color: var(--sev-warn); background: var(--sev-warn-bg); border-color: transparent; }
+  .chip.gain { color: var(--sev-gain); background: var(--sev-gain-bg); border-color: transparent; }
+  .chip.spacer { margin-left: auto; border: 0; padding-left: 0; padding-right: 0; }
+
+  .card h3 {
+    font-family: var(--sans);
+    font-weight: 720;
+    letter-spacing: -0.015em;
+    font-size: 1.1rem;
+    line-height: 1.3;
+    margin: 0 0 0.6rem;
+    text-wrap: balance;
+  }
+  .card p { margin: 0 0 0.75rem; max-width: 70ch; color: var(--ink-soft); font-size: 0.99rem; }
+  .card p:last-child { margin-bottom: 0; }
+  .card .fix {
+    color: var(--ink);
+  }
+  .card .fix::before {
+    content: "Proposition — ";
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  code, .loc {
+    font-family: var(--mono);
+    font-size: 0.86em;
+    background: var(--surface-2);
+    padding: 0.08em 0.32em;
+    border-radius: 2px;
+    color: var(--ink);
+    word-break: break-word;
+  }
+  .locs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.95rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--line-soft);
+  }
+  .locs .loc { font-size: 0.74rem; letter-spacing: 0.01em; color: var(--muted); background: transparent; padding: 0; }
+  .locs .loc + .loc::before { content: "·"; margin-right: 0.4rem; color: var(--line); }
+
+  /* ---------- closing ---------- */
+
+  .closing {
+    border-top: 3px solid var(--ink);
+    padding-top: 1.6rem;
+    margin-top: 1rem;
+  }
+  .steps {
+    counter-reset: step;
+    list-style: none;
+    margin: 1.2rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 0.9rem;
+    max-width: 68ch;
+  }
+  .steps li {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: 2.4rem minmax(0, 1fr);
+    gap: 0.6rem;
+    align-items: baseline;
+    color: var(--ink-soft);
+    font-size: 0.99rem;
+  }
+  .steps li::before {
+    content: "Ét. " counter(step);
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .colophon {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-top: 2.6rem;
+    line-height: 1.9;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="kicker">
+      <span>Revue technique</span>
+      <span>Dépôt <b>docusaurus</b> · branche master</span>
+      <span>15 août 2026</span>
+    </div>
+    <h1>Chantiers Docusaurus EEAS</h1>
+    <p class="standfirst">
+      Quinze propositions issues d'une lecture de la configuration, des plugins maison,
+      de la chaîne CI et du contenu. Chacune indique ce qui est constaté aujourd'hui,
+      ce qu'elle change, et à quel endroit du dépôt elle atterrit. Rien n'a été modifié :
+      cette page est une base de discussion, à découper en tickets.
+    </p>
+  </header>
+
+  <div class="band">
+    <div class="stat hot">
+      <span class="n">4</span>
+      <span class="l">gains immédiats</span>
+    </div>
+    <div class="stat">
+      <span class="n">3</span>
+      <span class="l">config inopérante</span>
+    </div>
+    <div class="stat">
+      <span class="n">0</span>
+      <span class="l">test automatisé</span>
+    </div>
+    <div class="stat">
+      <span class="n">~1300</span>
+      <span class="l">lignes maison non lintées</span>
+    </div>
+  </div>
+
+  <div class="matrix-block">
+    <div>
+      <h2 class="rubric">Effort contre impact</h2>
+      <div class="plot">
+        <div class="quad-hot"></div>
+        <div class="grid-v" style="left: 33.3%"></div>
+        <div class="grid-v" style="left: 66.6%"></div>
+        <div class="grid-h" style="top: 33.3%"></div>
+        <div class="grid-h" style="top: 66.6%"></div>
+        <span class="quad-label">Gains immédiats</span>
+
+        <a class="dot is-bug" href="#p01" style="left: 12%; top: 13%">P-01</a>
+        <a class="dot is-bug" href="#p02" style="left: 26%; top: 13%">P-02</a>
+        <a class="dot" href="#p06" style="left: 12%; top: 27%">P-06</a>
+        <a class="dot" href="#p08" style="left: 26%; top: 27%">P-08</a>
+
+        <a class="dot" href="#p03" style="left: 12%; top: 45%">P-03</a>
+        <a class="dot" href="#p07" style="left: 26%; top: 45%">P-07</a>
+        <a class="dot" href="#p14" style="left: 19%; top: 58%">P-14</a>
+
+        <a class="dot" href="#p13" style="left: 13%; top: 83%">P-13</a>
+        <a class="dot" href="#p15" style="left: 27%; top: 83%">P-15</a>
+
+        <a class="dot" href="#p04" style="left: 44%; top: 15%">P-04</a>
+        <a class="dot" href="#p05" style="left: 58%; top: 15%">P-05</a>
+
+        <a class="dot" href="#p09" style="left: 44%; top: 48%">P-09</a>
+        <a class="dot" href="#p11" style="left: 58%; top: 48%">P-11</a>
+
+        <a class="dot" href="#p10" style="left: 84%; top: 20%">P-10</a>
+        <a class="dot" href="#p12" style="left: 84%; top: 50%">P-12</a>
+
+        <span class="axis-y">Impact — faible ▸ fort</span>
+      </div>
+      <div class="axis">
+        <span>Effort · petit</span>
+        <span>moyen</span>
+        <span>large</span>
+      </div>
+    </div>
+
+    <div>
+      <h2 class="rubric">Lecture</h2>
+      <p class="aside-note">
+        Le quadrant clair réunit les quatre propositions à faire en premier :
+        <strong>P-01</strong>, <strong>P-02</strong>, <strong>P-06</strong> et
+        <strong>P-08</strong>. Trois sont des corrections d'une poignée de lignes,
+        la quatrième est un drapeau à basculer.
+      </p>
+      <p class="aside-note">
+        Les points en rouge sont des défauts constatés — de la configuration écrite
+        qui n'est jamais lue par Docusaurus. Le reste est du renforcement.
+      </p>
+    </div>
+  </div>
+
+  <div class="shell">
+
+    <nav class="idx" aria-label="Sommaire">
+      <h2 class="rubric">Sommaire</h2>
+      <ol>
+        <li><a href="#config"><span class="c">3</span><span>Configuration qui ne s'applique pas</span></a></li>
+        <li><a href="#filet"><span class="c">4</span><span>Filet de sécurité : lint, tests, CI</span></a></li>
+        <li><a href="#perf"><span class="c">2</span><span>Temps de build</span></a></li>
+        <li><a href="#deploy"><span class="c">1</span><span>Déploiement</span></a></li>
+        <li><a href="#contenu"><span class="c">3</span><span>Contenu et langues</span></a></li>
+        <li><a href="#detail"><span class="c">2</span><span>Accessibilité et dépendances</span></a></li>
+      </ol>
+    </nav>
+
+    <main>
+
+      <!-- ============ 1 ============ -->
+      <section id="config">
+        <h2>Configuration qui ne s'applique pas</h2>
+        <p class="lede">
+          Trois réglages sont écrits dans le dépôt mais n'ont aucun effet sur le site
+          construit. Ce sont les corrections les moins chères de la liste.
+        </p>
+
+        <div class="cards">
+
+          <article class="card" id="p01">
+            <div class="meta">
+              <span class="ref">P-01</span>
+              <span class="chip bug">Défaut</span>
+              <span class="chip">Effort · S</span>
+              <span class="chip">Impact · fort</span>
+            </div>
+            <h3>Le bloc <code>colorMode</code> est niché sous une clé que Docusaurus ne lit pas</h3>
+            <p>
+              Dans <code>themeConfig</code>, <code>colorMode</code> est placé à l'intérieur d'une
+              clé <code>['@docusaurus/theme-classic']</code>. Docusaurus attend
+              <code>themeConfig.colorMode</code>, à la racine. Conséquence :
+              <code>defaultMode: 'dark'</code>, <code>disableSwitch: true</code> et
+              <code>respectPrefersColorScheme: true</code> sont ignorés en silence — le site
+              tourne aujourd'hui sur les valeurs par défaut du thème.
+            </p>
+            <p class="fix">
+              remonter le bloc d'un niveau. Au passage, trancher la contradiction qu'il contient :
+              <code>disableSwitch: true</code> masquerait le sélecteur clair/sombre, alors que
+              <code>src/theme/ColorModeToggle</code> a justement été swizzlé pour le personnaliser.
+              L'un des deux doit sauter.
+            </p>
+            <div class="locs">
+              <span class="loc">docusaurus.config.ts:223-229</span>
+              <span class="loc">src/theme/ColorModeToggle/index.tsx</span>
+            </div>
+          </article>
+
+          <article class="card" id="p02">
+            <div class="meta">
+              <span class="ref">P-02</span>
+              <span class="chip bug">Défaut</span>
+              <span class="chip">Effort · S</span>
+              <span class="chip">Impact · fort</span>
+            </div>
+            <h3>Les liens et images cassés passent sans un mot</h3>
+            <p>
+              <code>onBrokenLinks: 'ignore'</code> et
+              <code>markdown.hooks.onBrokenMarkdownImages: 'ignore'</code> désactivent le seul
+              contrôle d'intégrité que Docusaurus offre gratuitement. Sur une documentation qui
+              utilise massivement <code>#include</code> et des chemins relatifs, un fichier
+              renommé produit un lien mort publié sans alerte.
+            </p>
+            <p class="fix">
+              passer à <code>'warn'</code> en local et <code>'throw'</code> quand
+              <code>process.env.CI</code> est présent. Prévoir une première passe de nettoyage :
+              l'option a probablement été mise à <code>ignore</code> parce que le build échouait.
+            </p>
+            <div class="locs">
+              <span class="loc">docusaurus.config.ts:48-49</span>
+              <span class="loc">docusaurus.config.ts:237-241</span>
+            </div>
+          </article>
+
+          <article class="card" id="p03">
+            <div class="meta">
+              <span class="ref">P-03</span>
+              <span class="chip">Réglage</span>
+              <span class="chip">Effort · S</span>
+              <span class="chip">Impact · moyen</span>
+            </div>
+            <h3>La recherche locale tourne sur ses valeurs par défaut</h3>
+            <p>
+              <code>@easyops-cn/docusaurus-search-local</code> n'est configuré qu'avec
+              <code>hashed: true</code>. Le plugin indexe donc un blog qui n'existe pas
+              (<code>blog: false</code> dans le preset), ne surligne pas le terme cherché sur la
+              page d'arrivée, et n'a pas de limite de résultats adaptée.
+            </p>
+            <p class="fix">
+              ajouter <code>indexBlog: false</code>,
+              <code>highlightSearchTermsOnTargetPage: true</code>,
+              <code>searchResultLimits</code>, et <code>language</code> le jour où le français
+              arrive (voir P-12) — sans quoi l'index découpera mal les mots accentués.
+            </p>
+            <div class="locs"><span class="loc">docusaurus.config.ts:242-250</span></div>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- ============ 2 ============ -->
+      <section id="filet">
+        <h2>Filet de sécurité : lint, tests, CI</h2>
+        <p class="lede">
+          C'est le manque le plus structurant. Le dépôt contient environ 1 300 lignes de code
+          maison — sept plugins remark, trois plugins Docusaurus, cinq composants, cinq
+          surcharges de thème — et rien ne les vérifie avant publication.
+        </p>
+
+        <div class="cards">
+
+          <article class="card" id="p04">
+            <div class="meta">
+              <span class="ref">P-04</span>
+              <span class="chip warn">Manque</span>
+              <span class="chip">Effort · M</span>
+              <span class="chip">Impact · fort</span>
+            </div>
+            <h3>Ni ESLint, ni Prettier, ni EditorConfig</h3>
+            <p>
+              Aucun outil ne normalise le code. Le style est actuellement homogène parce que
+              peu de personnes y touchent ; cela ne tiendra pas. Un linter attrape aussi des
+              classes d'erreurs propres à ce projet : imports serveur dans un composant client,
+              <code>useEffect</code> sans dépendances, promesses non attendues dans un plugin.
+            </p>
+            <p class="fix">
+              ESLint en <em>flat config</em> avec <code>@typescript-eslint</code> et
+              <code>eslint-plugin-react-hooks</code>, Prettier pour le formatage,
+              un script <code>npm run lint</code>, et le tout branché sur le job de validation
+              du P-06.
+            </p>
+            <div class="locs">
+              <span class="loc">package.json · scripts</span>
+              <span class="loc">src/**</span>
+              <span class="loc">plugins/**</span>
+            </div>
+          </article>
+
+          <article class="card" id="p05">
+            <div class="meta">
+              <span class="ref">P-05</span>
+              <span class="chip warn">Manque</span>
+              <span class="chip">Effort · M</span>
+              <span class="chip">Impact · fort</span>
+            </div>
+            <h3>Les plugins remark sont la partie la plus fragile, et la plus testable</h3>
+            <p>
+              <code>src/remark/</code> contient sept transformations d'arbre syntaxique :
+              inclusion de fichiers, rendu PlantUML et Mermaid au build, auto-liaison des
+              références ServiceNow. Ce sont des fonctions pures — markdown en entrée, markdown
+              en sortie — donc le cas idéal pour des tests. Aujourd'hui une régression se
+              manifeste soit par un build cassé, soit, plus insidieusement, par une page
+              silencieusement fausse.
+            </p>
+            <p class="fix">
+              Vitest et une poignée de fixtures. En priorité :
+              <code>include.mjs</code> (chemin hors du dépôt, inclusion circulaire, fichier
+              absent), <code>servicenow-autolink.mjs</code> (ne pas réécrire à l'intérieur d'un
+              bloc de code ou d'une URL existante), et le comportement des deux plugins de
+              diagrammes quand le serveur PlantUML ne répond pas.
+            </p>
+            <div class="locs">
+              <span class="loc">src/remark/include.mjs</span>
+              <span class="loc">src/remark/servicenow-autolink.mjs</span>
+              <span class="loc">src/remark/plantuml-inline.mjs</span>
+              <span class="loc">src/remark/mermaid-inline.mjs</span>
+            </div>
+          </article>
+
+          <article class="card" id="p06">
+            <div class="meta">
+              <span class="ref">P-06</span>
+              <span class="chip warn">Manque</span>
+              <span class="chip">Effort · S</span>
+              <span class="chip">Impact · fort</span>
+            </div>
+            <h3>Rien ne valide une PR avant qu'elle ne parte en ligne</h3>
+            <p>
+              Le seul workflow applicatif, <code>deploy.yml</code>, construit et publie dans le
+              même job. Il n'existe pas de <code>pull_request</code> déclencheur : le typecheck
+              (<code>npm run typecheck</code>, déjà présent dans <code>package.json</code>)
+              n'est jamais exécuté ailleurs que sur un poste de développement.
+            </p>
+            <p class="fix">
+              extraire un job <code>validate</code> — <code>typecheck</code>, <code>lint</code>,
+              <code>test</code>, <code>build</code> — déclenché sur <code>pull_request</code>
+              et posé en <code>needs:</code> du job de déploiement. Le build est de toute façon
+              déjà fait ; il s'agit surtout de le sortir du chemin de publication.
+            </p>
+            <div class="locs"><span class="loc">.github/workflows/deploy.yml</span></div>
+          </article>
+
+          <article class="card" id="p07">
+            <div class="meta">
+              <span class="ref">P-07</span>
+              <span class="chip">Cohérence</span>
+              <span class="chip">Effort · S</span>
+              <span class="chip">Impact · moyen</span>
+            </div>
+            <h3>Trois versions de Node coexistent dans le dépôt</h3>
+            <p>
+              <code>package.json</code> déclare <code>engines.node: ">=18.0"</code>,
+              <code>docker/Dockerfile</code> part de <code>node:26</code>, et la CI utilise ce
+              que le runner fournit par défaut. Docusaurus 3.10 exige Node 20 ou plus : la
+              borne annoncée est fausse, et un contributeur qui la respecte se heurtera à une
+              erreur d'installation.
+            </p>
+            <p class="fix">
+              un <code>.nvmrc</code> qui fait autorité, <code>engines</code> aligné dessus, et
+              <code>actions/setup-node</code> avec <code>node-version-file: .nvmrc</code> pour
+              que la CI, Docker et le poste local ne puissent plus diverger.
+            </p>
+            <div class="locs">
+              <span class="loc">package.json:79-81</span>
+              <span class="loc">docker/Dockerfile:3</span>
+              <span class="loc">.github/workflows/deploy.yml</span>
+            </div>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- ============ 3 ============ -->
+      <section id="perf">
+        <h2>Temps de build</h2>
+        <p class="lede">
+          Chaque publication reconstruit tout, y compris les diagrammes rendus au build.
+          Deux leviers, dont un déjà installé mais éteint.
+        </p>
+
+        <div class="cards">
+
+          <article class="card" id="p08">
+            <div class="meta">
+              <span class="ref">P-08</span>
+              <span class="chip gain">Gain</span>
+              <span class="chip">Effort · S</span>
+              <span class="chip">Impact · fort</span>
+            </div>
+            <h3><code>future.faster</code> est à <code>false</code> alors que le paquet est installé</h3>
+            <p>
+              <code>@docusaurus/faster</code> figure dans les <code>devDependencies</code>,
+              donc quelqu'un a préparé la bascule — mais <code>future.faster</code> vaut
+              <code>false</code>. Le site se construit encore sur Webpack et Babel au lieu de
+              Rspack, SWC et Lightning CSS. On paie l'installation du paquet sans en tirer le
+              bénéfice.
+            </p>
+            <p class="fix">
+              une PR dédiée qui bascule le drapeau et compare les durées de build avant/après,
+              avec retour arrière immédiat si un plugin de la chaîne (panzoom, redocusaurus,
+              recherche locale) ne suit pas. C'est le meilleur rapport effort/gain de la liste.
+            </p>
+            <div class="locs"><span class="loc">docusaurus.config.ts:38-41</span><span class="loc">package.json · devDependencies</span></div>
+          </article>
+
+          <article class="card" id="p09">
+            <div class="meta">
+              <span class="ref">P-09</span>
+              <span class="chip gain">Gain</span>
+              <span class="chip">Effort · M</span>
+              <span class="chip">Impact · moyen</span>
+            </div>
+            <h3>Aucun cache entre deux exécutions de la CI</h3>
+            <p>
+              Le workflow réinstalle les dépendances et relance un serveur PlantUML en service
+              à chaque push, puis re-rend l'intégralité des diagrammes — même quand aucune
+              source de diagramme n'a bougé. Sur une documentation d'architecture, c'est la
+              part la plus lourde du build.
+            </p>
+            <p class="fix">
+              <code>actions/cache</code> sur <code>~/.npm</code> (clé :
+              <code>package-lock.json</code>) et sur les SVG produits (clé : empreinte des
+              sources <code>.puml</code> / des blocs Mermaid). Le rendu ne repart alors que
+              pour les diagrammes réellement modifiés.
+            </p>
+            <div class="locs"><span class="loc">.github/workflows/deploy.yml</span><span class="loc">src/remark/mermaid-renderer.mjs</span></div>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- ============ 4 ============ -->
+      <section id="deploy">
+        <h2>Déploiement</h2>
+        <p class="lede">
+          Le choix actuel est documenté et assumé dans le workflow. Il mérite quand même
+          d'être reposé, parce que son effet de bord est invisible depuis le site.
+        </p>
+
+        <div class="cards">
+
+          <article class="card" id="p10">
+            <div class="meta">
+              <span class="ref">P-10</span>
+              <span class="chip warn">Risque</span>
+              <span class="chip">Effort · L</span>
+              <span class="chip">Impact · fort</span>
+            </div>
+            <h3>N'importe quelle branche poussée remplace le site publié</h3>
+            <p>
+              Le workflow se déclenche sur <code>branches: ['**']</code> et publie vers l'unique
+              site GitHub Pages, avec <code>cancel-in-progress: false</code>. C'est volontaire —
+              le commentaire en tête du fichier l'explique : prévisualiser une PR sur le vrai
+              site sans fusionner. L'effet de bord est qu'entre deux pushes, l'adresse publique
+              sert le contenu d'une branche de travail, sans que rien ne l'indique au lecteur.
+            </p>
+            <p class="fix">
+              deux sorties possibles. Soit réserver la racine à <code>master</code> et publier
+              les branches sous <code>/preview/&lt;branche&gt;</code>. Soit garder le
+              comportement, mais afficher un bandeau « aperçu de la branche X — ce n'est pas la
+              version publiée » quand <code>GITHUB_REF_NAME</code> n'est pas la branche par
+              défaut. La seconde option coûte quelques lignes et lève l'ambiguïté.
+            </p>
+            <div class="locs"><span class="loc">.github/workflows/deploy.yml:12-24</span><span class="loc">src/theme/Root.tsx</span></div>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- ============ 5 ============ -->
+      <section id="contenu">
+        <h2>Contenu et langues</h2>
+        <p class="lede">
+          Le socle technique est en avance sur le contenu : le squelette de démonstration est
+          encore en place, et l'internationalisation est préparée sans être activée.
+        </p>
+
+        <div class="cards">
+
+          <article class="card" id="p11">
+            <div class="meta">
+              <span class="ref">P-11</span>
+              <span class="chip">Contenu</span>
+              <span class="chip">Effort · M</span>
+              <span class="chip">Impact · moyen</span>
+            </div>
+            <h3>Le contenu de démonstration Docusaurus est toujours indexé</h3>
+            <p>
+              <code>docs/</code> compte seize fichiers, dont <code>tutorial-basics/</code>,
+              <code>tutorial-extras/</code>, <code>test.md</code> et
+              <code>test-mermaid/</code>. Ces pages remontent dans la recherche et dans les
+              cartes de la page d'accueil, et le PDF doit les retirer à la main via
+              <code>--excludePaths="/docs/test,/docs/test-mermaid"</code> — une liste qu'il
+              faudra maintenir à chaque ajout.
+            </p>
+            <p class="fix">
+              supprimer les tutoriels de démonstration, et déplacer les pages de test dans un
+              dossier écarté par l'option <code>exclude</code> du plugin docs. L'exclusion
+              manuelle côté PDF disparaît alors d'elle-même.
+            </p>
+            <div class="locs">
+              <span class="loc">docs/tutorial-basics/</span>
+              <span class="loc">docs/tutorial-extras/</span>
+              <span class="loc">docs/test-mermaid/</span>
+              <span class="loc">README.md · commande PDF</span>
+            </div>
+          </article>
+
+          <article class="card" id="p12">
+            <div class="meta">
+              <span class="ref">P-12</span>
+              <span class="chip">Contenu</span>
+              <span class="chip">Effort · L</span>
+              <span class="chip">Impact · moyen</span>
+            </div>
+            <h3>Tout est prêt pour le français, sauf la locale</h3>
+            <p>
+              Les composants maison passent déjà par <code>&lt;Translate&gt;</code> et
+              <code>translate()</code>, et le script <code>write-translations</code> est
+              présent. Pourtant <code>i18n.locales</code> reste <code>['en']</code>, dans un
+              projet du Service européen pour l'action extérieure où le couple anglais/français
+              est la norme.
+            </p>
+            <p class="fix">
+              <code>npm run write-translations -- --locale fr</code>, ajout de
+              <code>'fr'</code> aux locales, et un sélecteur de langue dans la barre de
+              navigation. Le coût réel n'est pas technique mais éditorial : c'est la traduction
+              du contenu qui décide du calendrier — d'où l'effort large.
+            </p>
+            <div class="locs"><span class="loc">docusaurus.config.ts:51-54</span><span class="loc">package.json · write-translations</span></div>
+          </article>
+
+          <article class="card" id="p13">
+            <div class="meta">
+              <span class="ref">P-13</span>
+              <span class="chip bug">Défaut</span>
+              <span class="chip">Effort · S</span>
+              <span class="chip">Impact · faible</span>
+            </div>
+            <h3>Les dates de provenance sont figées en anglais</h3>
+            <p>
+              <code>DocProvenance</code> construit ses dates avec
+              <code>Intl.DateTimeFormat('en', …)</code> et
+              <code>Intl.RelativeTimeFormat('en', …)</code>, en dur. Le bloc affichera
+              « Aug 15, 2026 » et « 3 days ago » y compris sur une page française. Le composant
+              traduit correctement ses libellés, mais pas ses dates.
+            </p>
+            <p class="fix">
+              lire <code>useDocusaurusContext().i18n.currentLocale</code> et le passer aux deux
+              constructeurs. Correction de quelques lignes, à faire en même temps que le P-12
+              pour qu'elle serve à quelque chose.
+            </p>
+            <div class="locs"><span class="loc">src/components/DocProvenance/index.tsx:22</span><span class="loc">src/components/DocProvenance/index.tsx:32</span></div>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- ============ 6 ============ -->
+      <section id="detail">
+        <h2>Accessibilité et dépendances</h2>
+        <p class="lede">
+          Deux points de finition, sur des parties du dépôt déjà soignées par ailleurs.
+        </p>
+
+        <div class="cards">
+
+          <article class="card" id="p14">
+            <div class="meta">
+              <span class="ref">P-14</span>
+              <span class="chip">A11y</span>
+              <span class="chip">Effort · S</span>
+              <span class="chip">Impact · moyen</span>
+            </div>
+            <h3>La palette ⌘K décrit sa liste, mais pas le lien entre le champ et l'option active</h3>
+            <p>
+              Le composant fait déjà l'essentiel : <code>role="dialog"</code>,
+              <code>aria-modal</code>, <code>role="listbox"</code>, <code>role="option"</code>
+              et <code>aria-selected</code> sur l'entrée surlignée. Il manque le dernier maillon
+              du motif <em>combobox</em> : le champ de saisie ne porte qu'un
+              <code>aria-label</code>. Un lecteur d'écran voit donc la liste, mais n'annonce
+              rien quand on parcourt les résultats aux flèches — c'est-à-dire l'usage principal
+              de la palette.
+            </p>
+            <p class="fix">
+              donner un <code>id</code> à chaque option, puis ajouter sur l'input
+              <code>role="combobox"</code>, <code>aria-expanded</code>,
+              <code>aria-controls</code> pointant sur la liste, et
+              <code>aria-activedescendant</code> pointant sur l'option courante. Trois attributs
+              et une génération d'identifiants.
+            </p>
+            <div class="locs"><span class="loc">src/components/CommandPalette/index.tsx:135</span><span class="loc">src/components/CommandPalette/index.tsx:142-166</span></div>
+          </article>
+
+          <article class="card" id="p15">
+            <div class="meta">
+              <span class="ref">P-15</span>
+              <span class="chip">Dépendances</span>
+              <span class="chip">Effort · S</span>
+              <span class="chip">Impact · faible</span>
+            </div>
+            <h3>Dix <code>overrides</code> tenus à la main, sans date de péremption</h3>
+            <p>
+              <code>package.json</code> épingle joi, tar, glob, minimatch, diff,
+              serialize-javascript, brace-expansion, picomatch, uuid et postcss-selector-parser.
+              C'est une bonne pratique de remédiation, mais rien ne signale quand un override
+              devient inutile — ni quand il empêche une montée de version légitime. Par
+              ailleurs, <code>renovate.json</code> étend un préréglage interne
+              (<code>local&gt;is-development/renovate</code>) qui ne se résout pas
+              nécessairement sur ce miroir.
+            </p>
+            <p class="fix">
+              ajouter <code>npm audit --audit-level=high</code> au job de validation, et une
+              revue trimestrielle des overrides — retirer, réinstaller, vérifier que l'audit
+              reste vert. Confirmer au passage que Renovate trouve bien son préréglage ici.
+            </p>
+            <div class="locs"><span class="loc">package.json:19-30</span><span class="loc">renovate.json</span></div>
+          </article>
+
+        </div>
+      </section>
+
+      <div class="closing">
+        <h2 class="rubric">Par où commencer</h2>
+        <p class="standfirst" style="max-width: 68ch;">
+          Un enchaînement possible, du moins risqué au plus engageant. Les deux premières
+          étapes tiennent dans une demi-journée et rendent tout le reste vérifiable.
+        </p>
+        <ol class="steps">
+          <li>Corriger les trois réglages inopérants — <strong>P-01</strong>, <strong>P-02</strong>, <strong>P-03</strong> — dans une PR unique, et constater ce que le passage en <code>warn</code> révèle de liens cassés.</li>
+          <li>Poser le job de validation <strong>P-06</strong> avec le typecheck existant, puis lui ajouter ESLint et Prettier <strong>(P-04)</strong> une fois la base verte.</li>
+          <li>Basculer <strong>P-08</strong> dans une PR séparée et chronométrée, pour pouvoir revenir en arrière proprement.</li>
+          <li>Couvrir les plugins remark <strong>(P-05)</strong>, en commençant par <code>include</code> et <code>servicenow-autolink</code>, les deux qui touchent au contenu publié.</li>
+          <li>Traiter le contenu de démonstration <strong>(P-11)</strong>, puis rouvrir les sujets de fond : déploiement <strong>(P-10)</strong> et français <strong>(P-12)</strong>.</li>
+        </ol>
+        <p class="colophon">
+          Revue effectuée sur la branche claude/propositions-amelioration-xmdk48 · aucun fichier
+          source modifié · références de lignes valables au commit 796e732.
+        </p>
+      </div>
+
+    </main>
+  </div>
+</div>
