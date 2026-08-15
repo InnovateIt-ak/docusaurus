@@ -59,12 +59,11 @@ function enqueue(request) {
             const browser = await getBrowser();
             const {data} = await renderMermaid(browser, request.source, 'svg', {
                 backgroundColor: 'transparent',
-                // Palette, typographie et habillage des diagrammes : voir
-                // mermaid-theme.mjs. Le thème y est centralisé car le CSS du
-                // site ne peut pas l'atteindre — le SVG est inliné dans une
-                // <img>, que le CSS de la page ne traverse pas. Il embarque
-                // aussi `htmlLabels: false`, indispensable au PDF WeasyPrint,
-                // qui ne rend pas <foreignObject>.
+                // Palette, typography and diagram skin: see mermaid-theme.mjs.
+                // The theme lives there because site CSS cannot reach it — the
+                // SVG is inlined in an <img>, which page CSS does not cross. It
+                // also carries `htmlLabels: false`, required by the WeasyPrint
+                // PDF, which does not render <foreignObject>.
                 mermaidConfig: MERMAID_CONFIG,
             });
             send({id: request.id, ok: true, svg: Buffer.from(data).toString('utf8')});
