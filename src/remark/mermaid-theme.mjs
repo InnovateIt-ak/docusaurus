@@ -14,55 +14,105 @@
 // <style>). Le résultat est cuit dans le SVG : il vaut pour le site ET pour le
 // PDF WeasyPrint, qui n'exécute aucun JavaScript.
 //
+// D'OÙ VIENT CETTE PALETTE
+// ------------------------
+// Du système « Diagram Design » (github.com/cathrynlavery/diagram-design), dont
+// style-guide.md donne les rôles sémantiques repris tels quels ci-dessous :
+// papier blanc-fumée, encre ardoise, gris-bleu pour le secondaire, et UN accent
+// tangerine. Trois règles y sont structurantes, et sont respectées ici :
+//
+//   * Un seul accent. Deux accents effacent le signal « voici l'important ».
+//     L'accent n'est donc dépensé que là où le sens est focal par construction :
+//     les notes, les tâches critiques d'un Gantt, la ligne « aujourd'hui », la
+//     première série d'un camembert.
+//   * Pas de palette arc-en-ciel. Tout ce qui n'est pas encre ou accent est une
+//     variante atténuée.
+//   * Sérif + sans + mono, trois familles. Le sérif titre, le sans nomme, le
+//     mono porte le technique (types de champs, annotations d'arêtes).
+//
+// À noter : cette palette n'est pas celle du site (bleu institutionnel UE
+// #004494, cf. custom.css et docker/weasyprint/report.css). Les diagrammes
+// portent donc une identité propre. Pour les réaligner sur le site, il suffit de
+// remplacer ACCENT par le bleu UE — le reste du système tient sans y toucher.
+//
+// LES POLICES NE SONT PAS EMBARQUÉES
+// ----------------------------------
+// Geist / Instrument Serif ne peuvent pas être embarquées dans le SVG : Mermaid
+// retire les règles `@font-face` du themeCSS (vérifié — le rendu produit des
+// largeurs identiques avec et sans). Les piles ci-dessous les nomment d'abord,
+// puis retombent sur une grotesque système. Pour les avoir vraiment partout, il
+// faudrait installer les TTF dans l'image de build (docker/Dockerfile, à côté
+// des polices DejaVu déjà présentes) ET les embarquer via l'option `myCSS` de
+// mermaid-cli, afin que la mesure et l'affichage utilisent la même fonte.
+//
 // CONTRAINTES À NE PAS CASSER
 // ---------------------------
 // * `htmlLabels: false` — WeasyPrint ne rend pas <foreignObject> ; sans cela le
 //   PDF sort avec des boîtes et des flèches vides. Les libellés doivent rester
 //   des <text> SVG. C'est aussi pourquoi le CSS ci-dessous cible `text` /
 //   `tspan` en plus des classes Mermaid.
-// * Fond transparent — le PDF est clair, et le site pose lui-même une carte
-//   blanche derrière l'image en thème sombre (custom.css).
+// * Fond transparent — le PDF est clair, et le site pose lui-même le papier
+//   derrière l'image (custom.css). Le papier n'est donc pas dans le SVG : les
+//   nœuds sont blancs et cernés d'un filet encre, ce qui les fait lire aussi
+//   bien sur le papier du site que sur la page blanche du PDF.
 // * Palette claire — le même SVG sert les deux thèmes du site et le PDF ; un
 //   thème sombre ici rendrait le PDF illisible.
-//
-// La palette suit celle du site : bleu institutionnel UE #004494, accent or
-// #ffcc00 (custom.css, docker/weasyprint/report.css).
 
-// --- Palette ----------------------------------------------------------------
-const BLUE = '#004494'; // bleu institutionnel UE, bordures et titres
-const BLUE_SOFT = '#33578f'; // arêtes et traits : le bleu, adouci
-const BLUE_TINT = '#e8f0fa'; // remplissage des nœuds
-const BLUE_TINT_2 = '#d3e2f5'; // second niveau (nœuds secondaires, activations)
-const SURFACE = '#f6f8fb'; // fonds neutres (sous-graphes, lignes alternées)
-const BORDER_SOFT = '#a9bdd8'; // bordures discrètes
-const INK = '#12263f'; // texte
-const GOLD_TINT = '#fff8dd'; // fond des notes, dérivé de l'or UE #ffcc00
-const GOLD_BORDER = '#e0b400'; // bordure des notes
+// --- Tokens ------------------------------------------------------------------
+// Nommés par rôle sémantique, comme dans le style-guide d'origine.
+const PAPER = '#f5f5f5'; // blanc-fumée : le papier (posé par custom.css)
+const PAPER_2 = '#ececec'; // second fond : boîtes d'étiquette, bandeaux
+const WHITE = '#ffffff'; // remplissage des nœuds principaux (rôle « backend »)
+const INK = '#2d3142'; // encre : texte et filets principaux
+const MUTED = '#4f5d75'; // gris-bleu : texte secondaire, arêtes
+const SOFT = '#7a8399'; // sous-libellés, lignes de vie
+const RULE = 'rgba(45, 49, 66, 0.12)'; // filet discret
+const RULE_SOLID = '#bfc0c0'; // filet appuyé, lignes de base
+const INK_05 = 'rgba(45, 49, 66, 0.05)'; // rôle « store » : réservoirs, activations
+const INK_03 = 'rgba(45, 49, 66, 0.03)'; // rôle « external » : hors périmètre
+const ACCENT = '#eb6c36'; // tangerine : le seul accent
+const ACCENT_TINT = 'rgba(235, 108, 54, 0.08)'; // fond des éléments accentués
 
-// Pile de polices sans-serif : sur le site, Chromium résout la première
-// disponible ; dans le conteneur PDF, la chaîne retombe sur `sans-serif`.
-const FONT = '"Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif';
+// Série catégorielle, réservée aux types qui distinguent vraiment plusieurs
+// entités (camembert, parcours). L'accent ouvre la série — c'est la part focale.
+// Le gris-bleu et l'ardoise du guide d'origine sont éclaircis d'un cran : posés
+// en aplat plein sous un libellé encre, les valeurs d'origine tombaient sous le
+// seuil de contraste (le guide les prévoit en remplissage à 18 % d'opacité).
+const SERIES = [
+    ACCENT, // focal
+    '#7c8f6f', // sauge
+    '#7793b3', // gris-bleu poussiéreux, éclairci
+    '#b8915a', // moutarde
+    '#9c6b50', // brun rouille
+    '#8b8296', // ardoise, éclaircie
+];
+
+// --- Typographie -------------------------------------------------------------
+// Trois familles, trois rôles. Voir « LES POLICES NE SONT PAS EMBARQUÉES ».
+const SANS = 'Geist, Inter, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif';
+const MONO = '"Geist Mono", ui-monospace, SFMono-Regular, Menlo, "DejaVu Sans Mono", monospace';
+const SERIF = '"Instrument Serif", "Iowan Old Style", Palatino, Georgia, serif';
 
 // --- Habillage fin, en CSS injecté dans le <style> du SVG --------------------
 // Ce que `themeVariables` ne couvre pas : angles arrondis, épaisseurs de trait,
-// graisses. Deux règles à respecter ici :
+// familles par rôle. Deux règles à respecter ici :
 //
 // * Pas de `filter` ni d'ombre portée — WeasyPrint ne les rend pas, le PDF
-//   divergerait du site.
-// * Ne pas élargir le texte. Mermaid mesure chaque libellé pour dimensionner sa
-//   boîte, puis ce CSS s'applique : une `font-size` ou une `font-weight` plus
-//   grande ici déborderait d'une boîte déjà figée. La taille de police se règle
-//   via `fontSize` dans themeVariables (lu à la mesure) ; les graisses ci-dessous
-//   sont réservées aux libellés qui disposent d'une marge propre (titres de
-//   sous-graphe, d'entité, de classe, acteurs).
+//   divergerait du site. Le système d'origine n'en utilise pas non plus : tout
+//   passe par des filets.
+// * Ne jamais élargir un texte. Mermaid mesure chaque libellé pour dimensionner
+//   sa boîte, puis ce CSS s'applique : une police plus grande déborderait d'une
+//   boîte déjà figée. Les changements de famille ci-dessous vont donc toujours
+//   de pair avec une taille plus petite que la taille de mesure (13 px), ce qui
+//   laisse de la marge même quand le mono est plus large que le sans.
 const themeCSS = `
-  /* Nœuds : coins arrondis et trait un peu plus affirmé que le défaut. */
+  /* Nœuds : filet de 1 px, coins à 6 px (radius-md). */
   .node rect,
   .node polygon,
   .node circle,
   .node ellipse,
   .node path {
-    stroke-width: 1.5px;
+    stroke-width: 1px;
   }
   .node rect,
   .node .label-container {
@@ -70,49 +120,90 @@ const themeCSS = `
     ry: 6px;
   }
 
-  /* Sous-graphes : cadre discret en pointillés, pour ne pas concurrencer
-     visuellement les nœuds qu'il regroupe. */
+  /* Sous-graphes : une frontière, pas une boîte. Filet pointillé discret,
+     coins à 8 px (radius-lg). */
   .cluster rect {
-    rx: 10px;
-    ry: 10px;
-    stroke-width: 1.2px;
-    stroke-dasharray: 5 3;
+    rx: 8px;
+    ry: 8px;
+    stroke-width: 1px;
+    stroke-dasharray: 4 3;
   }
+  /* Titre de sous-graphe en « eyebrow » : mono, capitales, interlettrage large.
+     Passer en capitales élargit d'environ 15 %, mais la chute de 13 px à 10 px
+     retire plus que cela — le libellé reste dans sa boîte. */
   .cluster-label text,
+  .cluster-label text tspan,
   .cluster span {
-    font-weight: 600;
+    font-family: ${MONO};
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    fill: ${SOFT};
   }
 
-  /* Arêtes : trait légèrement épaissi, extrémités arrondies. */
+  /* Arêtes : filet de 1 px, extrémités arrondies. */
   .edgePath .path,
   .flowchart-link,
   .relationshipLine {
-    stroke-width: 1.6px;
+    stroke-width: 1px;
     stroke-linecap: round;
     stroke-linejoin: round;
   }
 
-  /* Libellés d'arête : posés sur une pastille claire arrondie, pour rester
-     lisibles quand ils chevauchent un trait. */
+  /* Annotations d'arête : mono, posées sur une pastille de papier. */
   .edgeLabel rect,
   .edgeLabel .label-container {
     rx: 4px;
     ry: 4px;
   }
+  .edgeLabels text,
+  .edgeLabel text,
+  .edgeLabel text tspan,
+  .messageText {
+    font-family: ${MONO};
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    fill: ${MUTED};
+  }
 
-  /* Diagrammes de séquence : acteurs affirmés, boucles/alternatives discrètes. */
+  /* Titres de diagramme (camembert, Gantt) : sérif, taille inchangée — Mermaid
+     a déjà calculé les bornes du SVG avec la taille mesurée. */
+  .titleText,
+  .pieTitleText,
+  text.title {
+    font-family: ${SERIF};
+    font-weight: 400;
+    fill: ${INK};
+  }
+
+  /* Séquence : acteurs cernés d'encre, lignes de vie et cadres en filet. */
   .actor {
-    stroke-width: 1.5px;
+    stroke-width: 1px;
   }
   text.actor > tspan {
     font-weight: 600;
   }
+  .actor-line {
+    stroke: ${RULE_SOLID};
+    stroke-width: 1px;
+  }
   .loopLine {
-    stroke-width: 1.2px;
+    stroke-width: 1px;
     stroke-dasharray: 4 3;
   }
+  /* Étiquette « loop » / « alt » : même eyebrow que les sous-graphes. */
+  .labelText,
+  .labelText tspan,
+  .loopText,
+  .loopText tspan {
+    font-family: ${MONO};
+    font-size: 10px;
+    letter-spacing: 0.1em;
+  }
 
-  /* Diagrammes ER et de classes : en-tête de bloc en gras. */
+  /* Entité-relation et classes : le nom en gras, les types de champs en mono —
+     c'est exactement la répartition « nom en sans, technique en mono ». */
   .er.entityLabel,
   .entityTitleText,
   .classTitle {
@@ -121,6 +212,11 @@ const themeCSS = `
   .er.entityBox {
     rx: 6px;
     ry: 6px;
+  }
+  .er.attributeBoxOdd,
+  .er.attributeBoxEven {
+    stroke: ${RULE_SOLID};
+    stroke-width: 1px;
   }
 `;
 
@@ -131,96 +227,101 @@ const themeCSS = `
 const themeVariables = {
     darkMode: false,
     background: 'transparent',
-    fontFamily: FONT,
-    fontSize: '15px',
+    fontFamily: SANS,
+    // Le guide d'origine spécifie 12 px pour les noms de nœuds. 13 px ici : une
+    // figure large est réduite pour tenir dans la colonne de doc, et le texte
+    // rétrécit d'autant.
+    fontSize: '13px',
 
-    // Nœuds et texte
-    primaryColor: BLUE_TINT,
+    // Nœuds et texte — rôle « backend » : aplat blanc, filet encre.
+    primaryColor: WHITE,
     primaryTextColor: INK,
-    primaryBorderColor: BLUE,
-    secondaryColor: SURFACE,
-    secondaryTextColor: INK,
-    secondaryBorderColor: BORDER_SOFT,
-    tertiaryColor: GOLD_TINT,
-    tertiaryTextColor: INK,
-    tertiaryBorderColor: GOLD_BORDER,
-    mainBkg: BLUE_TINT,
-    nodeBorder: BLUE,
+    primaryBorderColor: INK,
+    mainBkg: WHITE,
+    nodeBorder: INK,
     textColor: INK,
-    titleColor: BLUE,
+    titleColor: INK,
+    // Rôle « store » : réservoirs, seconds plans.
+    secondaryColor: INK_05,
+    secondaryTextColor: INK,
+    secondaryBorderColor: MUTED,
+    // Rôle « external » : ce qui est hors du périmètre.
+    tertiaryColor: INK_03,
+    tertiaryTextColor: INK,
+    tertiaryBorderColor: RULE_SOLID,
 
     // Arêtes
-    lineColor: BLUE_SOFT,
-    edgeLabelBackground: '#ffffff',
+    lineColor: MUTED,
+    edgeLabelBackground: PAPER,
 
-    // Sous-graphes
-    clusterBkg: SURFACE,
-    clusterBorder: BORDER_SOFT,
+    // Sous-graphes : une frontière quasi transparente, pas un bloc coloré.
+    clusterBkg: INK_03,
+    clusterBorder: RULE_SOLID,
 
-    // Notes (accent or)
-    noteBkgColor: GOLD_TINT,
+    // Notes : l'auteur écrit une note pour attirer l'œil — c'est là qu'on
+    // dépense l'accent.
+    noteBkgColor: ACCENT_TINT,
     noteTextColor: INK,
-    noteBorderColor: GOLD_BORDER,
+    noteBorderColor: ACCENT,
 
     // Séquence
-    actorBkg: BLUE_TINT,
-    actorBorder: BLUE,
+    actorBkg: WHITE,
+    actorBorder: INK,
     actorTextColor: INK,
-    actorLineColor: BORDER_SOFT,
-    signalColor: BLUE_SOFT,
-    signalTextColor: INK,
-    labelBoxBkgColor: BLUE_TINT_2,
-    labelBoxBorderColor: BLUE,
+    actorLineColor: RULE_SOLID,
+    signalColor: MUTED,
+    signalTextColor: MUTED,
+    labelBoxBkgColor: PAPER_2,
+    labelBoxBorderColor: RULE_SOLID,
     labelTextColor: INK,
-    loopTextColor: INK,
-    activationBkgColor: BLUE_TINT_2,
-    activationBorderColor: BLUE,
-    sequenceNumberColor: '#ffffff',
+    loopTextColor: MUTED,
+    activationBkgColor: INK_05,
+    activationBorderColor: MUTED,
+    sequenceNumberColor: WHITE,
 
-    // Entité-relation : lignes alternées, en-têtes bleus
-    attributeBackgroundColorOdd: '#ffffff',
-    attributeBackgroundColorEven: SURFACE,
+    // Entité-relation : lignes alternées papier / encre très diluée.
+    attributeBackgroundColorOdd: WHITE,
+    attributeBackgroundColorEven: INK_03,
 
-    // Gantt
-    taskBkgColor: BLUE_TINT,
-    taskBorderColor: BLUE,
+    // Gantt : tout en gris atténués, l'accent réservé au chemin critique et à
+    // la ligne « aujourd'hui ».
+    taskBkgColor: WHITE,
+    taskBorderColor: INK,
     taskTextColor: INK,
     taskTextOutsideColor: INK,
     taskTextDarkColor: INK,
-    activeTaskBkgColor: BLUE_TINT_2,
-    activeTaskBorderColor: BLUE,
-    doneTaskBkgColor: SURFACE,
-    doneTaskBorderColor: BORDER_SOFT,
-    critBkgColor: '#fde2e2',
-    critBorderColor: '#b3261e',
-    gridColor: '#dbe3ee',
-    sectionBkgColor: SURFACE,
-    sectionBkgColor2: '#eef3f9',
-    altSectionBkgColor: '#ffffff',
-    todayLineColor: GOLD_BORDER,
+    activeTaskBkgColor: INK_05,
+    activeTaskBorderColor: INK,
+    doneTaskBkgColor: INK_03,
+    doneTaskBorderColor: RULE_SOLID,
+    critBkgColor: ACCENT_TINT,
+    critBorderColor: ACCENT,
+    gridColor: RULE,
+    sectionBkgColor: INK_03,
+    sectionBkgColor2: PAPER_2,
+    altSectionBkgColor: 'transparent',
+    todayLineColor: ACCENT,
 
-    // Séries catégorielles (camembert, parcours, quadrant…). Une série est
-    // qualitative : des teintes distinctes, pas un dégradé — sur un camembert,
-    // deux nuances voisines d'un même bleu ne se distinguent plus une fois les
-    // parts séparées. La série ouvre donc sur le bleu UE puis parcourt la roue.
-    // Toutes sont assez sombres pour porter le texte blanc des parts
-    // (pieSectionTextColor), y compris la douzième.
-    pie1: BLUE,
-    pie2: '#0f6f8c',
-    pie3: '#8a5a1f',
-    pie4: '#6a4c9c',
-    pie5: '#2f7a4f',
-    pie6: '#a3342b',
-    pie7: '#2f6cb5',
-    pie8: '#8e2f6b',
-    pie9: '#4a5568',
-    pie10: '#166b63',
-    pie11: '#7a3b12',
-    pie12: '#5a6b12',
-    pieStrokeColor: '#ffffff',
-    pieOuterStrokeColor: BORDER_SOFT,
-    pieSectionTextColor: '#ffffff',
-    pieTitleTextColor: BLUE,
+    // Séries catégorielles : l'accent ouvre, les tons éditoriaux suivent. Le
+    // libellé de part reste en encre, et les parts sont séparées par du papier.
+    pie1: SERIES[0],
+    pie2: SERIES[1],
+    pie3: SERIES[2],
+    pie4: SERIES[3],
+    pie5: SERIES[4],
+    pie6: SERIES[5],
+    // Au-delà de six parts, on reboucle sur la même série : pas d'arc-en-ciel.
+    pie7: SERIES[1],
+    pie8: SERIES[2],
+    pie9: SERIES[3],
+    pie10: SERIES[4],
+    pie11: SERIES[5],
+    pie12: MUTED,
+    pieStrokeColor: PAPER,
+    pieOuterStrokeColor: RULE_SOLID,
+    pieSectionTextColor: INK,
+    pieTitleTextColor: INK,
+    pieLegendTextColor: INK,
 };
 
 // Configuration complète passée à `renderMermaid`.
@@ -238,10 +339,11 @@ export const MERMAID_CONFIG = {
         htmlLabels: false,
         // Arêtes en courbes douces plutôt qu'en segments à angles droits.
         curve: 'basis',
-        // Un peu d'air : le rendu par défaut est très compact.
-        nodeSpacing: 55,
-        rankSpacing: 60,
-        padding: 12,
+        // De l'air : le système d'origine respire beaucoup plus que le rendu
+        // Mermaid par défaut.
+        nodeSpacing: 60,
+        rankSpacing: 72,
+        padding: 16,
         // Largeur intrinsèque en pixels plutôt qu'un SVG à 100 % : c'est ce
         // qu'attendent la normalisation du SVG (normalizeSvg) et l'heuristique
         // d'orientation du générateur PDF.
@@ -249,13 +351,13 @@ export const MERMAID_CONFIG = {
     },
     sequence: {
         useMaxWidth: false,
-        diagramMarginX: 24,
-        diagramMarginY: 16,
-        boxMargin: 12,
-        messageFontWeight: '500',
+        diagramMarginX: 32,
+        diagramMarginY: 20,
+        boxMargin: 16,
+        actorMargin: 64,
     },
     class: {useMaxWidth: false},
-    er: {useMaxWidth: false, entityPadding: 14},
+    er: {useMaxWidth: false, entityPadding: 16},
     gantt: {useMaxWidth: false},
     journey: {useMaxWidth: false},
     pie: {useMaxWidth: false},
