@@ -5,6 +5,15 @@ services:
       - "8080:8080"
     environment:
       PLANTUML_LIMIT_SIZE: "16384"
+      # Jetty caps the request line + headers at 8 KB by default. The remark
+      # plugin (src/remark/plantuml-inline.mjs) normally sends a diagram inside
+      # the URL path, so a large diagram exceeds that cap and Jetty drops the
+      # connection without a status code — the build then reports only
+      # `TypeError: fetch failed`. The plugin now switches to POST above
+      # PLANTUML_MAX_URL_LENGTH (default 6000) instead, so this cap should no
+      # longer be reached. If your PlantUML server does not accept POST /svg,
+      # uncomment the line below and raise PLANTUML_MAX_URL_LENGTH to match.
+      # JAVA_OPTIONS: "-Djetty.httpConfig.requestHeaderSize=65536 -Djetty.httpConfig.responseHeaderSize=65536"
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8080 || exit 1"]
       interval: 10s
