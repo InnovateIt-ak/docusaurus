@@ -20,7 +20,18 @@ const FEEDBACK_MS = 2000;
 // roughly 8 KB of request line — and a rejected link is worse than a shortened
 // one. A page that does not fit is cut, and the full text goes to the clipboard
 // so the reader can paste the rest.
-const MAX_URL_LENGTH = 8000;
+//
+// 8 KB is what an unconfigured instance accepts, so it is the default. A page
+// whose diagrams and included fragments are all expanded (src/remark/raw-source)
+// can easily go past it, and how much more a *particular* instance takes is a
+// property of its own proxy — hence `G_OPENWEBUI_MAX_URL` to raise it.
+const DEFAULT_MAX_URL_LENGTH = 8000;
+
+/** The URL budget for this site, from `G_OPENWEBUI_MAX_URL` or the default. */
+function maxUrlLength(configured: unknown): number {
+  const value = Number(configured);
+  return Number.isFinite(value) && value > 0 ? value : DEFAULT_MAX_URL_LENGTH;
+}
 
 /**
  * Base URL of the Open WebUI instance, or null when there is none.
@@ -212,7 +223,7 @@ export default function PageActions(): ReactNode {
       `${chatBase}/?q=`.length + encodedLength(`${intro}\n\n---\n\n${note}`);
     const {text, truncated} = fitToBudget(
       markdown,
-      Math.max(0, MAX_URL_LENGTH - overhead),
+      Math.max(0, maxUrlLength(siteConfig.customFields?.openWebUiMaxUrl) - overhead),
     );
 
     // Always put the whole page on the clipboard, so a truncated prompt can be

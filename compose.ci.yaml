@@ -22,6 +22,7 @@ services:
       # Base URL of a self-hosted Open WebUI, if there is one. Set it in the
       # host environment to add "Open in → Open WebUI" to every doc page.
       G_OPENWEBUI_URL: ${G_OPENWEBUI_URL:-}
+      G_OPENWEBUI_MAX_URL: ${G_OPENWEBUI_MAX_URL:-}
       DOCUSAURUS_IGNORE_SSG_WARNINGS: true
       ENABLE_LOCAL: ${ENABLE_LOCAL-false}
     ports:

@@ -32,6 +32,11 @@ const config: Config = {
         // simply not shown — there is no sensible default for a self-hosted
         // instance.
         openWebUiUrl: process.env.G_OPENWEBUI_URL ?? null,
+        // How much of a page that button may put in the URL, in encoded
+        // characters. The 8 KB default is what an unconfigured Open WebUI (uvicorn,
+        // usually behind nginx) accepts; an instance whose proxy takes more can
+        // raise it here so long pages arrive whole instead of cut.
+        openWebUiMaxUrl: process.env.G_OPENWEBUI_MAX_URL ?? null,
         // Landing-page hero copy for the custom home page (src/pages/index.tsx).
         // Falls back to title/tagline when unset.
         home: {
