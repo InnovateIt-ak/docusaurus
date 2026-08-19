@@ -76,9 +76,13 @@ const config: Config = {
                     // `#include`d content is expanded first, and any PlantUML
                     // blocks it contains are then picked up downstream.
                     beforeDefaultRemarkPlugins: [
-                        // First, so it captures the file as the author wrote it
-                        // — before includes are expanded and diagrams are
-                        // replaced by images. Feeds "Copy as Markdown".
+                        // Reads the vfile's text rather than the tree, so
+                        // its position in this list is cosmetic: it captures
+                        // the file as the author wrote it, then resolves the
+                        // `#include`s and .puml/.mmd references in it itself,
+                        // so what is copied or sent to a chat model is content
+                        // and not a set of paths. Feeds "Copy as Markdown" and
+                        // "Open in Open WebUI".
                         remarkRawSource,
                         remarkInclude,
                         // Before the diagram plugins: recovers the source from a
