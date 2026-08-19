@@ -1,7 +1,9 @@
 import {useState, type ComponentProps, type MouseEvent, type ReactNode} from 'react';
 import Img from '@theme-original/MDXComponents/Img';
 import CodeBlock from '@theme/CodeBlock';
-import Translate from '@docusaurus/Translate';
+import Translate, {translate} from '@docusaurus/Translate';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import {ChatIcon, pageTitle, useOpenWebUi} from '@site/src/openWebUi';
 import styles from './styles.module.css';
 
 // The remark plugins that render PlantUML/Mermaid at build time attach the
@@ -20,6 +22,35 @@ type Props = ComponentProps<'img'> & {
 // The alt text authors write is unreliable, so a diagram is detected from its
 // data:image/svg source (or a known diagram alt as a fallback).
 const DIAGRAM_ALTS = new Set(['Mermaid diagram', 'PlantUML diagram']);
+
+// How each diagram language is written in prose, for the sentence that
+// introduces the source to the model.
+const LANGUAGE_NAMES: Record<string, string> = {
+  plantuml: 'PlantUML',
+  mermaid: 'Mermaid',
+};
+
+/**
+ * The sentence sent ahead of a diagram's source, naming what it is and where
+ * it comes from.
+ *
+ * The alt text is used only when the author wrote one: the diagram plugins fill
+ * an empty alt with "PlantUML diagram", which names the format and not the
+ * diagram, and the language is already being said.
+ */
+function diagramIntro(
+  alt: string | undefined,
+  lang: string | undefined,
+  siteTitle: string,
+): string {
+  const language = LANGUAGE_NAMES[lang ?? ''];
+  const subject = alt && !DIAGRAM_ALTS.has(alt) ? `the "${alt}" diagram` : 'a diagram';
+  return (
+    `Here is the ${language ? `${language} ` : ''}source of ${subject} from the ` +
+    `"${pageTitle(siteTitle)}" page of the ${siteTitle} documentation. ` +
+    `Read it, then help me with my questions about it.`
+  );
+}
 
 function isDiagram(src: string, alt: string | undefined): boolean {
   return src.startsWith('data:image/svg') || (alt != null && DIAGRAM_ALTS.has(alt));
@@ -165,12 +196,18 @@ export default function ImgWrapper({
   // It is read here and dropped from the props, so the same few kilobytes are
   // not also emitted as an attribute on every diagram in the page.
   const [showSource, setShowSource] = useState(false);
+  const {siteConfig} = useDocusaurusContext();
+  const {base: chatBase, ask} = useOpenWebUi();
   // The source renders as a CodeBlock, which is `<div><pre>`. A markdown image
   // normally sits inside a `<p>`, and a `<p>` is closed by the parser at its
   // first block child — the server and client trees would disagree and React
   // would drop the subtree. So the toggle is offered only for a diagram that
   // remark lifted to block level, where block content is valid.
   const canShowSource = diagramSource !== undefined && diagramBlock !== undefined;
+  // Asking about a diagram only needs its source, not room to render a code
+  // block, so it is offered on every diagram that carries one — including the
+  // inline ones the source toggle has to skip.
+  const canAsk = diagramSource !== undefined && chatBase !== null;
   const src = typeof props.src === 'string' ? props.src : undefined;
   const alt = typeof props.alt === 'string' ? props.alt : undefined;
 
@@ -232,6 +269,30 @@ export default function ImgWrapper({
                   Source
                 </Translate>
               )}
+            </button>
+          ) : null}
+          {canAsk ? (
+            <button
+              type="button"
+              className={styles.action}
+              title={translate({
+                id: 'theme.image.askOpenWebUi.title',
+                message: 'Open this diagram in Open WebUI',
+                description:
+                  "Tooltip of the button that opens a single diagram's source in Open WebUI",
+              })}
+              onClick={() =>
+                ask({
+                  intro: diagramIntro(alt, diagramLang, siteConfig.title),
+                  body: `\`\`\`${diagramLang ?? 'text'}\n${diagramSource}\n\`\`\``,
+                })
+              }>
+              <ChatIcon className={styles.icon} />
+              <Translate
+                id="theme.image.askOpenWebUi"
+                description="Label of the button that opens a single diagram's source in Open WebUI">
+                Open WebUI
+              </Translate>
             </button>
           ) : null}
           <a
