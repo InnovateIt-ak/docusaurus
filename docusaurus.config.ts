@@ -4,6 +4,7 @@ import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 import {createRequire} from 'node:module';
 import remarkInclude from './src/remark/include.mjs';
+import remarkKrokiDecode from './src/remark/kroki-decode.mjs';
 import remarkPlantUMLInline from './src/remark/plantuml-inline.mjs';
 import remarkMermaidInline from './src/remark/mermaid-inline.mjs';
 import remarkServiceNowAutolink from './src/remark/servicenow-autolink.mjs';
@@ -80,6 +81,10 @@ const config: Config = {
                         // replaced by images. Feeds "Copy as Markdown".
                         remarkRawSource,
                         remarkInclude,
+                        // Before the diagram plugins: recovers the source from a
+                        // kroki.io image URL so the diagram is rendered here
+                        // instead of fetched from a third party.
+                        remarkKrokiDecode,
                         remarkPlantUMLInline,
                         remarkMermaidInline,
                         // After both diagram plugins: lifts a rendered diagram
