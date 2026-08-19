@@ -1,8 +1,10 @@
-/* Sits above the document title, aligned right so it reads as a page action
-   rather than as part of the content. */
+/* Sits above the document title, aligned right so it reads as a row of page
+   actions rather than as part of the content. */
 .bar {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+  gap: 0.4rem;
   margin-bottom: 0.4rem;
 }
 
