@@ -1,5 +1,6 @@
 import {useState, type ComponentProps, type MouseEvent, type ReactNode} from 'react';
 import Img from '@theme-original/MDXComponents/Img';
+import CodeBlock from '@theme/CodeBlock';
 import Translate from '@docusaurus/Translate';
 import styles from './styles.module.css';
 
@@ -9,6 +10,10 @@ import styles from './styles.module.css';
 type Props = ComponentProps<'img'> & {
   'data-diagram-source'?: string;
   'data-diagram-lang'?: string;
+  // Set by src/remark/unwrap-diagrams.mjs on diagrams it lifted out of their
+  // paragraph. Its presence is the guarantee that this figure may contain block
+  // content — see the toggle below.
+  'data-diagram-block'?: string;
 };
 
 // Mermaid/PlantUML diagrams are rendered at build time as inline SVG data URLs.
@@ -153,12 +158,19 @@ function ImageIcon(): ReactNode {
 export default function ImgWrapper({
   'data-diagram-source': diagramSource,
   'data-diagram-lang': diagramLang,
+  'data-diagram-block': diagramBlock,
   ...props
 }: Props): ReactNode {
   // The source lives on the <img> only to travel from the build to the browser.
   // It is read here and dropped from the props, so the same few kilobytes are
   // not also emitted as an attribute on every diagram in the page.
   const [showSource, setShowSource] = useState(false);
+  // The source renders as a CodeBlock, which is `<div><pre>`. A markdown image
+  // normally sits inside a `<p>`, and a `<p>` is closed by the parser at its
+  // first block child — the server and client trees would disagree and React
+  // would drop the subtree. So the toggle is offered only for a diagram that
+  // remark lifted to block level, where block content is valid.
+  const canShowSource = diagramSource !== undefined && diagramBlock !== undefined;
   const src = typeof props.src === 'string' ? props.src : undefined;
   const alt = typeof props.alt === 'string' ? props.alt : undefined;
 
@@ -172,23 +184,23 @@ export default function ImgWrapper({
   const diagram = isDiagram(src, alt);
   const label = !diagram && alt ? alt : undefined;
 
+  // A lifted diagram is block-level, so the figure may be a <div>; anything else
+  // is still inside a <p> and has to stay inline-level.
+  const Wrapper = canShowSource ? 'div' : 'span';
+
   return (
     // `md-figure` is a stable, non-hashed hook for the PDF stylesheet, which is
     // written against the built HTML and cannot know the CSS-module class name.
-    <span
+    <Wrapper
       className={`${styles.figure} md-figure${
-        showSource && diagramSource ? ` ${styles.figureSource}` : ''
+        showSource && canShowSource ? ` ${styles.figureSource}` : ''
       }`}>
-      {showSource && diagramSource ? (
-        // A <span> styled as a block, for the same reason the caption is one:
-        // this lives inside the <p> that wraps a markdown image, and @theme/CodeBlock
-        // renders <div><pre>. The parser closes the <p> at a block child, so the
-        // server and client trees disagree and React throws the subtree away —
-        // which looked like the source appearing and vanishing again.
-        // Prism ships no plantuml or mermaid grammar, so there was no
-        // highlighting to lose; the language is kept as an attribute.
-        <span className={styles.source} data-language={diagramLang ?? 'text'}>
-          {diagramSource}
+      {showSource && canShowSource ? (
+        <span className={styles.source}>
+          {/* Prism ships no plantuml or mermaid grammar, so the language is
+              recorded on the block for the chip and the copy button, but there
+              is nothing to highlight. */}
+          <CodeBlock language={diagramLang ?? 'text'}>{diagramSource}</CodeBlock>
         </span>
       ) : (
         <Img {...props} />
@@ -200,7 +212,7 @@ export default function ImgWrapper({
           <span className={styles.spacer} />
         )}
         <span className={`${styles.actions} pdf-hide`}>
-          {diagramSource ? (
+          {canShowSource ? (
             <button
               type="button"
               className={styles.action}
@@ -250,6 +262,6 @@ export default function ImgWrapper({
           </a>
         </span>
       </span>
-    </span>
+    </Wrapper>
   );
 }

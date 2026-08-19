@@ -8,6 +8,7 @@ import remarkPlantUMLInline from './src/remark/plantuml-inline.mjs';
 import remarkMermaidInline from './src/remark/mermaid-inline.mjs';
 import remarkServiceNowAutolink from './src/remark/servicenow-autolink.mjs';
 import remarkRawSource from './src/remark/raw-source.mjs';
+import remarkUnwrapDiagrams from './src/remark/unwrap-diagrams.mjs';
 import {FOOTER_CONFIG, NAV_BAR, REDOC_SPEC, WELCOME_PAGE} from './sharedConfig';
 const require = createRequire(import.meta.url);
 import {pdfMenuItems} from './pdfMenu';
@@ -75,6 +76,10 @@ const config: Config = {
                         remarkInclude,
                         remarkPlantUMLInline,
                         remarkMermaidInline,
+                        // After both diagram plugins: lifts a rendered diagram
+                        // out of its paragraph so the figure may hold block
+                        // content (the "Source" code block).
+                        remarkUnwrapDiagrams,
                         // Turn bare ServiceNow refs (INC123, CHG456, …) into links.
                         remarkServiceNowAutolink,
                     ],

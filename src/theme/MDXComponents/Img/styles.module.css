@@ -21,24 +21,14 @@
   width: 100%;
 }
 
-/* The diagram's source, as a code card. Inline-level (a <span>) but laid out as
-   a block: a markdown image sits inside a <p>, which may not contain block
-   elements. `white-space: pre` keeps the layout of the source, and the box
-   scrolls rather than wrapping long !include lines. */
+/* The code block brings its own card and margins; inside the figure the caption
+   supplies the spacing below, so drop the bottom one. */
 .source {
   display: block;
-  max-width: 100%;
-  overflow-x: auto;
-  white-space: pre;
-  tab-size: 4;
-  font-family: var(--ifm-font-family-monospace);
-  font-size: 0.8rem;
-  line-height: 1.45;
-  color: var(--ifm-font-color-base);
-  background: var(--ifm-code-background, var(--ifm-color-emphasis-100));
-  border: 1px solid var(--ifm-color-emphasis-200);
-  border-radius: 6px;
-  padding: 0.75rem 1rem;
+}
+
+.source > div {
+  margin-bottom: 0;
 }
 
 .caption {
