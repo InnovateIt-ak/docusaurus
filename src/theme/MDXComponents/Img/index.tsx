@@ -1,9 +1,16 @@
-import type {ComponentProps, MouseEvent, ReactNode} from 'react';
+import {useState, type ComponentProps, type MouseEvent, type ReactNode} from 'react';
 import Img from '@theme-original/MDXComponents/Img';
+import CodeBlock from '@theme/CodeBlock';
 import Translate from '@docusaurus/Translate';
 import styles from './styles.module.css';
 
-type Props = ComponentProps<'img'>;
+// The remark plugins that render PlantUML/Mermaid at build time attach the
+// diagram's own source to the <img> (see src/remark/*-inline.mjs), so the
+// rendered picture can be flipped back to the code it came from.
+type Props = ComponentProps<'img'> & {
+  'data-diagram-source'?: string;
+  'data-diagram-lang'?: string;
+};
 
 // Mermaid/PlantUML diagrams are rendered at build time as inline SVG data URLs.
 // The alt text authors write is unreliable, so a diagram is detected from its
@@ -100,12 +107,59 @@ function DownloadIcon(): ReactNode {
   );
 }
 
+function CodeIcon(): ReactNode {
+  return (
+    <svg
+      className={styles.icon}
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true">
+      <path d="M9 7l-5 5 5 5" />
+      <path d="M15 7l5 5-5 5" />
+    </svg>
+  );
+}
+
+function ImageIcon(): ReactNode {
+  return (
+    <svg
+      className={styles.icon}
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true">
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <circle cx="8.5" cy="10" r="1.5" />
+      <path d="M21 16l-5-5-6 6" />
+    </svg>
+  );
+}
+
 // Adds a small caption under each image with a link to download it — including
 // build-time diagrams, so a reader can grab the SVG. Structured with <span>s
 // (not <figure>/<figcaption>) because a markdown image renders as <p><img></p>,
 // and a block <figure> inside a <p> is invalid and breaks hydration —
 // inline-level spans styled as blocks stay valid.
-export default function ImgWrapper(props: Props): ReactNode {
+export default function ImgWrapper({
+  'data-diagram-source': diagramSource,
+  'data-diagram-lang': diagramLang,
+  ...props
+}: Props): ReactNode {
+  // The source lives on the <img> only to travel from the build to the browser.
+  // It is read here and dropped from the props, so the same few kilobytes are
+  // not also emitted as an attribute on every diagram in the page.
+  const [showSource, setShowSource] = useState(false);
   const src = typeof props.src === 'string' ? props.src : undefined;
   const alt = typeof props.alt === 'string' ? props.alt : undefined;
 
@@ -120,8 +174,21 @@ export default function ImgWrapper(props: Props): ReactNode {
   const label = !diagram && alt ? alt : undefined;
 
   return (
-    <span className={styles.figure}>
-      <Img {...props} />
+    // `md-figure` is a stable, non-hashed hook for the PDF stylesheet, which is
+    // written against the built HTML and cannot know the CSS-module class name.
+    <span
+      className={`${styles.figure} md-figure${
+        showSource && diagramSource ? ` ${styles.figureSource}` : ''
+      }`}>
+      {showSource && diagramSource ? (
+        <span className={styles.source}>
+          {/* Prism ships no plantuml or mermaid grammar, so the language is
+              recorded on the block for styling/copy but not highlighted. */}
+          <CodeBlock language={diagramLang ?? 'text'}>{diagramSource}</CodeBlock>
+        </span>
+      ) : (
+        <Img {...props} />
+      )}
       <span className={styles.caption}>
         {label ? (
           <span className={styles.alt}>{label}</span>
@@ -129,6 +196,28 @@ export default function ImgWrapper(props: Props): ReactNode {
           <span className={styles.spacer} />
         )}
         <span className={`${styles.actions} pdf-hide`}>
+          {diagramSource ? (
+            <button
+              type="button"
+              className={styles.action}
+              aria-pressed={showSource}
+              onClick={() => setShowSource((shown) => !shown)}>
+              {showSource ? <ImageIcon /> : <CodeIcon />}
+              {showSource ? (
+                <Translate
+                  id="theme.image.showDiagram"
+                  description="Label of the button that switches a diagram's source back to the rendered image">
+                  Diagramme
+                </Translate>
+              ) : (
+                <Translate
+                  id="theme.image.showSource"
+                  description="Label of the button that switches a rendered diagram to its source code">
+                  Source
+                </Translate>
+              )}
+            </button>
+          ) : null}
           <a
             className={styles.action}
             href={src}

@@ -159,6 +159,18 @@ async function toDataUrlImage(node, source) {
     node.url = `data:image/svg+xml;base64,${base64}`;
     node.alt = node.alt || 'Mermaid diagram';
     node.title = null;
+    // Transporte la source jusqu'au navigateur pour que le diagramme rendu
+    // puisse rebasculer vers son code. `data.hProperties` est fusionné dans
+    // l'élément par mdast-to-hast : ces clés arrivent donc en props sur le
+    // composant <img> MDX.
+    node.data = {
+        ...node.data,
+        hProperties: {
+            ...node.data?.hProperties,
+            'data-diagram-source': source,
+            'data-diagram-lang': 'mermaid',
+        },
+    };
     delete node.lang;
     delete node.meta;
     delete node.value;
