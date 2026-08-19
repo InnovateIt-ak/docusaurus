@@ -102,13 +102,13 @@ export default function CopyMarkdown(): ReactNode {
           <Translate
             id="theme.docs.copyMarkdown.copied"
             description="Label of the copy-as-markdown button once the page has been copied">
-            Copié
+            Copied
           </Translate>
         ) : (
           <Translate
             id="theme.docs.copyMarkdown.copy"
             description="Label of the button that copies the page's markdown source">
-            Copier en Markdown
+            Copy as Markdown
           </Translate>
         )}
       </button>

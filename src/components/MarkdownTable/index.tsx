@@ -185,12 +185,12 @@ export default function MarkdownTable({children, ...props}: Props): ReactNode {
           onChange={(event) => setQuery(event.target.value)}
           placeholder={translate({
             id: 'theme.table.searchPlaceholder',
-            message: 'Rechercher dans le tableau…',
+            message: 'Search this table…',
             description: 'Placeholder of the search box above a markdown table',
           })}
           aria-label={translate({
             id: 'theme.table.searchLabel',
-            message: 'Rechercher dans le tableau',
+            message: 'Search this table',
             description: 'Accessible label of the search box above a markdown table',
           })}
         />
@@ -222,7 +222,7 @@ export default function MarkdownTable({children, ...props}: Props): ReactNode {
             <Translate
               id="theme.table.reset"
               description="Label of the button that clears the filters above a markdown table">
-              Réinitialiser
+              Reset
             </Translate>
           </button>
         ) : null}
@@ -250,7 +250,7 @@ export default function MarkdownTable({children, ...props}: Props): ReactNode {
           <Translate
             id="theme.table.noResults"
             description="Message shown when a markdown table's filters match no row">
-            Aucune ligne ne correspond.
+            No rows match.
           </Translate>
         </p>
       ) : null}

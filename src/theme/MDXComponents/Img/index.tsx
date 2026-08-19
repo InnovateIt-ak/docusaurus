@@ -207,7 +207,7 @@ export default function ImgWrapper({
                 <Translate
                   id="theme.image.showDiagram"
                   description="Label of the button that switches a diagram's source back to the rendered image">
-                  Diagramme
+                  Diagram
                 </Translate>
               ) : (
                 <Translate
@@ -228,7 +228,7 @@ export default function ImgWrapper({
             <Translate
               id="theme.image.openLink"
               description="Label of the link that opens an image or diagram in a new tab">
-              Ouvrir
+              Open
             </Translate>
           </a>
           <a
@@ -241,7 +241,7 @@ export default function ImgWrapper({
             <Translate
               id="theme.image.downloadLink"
               description="Label of the download link shown under an image or diagram">
-              Télécharger
+              Download
             </Translate>
           </a>
         </span>
