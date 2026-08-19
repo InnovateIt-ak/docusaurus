@@ -1,16 +1,16 @@
-// Process enfant : rend des diagrammes Mermaid en SVG, un Chromium pour toute
-// la durée de vie du process.
+// Child process: renders Mermaid diagrams to SVG, with one Chromium for the
+// whole lifetime of the process.
 //
-// Pourquoi un process séparé ? Docusaurus charge sa configuration (et donc le
-// plugin remark et ses imports) via jiti, qui réécrit `import.meta.url`. Or
-// `@mermaid-js/mermaid-cli` s'en sert pour localiser le bundle Mermaid ; sous
-// jiti il charge alors la mauvaise variante et échoue avec « require is not
-// defined ». Ici, ce script tourne sous un Node natif : `import.meta.url` est
-// correct et le rendu fonctionne.
+// Why a separate process? Docusaurus loads its configuration — and so the remark
+// plugin and everything it imports — through jiti, which rewrites
+// `import.meta.url`. `@mermaid-js/mermaid-cli` uses that to locate the Mermaid
+// bundle, so under jiti it loads the wrong variant and fails with "require is
+// not defined". Here the script runs under a plain Node: `import.meta.url` is
+// correct and rendering works.
 //
-// Protocole : une requête JSON par ligne sur stdin ({id, source}), une réponse
-// JSON par ligne sur stdout ({id, ok, svg} ou {id, ok, error}). Les requêtes
-// sont traitées en série pour ne jamais entrelacer deux réponses sur stdout.
+// Protocol: one JSON request per line on stdin ({id, source}), one JSON reply
+// per line on stdout ({id, ok, svg} or {id, ok, error}). Requests are handled
+// serially so two replies can never interleave on stdout.
 import readline from 'node:readline';
 import puppeteer from 'puppeteer';
 import {renderMermaid} from '@mermaid-js/mermaid-cli';
@@ -28,10 +28,10 @@ function getBrowser() {
     return browserPromise;
 }
 
-// Un pipe stdout cassé (le build parent s'est arrêté) ne doit PAS crasher cet
-// enfant via un event 'error' non géré : on traite EPIPE comme « le parent a
-// fermé, on s'arrête proprement » plutôt que de remonter un exit non nul qui
-// masquerait la vraie cause de l'échec du build.
+// A broken stdout pipe (the parent build has stopped) must NOT crash this child
+// through an unhandled 'error' event: EPIPE is treated as "the parent closed,
+// stop cleanly" rather than surfacing a non-zero exit that would mask the real
+// reason the build failed.
 function onPipeError(err) {
     if (err && (err.code === 'EPIPE' || err.code === 'ERR_STREAM_DESTROYED')) {
         process.exit(0);
@@ -42,7 +42,7 @@ process.stdout.on('error', onPipeError);
 process.stdin.on('error', onPipeError);
 
 function send(message) {
-    if (!process.stdout.writable) return; // parent déjà parti : rien à écrire
+    if (!process.stdout.writable) return; // parent already gone: nothing to write
     try {
         process.stdout.write(JSON.stringify(message) + '\n');
     } catch (err) {
@@ -50,7 +50,7 @@ function send(message) {
     }
 }
 
-// File d'attente série : un rendu à la fois, réponses non entrelacées.
+// Serial queue: one render at a time, replies never interleaved.
 let queue = Promise.resolve();
 
 function enqueue(request) {
@@ -91,7 +91,7 @@ rl.on('close', async () => {
         const browser = await browserPromise;
         await browser?.close();
     } catch {
-        /* déjà fermé */
+        /* already closed */
     }
     process.exit(0);
 });

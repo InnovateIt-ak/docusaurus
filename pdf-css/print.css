@@ -36,7 +36,7 @@ article p, article li, article td, article th {
 }
 
 /* ===== Auto-numbering of the TOC — fixed ===== */
-.toc-page { counter-reset: toc1; }   /* ⬅️ seulement toc1 ici, PAS toc2/3/4 */
+.toc-page { counter-reset: toc1; }   /* toc1 only here — NOT toc2/3/4 */
 
 .toc-item-1 { counter-increment: toc1; counter-reset: toc2 toc3 toc4; }
 .toc-item-2 { counter-increment: toc2; counter-reset: toc3 toc4; }
@@ -48,5 +48,5 @@ article p, article li, article td, article th {
 .toc-item-3 > a::before { content: counter(toc1) "." counter(toc2) "." counter(toc3) ". "; }
 .toc-item-4 > a::before { content: counter(toc1) "." counter(toc2) "." counter(toc3) "." counter(toc4) ". "; }
 
-/* kill the default <li> bullets (sinon tu as • + numéro) */
+/* Kill the default <li> bullets, otherwise you get a bullet AND a number. */
 .toc-item { list-style: none; display: block; }

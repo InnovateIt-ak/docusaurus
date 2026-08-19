@@ -1,20 +1,20 @@
-// Plugin remark : garde la source markdown de la page accessible côté client.
+// Remark plugin: keeps the page's markdown source reachable from the client.
 //
-// « Copier en Markdown » a besoin du texte que l'auteur a écrit, pas du DOM
-// rendu : les diagrammes y sont devenus des <img> en data-URL et les tableaux
-// des <table>. Reconstituer du markdown à partir de ça donnerait une mauvaise
-// copie de l'original alors que l'original est juste là, sur le vfile.
+// "Copy as Markdown" needs the text the author wrote, not the rendered DOM —
+// where diagrams have become data-URL <img>s and tables have become <table>s.
+// Rebuilding markdown from that would produce a poor copy of the original when
+// the original is right there, on the vfile.
 //
-// `String(file)` est le contenu brut du fichier : les plugins remark modifient
-// l'arbre, jamais `file.value`. Peu importe donc la position de ce plugin dans
-// la chaîne — il est placé en premier pour que ce soit explicite.
+// `String(file)` is the file's raw contents: remark plugins modify the tree,
+// never `file.value`. Where this plugin sits in the chain therefore makes no
+// difference — it is placed first so that is explicit.
 //
-// La source voyage dans un élément JSX <RawSource value="…" /> ajouté à
-// l'arbre ; le composant correspondant (src/components/RawSource) la dépose
-// dans le DOM sur un nœud caché, où le bouton la relit au clic.
+// The source travels in a <RawSource value="…" /> JSX element appended to the
+// tree; the matching component (src/components/RawSource) puts it in the DOM on
+// a hidden node, where the button reads it back on click.
 
-// Le front matter est de la mécanique de site (sidebar_position, id, …) et non
-// du contenu : le copier polluerait le presse-papier.
+// Front matter is site machinery (sidebar_position, id, …) rather than content:
+// copying it would only clutter the clipboard.
 const FRONT_MATTER = /^---\r?\n[\s\S]*?\r?\n---\r?\n?/;
 
 export default function remarkRawSource() {
