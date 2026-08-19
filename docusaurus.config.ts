@@ -7,6 +7,8 @@ import remarkInclude from './src/remark/include.mjs';
 import remarkPlantUMLInline from './src/remark/plantuml-inline.mjs';
 import remarkMermaidInline from './src/remark/mermaid-inline.mjs';
 import remarkServiceNowAutolink from './src/remark/servicenow-autolink.mjs';
+import remarkRawSource from './src/remark/raw-source.mjs';
+import remarkUnwrapDiagrams from './src/remark/unwrap-diagrams.mjs';
 import {FOOTER_CONFIG, NAV_BAR, REDOC_SPEC, WELCOME_PAGE} from './sharedConfig';
 const require = createRequire(import.meta.url);
 import {pdfMenuItems} from './pdfMenu';
@@ -67,9 +69,17 @@ const config: Config = {
                     // `#include`d content is expanded first, and any PlantUML
                     // blocks it contains are then picked up downstream.
                     beforeDefaultRemarkPlugins: [
+                        // First, so it captures the file as the author wrote it
+                        // — before includes are expanded and diagrams are
+                        // replaced by images. Feeds "Copy as Markdown".
+                        remarkRawSource,
                         remarkInclude,
                         remarkPlantUMLInline,
                         remarkMermaidInline,
+                        // After both diagram plugins: lifts a rendered diagram
+                        // out of its paragraph so the figure may hold block
+                        // content (the "Source" code block).
+                        remarkUnwrapDiagrams,
                         // Turn bare ServiceNow refs (INC123, CHG456, …) into links.
                         remarkServiceNowAutolink,
                     ],

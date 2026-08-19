@@ -15,6 +15,22 @@
   border-radius: 6px;
 }
 
+/* Showing the source replaces a picture — sized to itself — with a code block,
+   which wants the column instead of `fit-content`. */
+.figureSource {
+  width: 100%;
+}
+
+/* The code block brings its own card and margins; inside the figure the caption
+   supplies the spacing below, so drop the bottom one. */
+.source {
+  display: block;
+}
+
+.source > div {
+  margin-bottom: 0;
+}
+
 .caption {
   display: flex;
   align-items: baseline;
@@ -42,7 +58,15 @@
   align-items: center;
 }
 
+/* `.action` is used by both the anchors and the source toggle button; strip the
+   button chrome so the two read as one row of links. */
 .action {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;

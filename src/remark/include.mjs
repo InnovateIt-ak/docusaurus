@@ -42,14 +42,14 @@ export default function remarkInclude() {
             for (const target of targets) {
                 const abs = resolve(fromDir, target);
                 if (stack.includes(abs)) {
-                    throw new Error(`[remark-include] Inclusion circulaire détectée : ${abs}`);
+                    throw new Error(`[remark-include] Circular include detected: ${abs}`);
                 }
                 let raw;
                 try {
                     raw = readFileSync(abs, 'utf8');
                 } catch {
                     throw new Error(
-                        `[remark-include] Fichier introuvable : "${target}" (résolu en ${abs})`,
+                        `[remark-include] File not found: "${target}" (resolved to ${abs})`,
                     );
                 }
                 out.push(...parseAndExpand(raw, dirname(abs), [...stack, abs]));
