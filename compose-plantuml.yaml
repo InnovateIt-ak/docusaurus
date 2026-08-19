@@ -3,8 +3,24 @@ services:
     image: plantuml/plantuml-server:jetty
     ports:
       - "8080:8080"
+    # Keep the JVM inside a bounded footprint so a build cannot starve the host
+    # (a saturated host is what makes Docker's embedded DNS drop queries, which
+    # the plugin then reports as `getaddrinfo ENOTFOUND plantuml`), and bring the
+    # server back automatically if it ever does exit.
+    # `docker inspect <project>-plantuml-1 --format '{{.State.OOMKilled}} {{.RestartCount}}'`
+    # tells you whether it died at all — note the compose project name prefix.
+    restart: unless-stopped
+    mem_limit: 2g
     environment:
       PLANTUML_LIMIT_SIZE: "16384"
+      JAVA_OPTIONS: "-Xms256m -Xmx1g"
+      # Jetty caps the request line + headers at 8 KB by default. The remark
+      # plugin (src/remark/plantuml-inline.mjs) normally sends a diagram inside
+      # the URL path, and switches to POST above PLANTUML_MAX_URL_LENGTH
+      # (default 6000) so that cap is never reached. If this server rejects
+      # POST /svg with 404/405, add
+      # -Djetty.httpConfig.requestHeaderSize=65536 to JAVA_OPTIONS above and
+      # raise PLANTUML_MAX_URL_LENGTH to match.
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8080 || exit 1"]
       interval: 10s
