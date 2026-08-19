@@ -32,26 +32,57 @@ const RENDERABLE = new Map([
     ['c4plantuml', 'plantuml'],
 ]);
 
-// https://<host>/<diagram-type>/<output-format>/<encoded-source>
-const KROKI_URL = /^https?:\/\/([^/]*kroki[^/]*)\/([a-z0-9_-]+)\/[a-z0-9]+\/([A-Za-z0-9_-]+=*)$/i;
+// Is this a Kroki URL at all? Anything matching is reported on when it cannot be
+// converted — staying silent about those is what makes "it still goes to
+// kroki.io" impossible to diagnose.
+const KROKI_HOST = /^https?:\/\/[^/]*\bkroki\b[^/]*\//i;
 
-/** The diagram language and source behind a Kroki URL, or null if it is not one. */
-export function decodeKrokiUrl(url) {
-    const match = typeof url === 'string' && url.match(KROKI_URL);
-    if (!match) return null;
-    const lang = RENDERABLE.get(match[2].toLowerCase());
-    if (!lang) return null;
-    try {
-        // base64url — Kroki's alphabet — then raw zlib.
-        const source = inflateSync(
-            Buffer.from(match[3].replace(/-/g, '+').replace(/_/g, '/'), 'base64'),
-        ).toString('utf8');
-        return source.trim() ? {lang, source} : null;
-    } catch {
-        // A truncated or hand-edited URL is not worth failing a build over: the
-        // node is left as it was, and the reader sees the same image as before.
+// https://<host>/<diagram-type>/<output-format>/<encoded-source>, tolerating the
+// trailing slash and the query string that editors and copy-paste add.
+const KROKI_URL =
+    /^https?:\/\/[^/]*\bkroki\b[^/]*\/([a-z0-9_-]+)\/[a-z0-9]+\/([A-Za-z0-9_-]+=*)\/?(?:[?#].*)?$/i;
+
+/**
+ * What to do with a URL: null when it is none of our business, `{lang, source}`
+ * when it can be rendered here, `{skipped}` when it is a Kroki URL this plugin
+ * had to leave alone — and why.
+ */
+function inspect(url) {
+    if (typeof url !== 'string' || !KROKI_HOST.test(url)) {
         return null;
     }
+    const match = url.match(KROKI_URL);
+    if (!match) {
+        return {skipped: 'the URL is not in Kroki\'s /<type>/<format>/<data> shape'};
+    }
+    const type = match[1].toLowerCase();
+    const lang = RENDERABLE.get(type);
+    if (!lang) {
+        return {
+            skipped:
+                `"${type}" is not a diagram type this site renders ` +
+                `(${[...RENDERABLE.keys()].join(', ')})`,
+        };
+    }
+    let source;
+    try {
+        // base64url — Kroki's alphabet — then raw zlib.
+        source = inflateSync(
+            Buffer.from(match[2].replace(/-/g, '+').replace(/_/g, '/'), 'base64'),
+        ).toString('utf8');
+    } catch {
+        return {skipped: 'the encoded payload could not be inflated'};
+    }
+    if (!source.trim()) {
+        return {skipped: 'the encoded payload is empty'};
+    }
+    return {lang, source};
+}
+
+/** The diagram language and source behind a Kroki URL, or null if there is none. */
+export function decodeKrokiUrl(url) {
+    const result = inspect(url);
+    return result && !result.skipped ? result : null;
 }
 
 function toCodeBlock(node, {lang, source}) {
@@ -78,22 +109,31 @@ function jsxImageSrc(node) {
 }
 
 export default function remarkKrokiDecode() {
-    return (tree) => {
+    return (tree, file) => {
+        const where = file?.path ?? '(unknown file)';
+        let converted = 0;
+        const skipped = [];
+
+        const handle = (node, url) => {
+            const result = inspect(url);
+            if (!result) return;
+            if (result.skipped) {
+                skipped.push({url, reason: result.skipped});
+                return;
+            }
+            toCodeBlock(node, result);
+            converted += 1;
+        };
+
         // `![alt](https://kroki.io/…)`
-        visit(tree, 'image', (node) => {
-            const decoded = decodeKrokiUrl(node.url);
-            if (decoded) toCodeBlock(node, decoded);
-        });
+        visit(tree, 'image', (node) => handle(node, node.url));
 
         // `<img src="https://kroki.io/…" />` — what an editor actually writes.
         // MDX parses raw HTML into JSX elements, flow or text depending on
         // whether the tag sits on its own line. Note MDX requires the tag to be
         // self-closing: `<img …>` without the slash fails to compile at all.
         for (const type of ['mdxJsxFlowElement', 'mdxJsxTextElement']) {
-            visit(tree, type, (node) => {
-                const decoded = decodeKrokiUrl(jsxImageSrc(node));
-                if (decoded) toCodeBlock(node, decoded);
-            });
+            visit(tree, type, (node) => handle(node, jsxImageSrc(node)));
         }
 
         // The same tag as an untouched HTML string, for a CommonMark-formatted
@@ -102,8 +142,21 @@ export default function remarkKrokiDecode() {
         visit(tree, 'html', (node) => {
             const value = node.value?.trim() ?? '';
             if (!/^<img\b[^>]*>$/i.test(value)) return;
-            const decoded = decodeKrokiUrl(value.match(HTML_IMG_SRC)?.[1]);
-            if (decoded) toCodeBlock(node, decoded);
+            handle(node, value.match(HTML_IMG_SRC)?.[1]);
         });
+
+        // Say what happened. A build that still reaches kroki.io is otherwise
+        // indistinguishable from one where this plugin never ran at all, which
+        // is exactly the question a reader of the build log needs answered.
+        if (converted > 0) {
+            console.log(
+                `[kroki] ${where}: ${converted} diagram(s) decoded and rendered locally`,
+            );
+        }
+        for (const {url, reason} of skipped) {
+            console.warn(
+                `[kroki] ${where}: left ${url.slice(0, 60)}… pointing at kroki — ${reason}`,
+            );
+        }
     };
 }
