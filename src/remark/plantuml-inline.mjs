@@ -18,6 +18,19 @@ const MAX_INCLUDE_DEPTH = 10;
 // we POST the source in the request body instead, where no such cap applies.
 const MAX_URL_LENGTH = Number(process.env.PLANTUML_MAX_URL_LENGTH ?? 6000);
 const TIMEOUT_MS = Number(process.env.PLANTUML_TIMEOUT_MS ?? 120000);
+// Rendering a big diagram legitimately takes a while, so TIMEOUT_MS above is
+// generous. Establishing the TCP connection is not: on a Docker bridge network
+// a SYN to an address nothing answers for is black-holed rather than refused,
+// so without a separate, short connect deadline a wrong address costs the full
+// TIMEOUT_MS per attempt and the build looks hung instead of failing.
+const CONNECT_TIMEOUT_MS = Number(process.env.PLANTUML_CONNECT_TIMEOUT_MS ?? 10000);
+// How long a resolved address stays cached. A backstop for address changes that
+// arrive without a connection error to trigger invalidation.
+const DNS_CACHE_TTL_MS = Number(process.env.PLANTUML_DNS_CACHE_TTL_MS ?? 60000);
+// Diagrams render inside webpack's progress bar, which reports module counts and
+// nothing else. When a request outlives this, name it on stderr so a slow or
+// stuck PlantUML server is visible instead of looking like a frozen build.
+const STALL_WARN_MS = Number(process.env.PLANTUML_STALL_WARN_MS ?? 30000);
 // A crashed or restarting PlantUML container disappears from Docker's DNS, so
 // requests fail with ENOTFOUND/ECONNREFUSED for as long as it takes Jetty to
 // come back (roughly 10-20s). The retry window below spans that gap rather than
@@ -99,22 +112,65 @@ function describeCause(error) {
 // so a build that pins the CPU reports `getaddrinfo ENOTFOUND plantuml` even
 // though the container never went away. Resolve the server once and reuse the
 // address for the rest of the build instead of asking again per connection.
+//
+// The cache has to be able to be wrong: a restarted container comes back on a
+// different bridge address, and a cache that never expires would send every
+// remaining request of the build to an address nothing answers for. So entries
+// expire, and any connection-level failure drops the entry immediately — the
+// retry then re-resolves and finds the container where it now lives.
 let cachedAddress = null;
 
+function invalidateAddress() {
+    cachedAddress = null;
+}
+
 function cachingLookup(hostname, options, callback) {
-    if (cachedAddress?.hostname === hostname) {
-        const {address, family} = cachedAddress;
-        const hit = options?.all ? [{address, family}] : address;
-        process.nextTick(callback, null, hit, family);
+    const family = options?.family ?? 0;
+    const fresh = cachedAddress &&
+        cachedAddress.hostname === hostname &&
+        (family === 0 || cachedAddress.family === family) &&
+        Date.now() - cachedAddress.at < DNS_CACHE_TTL_MS;
+    if (fresh) {
+        const hit = options?.all
+            ? [{address: cachedAddress.address, family: cachedAddress.family}]
+            : cachedAddress.address;
+        process.nextTick(callback, null, hit, cachedAddress.family);
         return;
     }
-    dnsLookup(hostname, options, (error, address, family) => {
+    dnsLookup(hostname, options, (error, address, addressFamily) => {
         if (!error) {
-            const first = options?.all ? address[0] : {address, family};
-            if (first) cachedAddress = {hostname, address: first.address, family: first.family};
+            const first = options?.all ? address[0] : {address, family: addressFamily};
+            if (first) {
+                cachedAddress = {
+                    hostname,
+                    address: first.address,
+                    family: first.family,
+                    at: Date.now(),
+                };
+            }
         }
-        callback(error, address, family);
+        callback(error, address, addressFamily);
     });
+}
+
+// Codes that mean the connection never got established. Every one of them is a
+// reason to stop trusting the cached address: the server may simply have moved.
+const CONNECTION_ERROR_CODES = new Set([
+    'ECONNREFUSED',
+    'ECONNRESET',
+    'EHOSTUNREACH',
+    'ENETUNREACH',
+    'ENOTFOUND',
+    'EPIPE',
+    'ETIMEDOUT',
+    'PLANTUML_CONNECT_TIMEOUT',
+]);
+
+function isConnectionError(error) {
+    for (let e = error, depth = 0; e && depth < 5; e = e.cause, depth++) {
+        if (CONNECTION_ERROR_CODES.has(e.code)) return true;
+    }
+    return false;
 }
 
 function request({method, path, body}) {
@@ -149,7 +205,27 @@ function request({method, path, body}) {
         req.setTimeout(TIMEOUT_MS, () => {
             req.destroy(new Error(`no response within ${TIMEOUT_MS}ms`));
         });
-        req.on('error', reject);
+        // A much tighter deadline for the handshake alone. `socket.connecting`
+        // is false for a socket reused from the keep-alive pool, which needs no
+        // handshake and so gets no connect deadline.
+        req.on('socket', (socket) => {
+            if (!socket.connecting) return;
+            const timer = setTimeout(() => {
+                const error = new Error(
+                    `no connection to ${serverUrl.host} within ${CONNECT_TIMEOUT_MS}ms`
+                );
+                error.code = 'PLANTUML_CONNECT_TIMEOUT';
+                req.destroy(error);
+            }, CONNECT_TIMEOUT_MS);
+            const clear = () => clearTimeout(timer);
+            socket.once('connect', clear);
+            socket.once('close', clear);
+            req.once('error', clear);
+        });
+        req.on('error', (error) => {
+            if (isConnectionError(error)) invalidateAddress();
+            reject(error);
+        });
         if (body !== undefined) req.write(body);
         req.end();
     });
@@ -165,9 +241,27 @@ async function requestSvg(source) {
     return {...(await request({method: 'POST', path: '/svg', body: source})), method: 'POST', urlLength};
 }
 
+// Each diagram runs its own retry ladder, and the ladders run behind a socket
+// cap, so a server that is simply not there costs (RETRIES + 1) attempts per
+// diagram, serialised CONCURRENCY at a time: thirteen diagrams spend ten
+// minutes arriving at one answer the first of them already had. The first
+// ladder to exhaust itself against a connection error latches the verdict and
+// every other diagram — in flight or not yet started — fails on it at once.
+let unreachable = null;
+
+function unreachableHint() {
+    return (
+        `\n  Nothing answered at ${serverUrl.host}. If PlantUML runs as a compose service, check it is up` +
+        `\n  and on this container's network:  docker compose ps plantuml` +
+        `\n                                    getent hosts ${serverUrl.hostname}` +
+        `\n  Point PLANTUML_BUILD_URL elsewhere if the server lives outside the compose project.`
+    );
+}
+
 async function renderSvg(source) {
     let lastError;
     for (let attempt = 0; attempt <= RETRIES; attempt++) {
+        if (unreachable) throw unreachable;
         try {
             const {status, body, method, urlLength} = await requestSvg(source);
             if (status >= 200 && status < 300) {
@@ -194,10 +288,48 @@ async function renderSvg(source) {
             await new Promise((r) => setTimeout(r, Math.min(RETRY_BASE_MS * 2 ** attempt, 15000)));
         }
     }
-    throw new Error(
+    const failure = new Error(
         `PlantUML request failed after ${RETRIES + 1} attempt(s) against ${PLANTUML_BUILD_URL} — ` +
-        describeCause(lastError)
+        describeCause(lastError) +
+        (isConnectionError(lastError) ? unreachableHint() : '')
     );
+    if (isConnectionError(lastError)) unreachable = failure;
+    throw failure;
+}
+
+// Diagrams are fetched from inside webpack's progress bar, which reports module
+// counts and nothing else — a slow server is indistinguishable from a frozen
+// build. Name what is still outstanding so the wait is at least legible.
+const inFlight = new Map();
+let nextRequestId = 0;
+let watchdog = null;
+
+function startWatch(label) {
+    const id = nextRequestId++;
+    inFlight.set(id, {label, at: Date.now()});
+    if (!watchdog) {
+        watchdog = setInterval(() => {
+            const now = Date.now();
+            const stalled = [...inFlight.values()].filter((e) => now - e.at >= STALL_WARN_MS);
+            if (stalled.length === 0) return;
+            const worst = stalled.reduce((a, b) => (a.at < b.at ? a : b));
+            console.warn(
+                `[plantuml] ${stalled.length} diagram(s) still waiting on ${PLANTUML_BUILD_URL} after ` +
+                `${Math.round((now - worst.at) / 1000)}s — e.g. ${worst.label}`
+            );
+        }, STALL_WARN_MS);
+        // Never let the reporter be the reason the process stays alive.
+        watchdog.unref?.();
+    }
+    return id;
+}
+
+function endWatch(id) {
+    inFlight.delete(id);
+    if (inFlight.size === 0 && watchdog) {
+        clearInterval(watchdog);
+        watchdog = null;
+    }
 }
 
 // Docusaurus compiles the client and server bundles from the same process, so
@@ -215,10 +347,13 @@ async function fetchSvg(source, label) {
         pending.catch(() => svgCache.delete(key));
         svgCache.set(key, pending);
     }
+    const watchId = startWatch(label);
     try {
         return await pending;
     } catch (error) {
         throw new Error(`${label}: ${error.message}`);
+    } finally {
+        endWatch(watchId);
     }
 }
 
