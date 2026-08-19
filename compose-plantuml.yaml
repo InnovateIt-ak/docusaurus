@@ -3,15 +3,24 @@ services:
     image: plantuml/plantuml-server:jetty
     ports:
       - "8080:8080"
+    # The container disappearing mid-build (its DNS name stops resolving, so the
+    # remark plugin reports `getaddrinfo ENOTFOUND plantuml`) means Jetty died —
+    # usually the JVM growing until the Docker VM kills it. Cap the heap so the
+    # JVM stays inside a bounded footprint, and bring the server straight back if
+    # it does exit. `docker inspect plantuml --format '{{.State.OOMKilled}} {{.RestartCount}}'`
+    # tells you whether that is what happened.
+    restart: unless-stopped
+    mem_limit: 2g
     environment:
       PLANTUML_LIMIT_SIZE: "16384"
+      JAVA_OPTIONS: "-Xms256m -Xmx1g"
       # Jetty caps the request line + headers at 8 KB by default. The remark
       # plugin (src/remark/plantuml-inline.mjs) normally sends a diagram inside
       # the URL path, and switches to POST above PLANTUML_MAX_URL_LENGTH
       # (default 6000) so that cap is never reached. If this server rejects
-      # POST /svg with 404/405, uncomment the line below and raise
-      # PLANTUML_MAX_URL_LENGTH to match.
-      # JAVA_OPTIONS: "-Djetty.httpConfig.requestHeaderSize=65536 -Djetty.httpConfig.responseHeaderSize=65536"
+      # POST /svg with 404/405, add
+      # -Djetty.httpConfig.requestHeaderSize=65536 to JAVA_OPTIONS above and
+      # raise PLANTUML_MAX_URL_LENGTH to match.
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8080 || exit 1"]
       interval: 10s

@@ -17,7 +17,12 @@ const MAX_INCLUDE_DEPTH = 10;
 // we POST the source in the request body instead, where no such cap applies.
 const MAX_URL_LENGTH = Number(process.env.PLANTUML_MAX_URL_LENGTH ?? 6000);
 const TIMEOUT_MS = Number(process.env.PLANTUML_TIMEOUT_MS ?? 120000);
-const RETRIES = Number(process.env.PLANTUML_RETRIES ?? 2);
+// A crashed or restarting PlantUML container disappears from Docker's DNS, so
+// requests fail with ENOTFOUND/ECONNREFUSED for as long as it takes Jetty to
+// come back (roughly 10-20s). The retry window below spans that gap rather than
+// failing the whole build on a restart.
+const RETRIES = Number(process.env.PLANTUML_RETRIES ?? 5);
+const RETRY_BASE_MS = Number(process.env.PLANTUML_RETRY_BASE_MS ?? 1000);
 // Hard cap on sockets held open against the PlantUML server, process-wide.
 // Docusaurus builds the client and server bundles concurrently and compiles
 // many MDX files in parallel, so a request-per-diagram burst can fill Jetty's
@@ -161,7 +166,7 @@ async function renderSvg(source) {
             lastError = error;
         }
         if (attempt < RETRIES) {
-            await new Promise((r) => setTimeout(r, 500 * 2 ** attempt));
+            await new Promise((r) => setTimeout(r, Math.min(RETRY_BASE_MS * 2 ** attempt, 15000)));
         }
     }
     throw new Error(
