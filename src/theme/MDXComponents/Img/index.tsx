@@ -1,6 +1,5 @@
 import {useState, type ComponentProps, type MouseEvent, type ReactNode} from 'react';
 import Img from '@theme-original/MDXComponents/Img';
-import CodeBlock from '@theme/CodeBlock';
 import Translate from '@docusaurus/Translate';
 import styles from './styles.module.css';
 
@@ -181,10 +180,15 @@ export default function ImgWrapper({
         showSource && diagramSource ? ` ${styles.figureSource}` : ''
       }`}>
       {showSource && diagramSource ? (
-        <span className={styles.source}>
-          {/* Prism ships no plantuml or mermaid grammar, so the language is
-              recorded on the block for styling/copy but not highlighted. */}
-          <CodeBlock language={diagramLang ?? 'text'}>{diagramSource}</CodeBlock>
+        // A <span> styled as a block, for the same reason the caption is one:
+        // this lives inside the <p> that wraps a markdown image, and @theme/CodeBlock
+        // renders <div><pre>. The parser closes the <p> at a block child, so the
+        // server and client trees disagree and React throws the subtree away —
+        // which looked like the source appearing and vanishing again.
+        // Prism ships no plantuml or mermaid grammar, so there was no
+        // highlighting to lose; the language is kept as an attribute.
+        <span className={styles.source} data-language={diagramLang ?? 'text'}>
+          {diagramSource}
         </span>
       ) : (
         <Img {...props} />
