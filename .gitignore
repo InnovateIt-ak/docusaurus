@@ -33,3 +33,6 @@ src/components/likec4
 
 output
 out
+
+# Generated API data-model page (scripts/generate_schema_doc.py)
+/docs/openapi/data-model.md

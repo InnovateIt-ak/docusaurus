@@ -12,6 +12,7 @@
     "serve": "docusaurus serve",
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
+    "docs:schema": "python3 scripts/generate_schema_doc.py openapi/petstore.yaml docs/openapi/data-model.md --sidebar-position 1",
     "typecheck": "tsc",
     "build-likec4-react": "likec4 codegen react likec4 --no-use-dot --outfile ./src/components/likec4/likec4.generated.js",
     "build-likec4-webcomponent": "likec4 codegen webcomponent likec4 --no-use-dot -o ./static/likec4-webcomponent.js",
