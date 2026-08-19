@@ -25,6 +25,12 @@ const config: Config = {
         organizationName: process.env.G_ORGANIZATION_NAME,
         projectName: process.env.G_PROJECT_NAME,
         baseUrl: process.env.G_BASE_URL,
+        // Base URL of a self-hosted Open WebUI, e.g. https://chat.internal.
+        // When set, each doc page offers "Open in → Open WebUI" alongside the
+        // hosted assistants (src/components/PageActions). Unset, the entry is
+        // simply not shown — there is no sensible default for a self-hosted
+        // instance.
+        openWebUiUrl: process.env.G_OPENWEBUI_URL ?? null,
         // Landing-page hero copy for the custom home page (src/pages/index.tsx).
         // Falls back to title/tagline when unset.
         home: {
