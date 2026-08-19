@@ -5,6 +5,7 @@ import {dirname, isAbsolute, resolve} from 'node:path';
 import {createHash} from 'node:crypto';
 import http from 'node:http';
 import https from 'node:https';
+import {lookup as dnsLookup} from 'node:dns';
 
 const PLANTUML_BUILD_URL =
     process.env.PLANTUML_BUILD_URL ?? 'http://localhost:8080';
@@ -93,6 +94,29 @@ function describeCause(error) {
 // node:http rather than fetch: undici's 10s connect timeout is not reachable
 // through the fetch options, and only an http.Agent gives a process-wide socket
 // cap that queues instead of piling up half-open connections.
+// Docker's embedded DNS (127.0.0.11) answers over UDP and silently drops
+// queries when the host is saturated, and Node's getaddrinfo does not retry —
+// so a build that pins the CPU reports `getaddrinfo ENOTFOUND plantuml` even
+// though the container never went away. Resolve the server once and reuse the
+// address for the rest of the build instead of asking again per connection.
+let cachedAddress = null;
+
+function cachingLookup(hostname, options, callback) {
+    if (cachedAddress?.hostname === hostname) {
+        const {address, family} = cachedAddress;
+        const hit = options?.all ? [{address, family}] : address;
+        process.nextTick(callback, null, hit, family);
+        return;
+    }
+    dnsLookup(hostname, options, (error, address, family) => {
+        if (!error) {
+            const first = options?.all ? address[0] : {address, family};
+            if (first) cachedAddress = {hostname, address: first.address, family: first.family};
+        }
+        callback(error, address, family);
+    });
+}
+
 function request({method, path, body}) {
     return new Promise((resolve, reject) => {
         const headers = {Accept: 'image/svg+xml, text/plain'};
@@ -109,6 +133,7 @@ function request({method, path, body}) {
                 method,
                 agent,
                 headers,
+                lookup: cachingLookup,
             },
             (res) => {
                 const chunks = [];

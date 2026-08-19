@@ -3,12 +3,12 @@ services:
     image: plantuml/plantuml-server:jetty
     ports:
       - "8080:8080"
-    # The container disappearing mid-build (its DNS name stops resolving, so the
-    # remark plugin reports `getaddrinfo ENOTFOUND plantuml`) means Jetty died —
-    # usually the JVM growing until the Docker VM kills it. Cap the heap so the
-    # JVM stays inside a bounded footprint, and bring the server straight back if
-    # it does exit. `docker inspect plantuml --format '{{.State.OOMKilled}} {{.RestartCount}}'`
-    # tells you whether that is what happened.
+    # Keep the JVM inside a bounded footprint so a build cannot starve the host
+    # (a saturated host is what makes Docker's embedded DNS drop queries, which
+    # the plugin then reports as `getaddrinfo ENOTFOUND plantuml`), and bring the
+    # server back automatically if it ever does exit.
+    # `docker inspect <project>-plantuml-1 --format '{{.State.OOMKilled}} {{.RestartCount}}'`
+    # tells you whether it died at all — note the compose project name prefix.
     restart: unless-stopped
     mem_limit: 2g
     environment:
