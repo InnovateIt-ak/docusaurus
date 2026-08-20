@@ -54,7 +54,12 @@
 .actions {
   flex: 0 0 auto;
   display: flex;
-  gap: 1.1rem;
+  /* Four actions on a diagram (source, Open WebUI, open, download) outgrow a
+     narrow column, and the figure is sized to its widest child — so let the row
+     wrap rather than push the figure past the text. */
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.35rem 1.1rem;
   align-items: center;
 }
 

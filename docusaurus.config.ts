@@ -27,11 +27,17 @@ const config: Config = {
         projectName: process.env.G_PROJECT_NAME,
         baseUrl: process.env.G_BASE_URL,
         // Base URL of a self-hosted Open WebUI, e.g. https://chat.internal.
-        // When set, each doc page offers "Open in → Open WebUI" alongside the
-        // hosted assistants (src/components/PageActions). Unset, the entry is
-        // simply not shown — there is no sensible default for a self-hosted
-        // instance.
+        // When set, every rendered diagram offers "Open WebUI" in its caption,
+        // opening a chat on that diagram's source (src/openWebUi.tsx). Unset,
+        // the action is simply not shown — there is no sensible default for a
+        // self-hosted instance.
         openWebUiUrl: process.env.G_OPENWEBUI_URL ?? null,
+        // How much of a diagram that button may put in the URL, in encoded
+        // characters. The 8 KB default is what an unconfigured Open WebUI
+        // (uvicorn, usually behind nginx) accepts, and no diagram here comes
+        // close to it; raise it only for an instance whose proxy takes more and
+        // a diagram large enough to need it.
+        openWebUiMaxUrl: process.env.G_OPENWEBUI_MAX_URL ?? null,
         // Landing-page hero copy for the custom home page (src/pages/index.tsx).
         // Falls back to title/tagline when unset.
         home: {
@@ -76,9 +82,13 @@ const config: Config = {
                     // `#include`d content is expanded first, and any PlantUML
                     // blocks it contains are then picked up downstream.
                     beforeDefaultRemarkPlugins: [
-                        // First, so it captures the file as the author wrote it
-                        // — before includes are expanded and diagrams are
-                        // replaced by images. Feeds "Copy as Markdown".
+                        // Reads the vfile's text rather than the tree, so
+                        // its position in this list is cosmetic: it captures
+                        // the file as the author wrote it, then resolves the
+                        // `#include`s and .puml/.mmd references in it itself,
+                        // so what is copied or sent to a chat model is content
+                        // and not a set of paths. Feeds "Copy as Markdown" and
+                        // "Open in Open WebUI".
                         remarkRawSource,
                         remarkInclude,
                         // Before the diagram plugins: recovers the source from a
