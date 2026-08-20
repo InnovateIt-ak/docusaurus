@@ -35,4 +35,4 @@ output
 out
 
 # Generated API data-model page (plugins/openapi-schema-doc)
-/docs/openapi/data-model.md
+/docs/architecture/data-model.md

@@ -101,8 +101,8 @@ const config: Config = {
                 specs: [
                     {
                         spec: 'openapi/petstore.yaml',
-                        out: 'docs/openapi/data-model.md',
-                        sidebarPosition: 1,
+                        out: 'docs/architecture/data-model.md',
+                        title: 'API data model',
                     },
                 ],
             },
