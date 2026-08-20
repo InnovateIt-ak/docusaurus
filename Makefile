@@ -11,10 +11,3 @@ ci-no-cache:
 .PHONY: base
 base:
 	docker compose -f compose.base.yaml build --no-cache && docker compose -f compose.base.yaml up -d --force-recreate
-
-# Regenerate docs/openapi/data-model.md from the OpenAPI spec (same command
-# the deploy workflow runs before building the site).
-.PHONY: schema-doc
-schema-doc:
-	python3 -m pip install --quiet -r scripts/requirements.txt
-	python3 scripts/generate_schema_doc.py openapi/petstore.yaml docs/openapi/data-model.md --sidebar-position 1

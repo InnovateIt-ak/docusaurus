@@ -104,22 +104,6 @@ jobs:
           done
           echo "::warning::PlantUML server did not become ready; diagrams may render as placeholders"
 
-      # Turn the OpenAPI spec's `components.schemas` into a Markdown page
-      # (docs/openapi/data-model.md) so the data model is documented next to the
-      # Redoc pages. The output is generated, not committed (see .gitignore);
-      # run `npm run docs:schema` (or `make schema-doc`) to get it locally.
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-          cache: 'pip'
-          cache-dependency-path: scripts/requirements.txt
-
-      - name: Generate OpenAPI data-model page
-        run: |
-          python -m pip install --disable-pip-version-check -r scripts/requirements.txt
-          npm run docs:schema
-
       - name: Build Docusaurus
         # Authenticates the changelog plugin's GitHub Releases fetch (lifts the
         # rate limit, reads this repo's releases). The workflow's built-in

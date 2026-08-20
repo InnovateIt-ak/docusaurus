@@ -34,5 +34,5 @@ src/components/likec4
 output
 out
 
-# Generated API data-model page (scripts/generate_schema_doc.py)
+# Generated API data-model page (plugins/openapi-schema-doc)
 /docs/openapi/data-model.md

@@ -92,6 +92,21 @@ const config: Config = {
         ],
     ],
     plugins: [
+        // API data model: render openapi/petstore.yaml's components.schemas as a
+        // docs page (plugins/openapi-schema-doc). Generated on the fly at build
+        // time and regenerated on spec edits in dev — the page is not committed.
+        [
+            './plugins/openapi-schema-doc',
+            {
+                specs: [
+                    {
+                        spec: 'openapi/petstore.yaml',
+                        out: 'docs/openapi/data-model.md',
+                        sidebarPosition: 1,
+                    },
+                ],
+            },
+        ],
         // Changelog: fetch GitHub Releases at build time and expose them as
         // global data for the /changelog page (plugins/changelog).
         './plugins/changelog',
