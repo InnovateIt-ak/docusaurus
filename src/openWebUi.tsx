@@ -2,14 +2,23 @@
 // it: the page actions above the title (src/components/PageActions) and the
 // caption under each diagram (src/theme/MDXComponents/Img).
 //
-// What is sent is put *inside* the link rather than linked to. Open WebUI can
-// fetch a URL itself (`load-url=`), and being self-hosted it can reach this
-// site — but what it would fetch is the rendered page: navigation, sidebar,
-// footer, and diagrams as data-URL images. The markdown source makes a far
-// better prompt, and sending it needs no network path from the Open WebUI host
-// back to this one.
+// What is sent is put *inside* the link rather than linked to, which is the
+// unusual choice here: the mature docs sites that offer this (Mintlify, the
+// llms.txt plugins) publish each page as markdown at a URL and send only that
+// URL. Open WebUI supports it — `?load-url=` fetches a URL and attaches it to
+// the chat as a document — and the markdown to serve is already computed at
+// build time by src/remark/raw-source.mjs. It would carry a whole page in a
+// 200-character link, with none of the budgeting below.
 //
-// That costs a length limit; see `maxUrlLength` below.
+// It is not used because the fetch would come from the Open WebUI *host*, not
+// from the reader's browser, and this site is a private GitHub Pages: that
+// request arrives at a GitHub login page and comes back with no documentation
+// in it. Anything link-based fails the same way for as long as the site is
+// private, which is also why there is no llms.txt — an index only helps a tool
+// that can reach what it indexes.
+//
+// Putting the text in the link needs no path from the Open WebUI host back
+// here, at the cost of a length limit; see `maxUrlLength` below.
 
 import type {ReactNode} from 'react';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
