@@ -32,8 +32,8 @@ services:
       # Base URL of a self-hosted Open WebUI, if there is one. Set it in the
       # host environment to add "Open in → Open WebUI" to every doc page.
       G_OPENWEBUI_URL: ${G_OPENWEBUI_URL:-}
-      # Optional: raise the 8 KB cap on how much of a page goes in that button's
-      # URL, if the Open WebUI instance sits behind a proxy that accepts more.
+      # Optional: raise the 8 KB cap on how much of a diagram goes in that
+      # button's URL, if the instance sits behind a proxy that accepts more.
       G_OPENWEBUI_MAX_URL: ${G_OPENWEBUI_MAX_URL:-}
       DOCUSAURUS_IGNORE_SSG_WARNINGS: true
     volumes:

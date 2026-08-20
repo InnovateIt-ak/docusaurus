@@ -1,6 +1,11 @@
-// Sending things to a self-hosted Open WebUI, shared by the two places that do
-// it: the page actions above the title (src/components/PageActions) and the
-// caption under each diagram (src/theme/MDXComponents/Img).
+// Sending a diagram to a self-hosted Open WebUI, from the caption under it
+// (src/theme/MDXComponents/Img).
+//
+// A page-level version of this used to sit above the title as well. It was
+// dropped: a whole page is the wrong thing to hand a model when the question is
+// about one diagram, and it was the only caller big enough to hit the limit
+// below — every diagram in the site fits in half the budget, while a page of
+// them does not fit at all.
 //
 // What is sent is put *inside* the link rather than linked to, which is the
 // unusual choice here: the mature docs sites that offer this (Mintlify, the
@@ -22,15 +27,17 @@
 
 import type {ReactNode} from 'react';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import {copyToClipboard} from '@site/src/clipboard';
 
 // The browser would take far more, but a default Open WebUI sits behind
 // uvicorn, and usually nginx, both of which stop at roughly 8 KB of request
 // line — and a rejected link is worse than a shortened one.
 //
-// 8 KB is what an unconfigured instance accepts, so it is the default. A page
-// whose diagrams and included fragments are all expanded (src/remark/raw-source)
-// can easily go past it, and how much more a *particular* instance takes is a
-// property of its own proxy — hence `G_OPENWEBUI_MAX_URL` to raise it.
+// 8 KB is what an unconfigured instance accepts, so it is the default. No
+// diagram in the site comes close — the largest reaches about half the budget —
+// so this is a backstop for an outsized one rather than a limit reached in
+// normal use. How much more a *particular* instance takes is a property of its
+// own proxy, hence `G_OPENWEBUI_MAX_URL` to raise it.
 const DEFAULT_MAX_URL_LENGTH = 8000;
 
 /**
@@ -88,24 +95,6 @@ function fitToBudget(text: string, budget: number): {text: string; truncated: bo
   };
 }
 
-export async function copyToClipboard(text: string): Promise<void> {
-  try {
-    await navigator.clipboard.writeText(text);
-  } catch {
-    // Clipboard access is denied outside a secure context (plain http, which is
-    // how the site is served in the dev container). Fall back to a
-    // selection-based copy rather than doing nothing.
-    const area = document.createElement('textarea');
-    area.value = text;
-    area.style.position = 'fixed';
-    area.style.opacity = '0';
-    document.body.appendChild(area);
-    area.select();
-    document.execCommand('copy');
-    area.remove();
-  }
-}
-
 /**
  * The page's own title, without the site name the browser tab appends.
  *
@@ -120,7 +109,7 @@ export function pageTitle(siteTitle: string): string {
 type Ask = {
   /** The sentence before the material: what this is, and what to do with it. */
   intro: string;
-  /** The material itself — markdown, or a fenced diagram source. */
+  /** The material itself: a fenced diagram source. */
   body: string;
 };
 
