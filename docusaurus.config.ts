@@ -92,19 +92,15 @@ const config: Config = {
         ],
     ],
     plugins: [
-        // API data model: render openapi/petstore.yaml's components.schemas as a
-        // docs page (plugins/openapi-schema-doc). Generated on the fly at build
-        // time and regenerated on spec edits in dev — the page is not committed.
+        // API data models: render every spec in openapi/ as a docs page under
+        // docs/architecture/api (plugins/openapi-schema-doc). Discovered, not
+        // listed: dropping a new spec in openapi/ is enough to get its page.
+        // Generated on the fly at build time, regenerated on spec edits in dev,
+        // and not committed (see .gitignore).
         [
             './plugins/openapi-schema-doc',
             {
-                specs: [
-                    {
-                        spec: 'openapi/petstore.yaml',
-                        out: 'docs/architecture/data-model.md',
-                        title: 'API data model',
-                    },
-                ],
+                discover: [{dir: 'openapi', outDir: 'docs/architecture/api'}],
             },
         ],
         // Changelog: fetch GitHub Releases at build time and expose them as

@@ -34,5 +34,8 @@ src/components/likec4
 output
 out
 
-# Generated API data-model page (plugins/openapi-schema-doc)
-/docs/architecture/data-model.md
+# Generated API data-model pages (plugins/openapi-schema-doc): one per spec in
+# openapi/. The whole folder is generated except its category label, so a new
+# spec needs no .gitignore change.
+/docs/architecture/api/*
+!/docs/architecture/api/_category_.json
