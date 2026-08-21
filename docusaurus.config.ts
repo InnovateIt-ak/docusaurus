@@ -4,9 +4,12 @@ import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 import {createRequire} from 'node:module';
 import remarkInclude from './src/remark/include.mjs';
+import remarkKrokiDecode from './src/remark/kroki-decode.mjs';
 import remarkPlantUMLInline from './src/remark/plantuml-inline.mjs';
 import remarkMermaidInline from './src/remark/mermaid-inline.mjs';
 import remarkServiceNowAutolink from './src/remark/servicenow-autolink.mjs';
+import remarkRawSource from './src/remark/raw-source.mjs';
+import remarkUnwrapDiagrams from './src/remark/unwrap-diagrams.mjs';
 import {FOOTER_CONFIG, NAV_BAR, REDOC_SPEC, WELCOME_PAGE} from './sharedConfig';
 const require = createRequire(import.meta.url);
 import {pdfMenuItems} from './pdfMenu';
@@ -23,6 +26,18 @@ const config: Config = {
         organizationName: process.env.G_ORGANIZATION_NAME,
         projectName: process.env.G_PROJECT_NAME,
         baseUrl: process.env.G_BASE_URL,
+        // Base URL of a self-hosted Open WebUI, e.g. https://chat.internal.
+        // When set, every rendered diagram offers "Open WebUI" in its caption,
+        // opening a chat on that diagram's source (src/openWebUi.tsx). Unset,
+        // the action is simply not shown — there is no sensible default for a
+        // self-hosted instance.
+        openWebUiUrl: process.env.G_OPENWEBUI_URL ?? null,
+        // How much of a diagram that button may put in the URL, in encoded
+        // characters. The 8 KB default is what an unconfigured Open WebUI
+        // (uvicorn, usually behind nginx) accepts, and no diagram here comes
+        // close to it; raise it only for an instance whose proxy takes more and
+        // a diagram large enough to need it.
+        openWebUiMaxUrl: process.env.G_OPENWEBUI_MAX_URL ?? null,
         // Landing-page hero copy for the custom home page (src/pages/index.tsx).
         // Falls back to title/tagline when unset.
         home: {
@@ -67,9 +82,25 @@ const config: Config = {
                     // `#include`d content is expanded first, and any PlantUML
                     // blocks it contains are then picked up downstream.
                     beforeDefaultRemarkPlugins: [
+                        // Reads the vfile's text rather than the tree, so
+                        // its position in this list is cosmetic: it captures
+                        // the file as the author wrote it, then resolves the
+                        // `#include`s and .puml/.mmd references in it itself,
+                        // so what is copied or sent to a chat model is content
+                        // and not a set of paths. Feeds "Copy as Markdown" and
+                        // "Open in Open WebUI".
+                        remarkRawSource,
                         remarkInclude,
+                        // Before the diagram plugins: recovers the source from a
+                        // kroki.io image URL so the diagram is rendered here
+                        // instead of fetched from a third party.
+                        remarkKrokiDecode,
                         remarkPlantUMLInline,
                         remarkMermaidInline,
+                        // After both diagram plugins: lifts a rendered diagram
+                        // out of its paragraph so the figure may hold block
+                        // content (the "Source" code block).
+                        remarkUnwrapDiagrams,
                         // Turn bare ServiceNow refs (INC123, CHG456, …) into links.
                         remarkServiceNowAutolink,
                     ],

@@ -4,18 +4,18 @@
 #include "_sections/level-1-context.md"
 #include "_sections/level-2-components.md"
 
-you can use _folder you create réusable md
+you can use a _folder to create reusable md
 
 ```
 #include "_sections/level-1-context.md"
 #include "_sections/level-2-components.md"
 ```
 
-Le flow OIDC complet : [C4 Core Diagrams](https://github.com/plantuml-stdlib/C4-PlantUML/blob/master/samples/C4CoreDiagrams.md)
+The full OIDC flow: [C4 Core Diagrams](https://github.com/plantuml-stdlib/C4-PlantUML/blob/master/samples/C4CoreDiagrams.md)
 
 ![Authentication flow](../plantuml/auth-flow.puml)
 
-Détail du refresh token :
+Refresh token detail:
 
 ```plantuml
 @startuml

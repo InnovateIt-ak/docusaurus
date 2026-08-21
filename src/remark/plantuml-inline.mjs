@@ -365,6 +365,18 @@ async function toDataUrlImage(node, source, baseDir, label) {
     node.url = `data:image/svg+xml;base64,${base64}`;
     node.alt = node.alt || 'PlantUML diagram';
     node.title = null;
+    // Carry the source through to the browser so the rendered diagram can be
+    // flipped back to its code. `data.hProperties` is merged into the element by
+    // mdast-to-hast, so these arrive as props on the MDX <img> component.
+    // The pre-include source is the one the author wrote and recognises.
+    node.data = {
+        ...node.data,
+        hProperties: {
+            ...node.data?.hProperties,
+            'data-diagram-source': source,
+            'data-diagram-lang': 'plantuml',
+        },
+    };
     delete node.lang;
     delete node.meta;
     delete node.value;

@@ -78,7 +78,7 @@ export function pdfMenuItems(): PdfMenuItem[] {
                     if (typeof cat.label === 'string') label = cat.label;
                     if (typeof cat.position === 'number') position = cat.position;
                 } catch {
-                    /* _category_.json invalide → on garde le slug comme label */
+                    /* Invalid _category_.json: keep the slug as the label. */
                 }
             }
             items.push({to: `pathname:///${slug}.pdf`, label, position});

@@ -1,14 +1,56 @@
-import type {ComponentProps, MouseEvent, ReactNode} from 'react';
+import {useState, type ComponentProps, type MouseEvent, type ReactNode} from 'react';
 import Img from '@theme-original/MDXComponents/Img';
-import Translate from '@docusaurus/Translate';
+import CodeBlock from '@theme/CodeBlock';
+import Translate, {translate} from '@docusaurus/Translate';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import {ChatIcon, pageTitle, useOpenWebUi} from '@site/src/openWebUi';
 import styles from './styles.module.css';
 
-type Props = ComponentProps<'img'>;
+// The remark plugins that render PlantUML/Mermaid at build time attach the
+// diagram's own source to the <img> (see src/remark/*-inline.mjs), so the
+// rendered picture can be flipped back to the code it came from.
+type Props = ComponentProps<'img'> & {
+  'data-diagram-source'?: string;
+  'data-diagram-lang'?: string;
+  // Set by src/remark/unwrap-diagrams.mjs on diagrams it lifted out of their
+  // paragraph. Its presence is the guarantee that this figure may contain block
+  // content — see the toggle below.
+  'data-diagram-block'?: string;
+};
 
 // Mermaid/PlantUML diagrams are rendered at build time as inline SVG data URLs.
 // The alt text authors write is unreliable, so a diagram is detected from its
 // data:image/svg source (or a known diagram alt as a fallback).
 const DIAGRAM_ALTS = new Set(['Mermaid diagram', 'PlantUML diagram']);
+
+// How each diagram language is written in prose, for the sentence that
+// introduces the source to the model.
+const LANGUAGE_NAMES: Record<string, string> = {
+  plantuml: 'PlantUML',
+  mermaid: 'Mermaid',
+};
+
+/**
+ * The sentence sent ahead of a diagram's source, naming what it is and where
+ * it comes from.
+ *
+ * The alt text is used only when the author wrote one: the diagram plugins fill
+ * an empty alt with "PlantUML diagram", which names the format and not the
+ * diagram, and the language is already being said.
+ */
+function diagramIntro(
+  alt: string | undefined,
+  lang: string | undefined,
+  siteTitle: string,
+): string {
+  const language = LANGUAGE_NAMES[lang ?? ''];
+  const subject = alt && !DIAGRAM_ALTS.has(alt) ? `the "${alt}" diagram` : 'a diagram';
+  return (
+    `Here is the ${language ? `${language} ` : ''}source of ${subject} from the ` +
+    `"${pageTitle(siteTitle)}" page of the ${siteTitle} documentation. ` +
+    `Read it, then help me with my questions about it.`
+  );
+}
 
 function isDiagram(src: string, alt: string | undefined): boolean {
   return src.startsWith('data:image/svg') || (alt != null && DIAGRAM_ALTS.has(alt));
@@ -100,12 +142,72 @@ function DownloadIcon(): ReactNode {
   );
 }
 
+function CodeIcon(): ReactNode {
+  return (
+    <svg
+      className={styles.icon}
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true">
+      <path d="M9 7l-5 5 5 5" />
+      <path d="M15 7l5 5-5 5" />
+    </svg>
+  );
+}
+
+function ImageIcon(): ReactNode {
+  return (
+    <svg
+      className={styles.icon}
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true">
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <circle cx="8.5" cy="10" r="1.5" />
+      <path d="M21 16l-5-5-6 6" />
+    </svg>
+  );
+}
+
 // Adds a small caption under each image with a link to download it — including
 // build-time diagrams, so a reader can grab the SVG. Structured with <span>s
 // (not <figure>/<figcaption>) because a markdown image renders as <p><img></p>,
 // and a block <figure> inside a <p> is invalid and breaks hydration —
 // inline-level spans styled as blocks stay valid.
-export default function ImgWrapper(props: Props): ReactNode {
+export default function ImgWrapper({
+  'data-diagram-source': diagramSource,
+  'data-diagram-lang': diagramLang,
+  'data-diagram-block': diagramBlock,
+  ...props
+}: Props): ReactNode {
+  // The source lives on the <img> only to travel from the build to the browser.
+  // It is read here and dropped from the props, so the same few kilobytes are
+  // not also emitted as an attribute on every diagram in the page.
+  const [showSource, setShowSource] = useState(false);
+  const {siteConfig} = useDocusaurusContext();
+  const {base: chatBase, ask} = useOpenWebUi();
+  // The source renders as a CodeBlock, which is `<div><pre>`. A markdown image
+  // normally sits inside a `<p>`, and a `<p>` is closed by the parser at its
+  // first block child — the server and client trees would disagree and React
+  // would drop the subtree. So the toggle is offered only for a diagram that
+  // remark lifted to block level, where block content is valid.
+  const canShowSource = diagramSource !== undefined && diagramBlock !== undefined;
+  // Asking about a diagram only needs its source, not room to render a code
+  // block, so it is offered on every diagram that carries one — including the
+  // inline ones the source toggle has to skip.
+  const canAsk = diagramSource !== undefined && chatBase !== null;
   const src = typeof props.src === 'string' ? props.src : undefined;
   const alt = typeof props.alt === 'string' ? props.alt : undefined;
 
@@ -119,9 +221,27 @@ export default function ImgWrapper(props: Props): ReactNode {
   const diagram = isDiagram(src, alt);
   const label = !diagram && alt ? alt : undefined;
 
+  // A lifted diagram is block-level, so the figure may be a <div>; anything else
+  // is still inside a <p> and has to stay inline-level.
+  const Wrapper = canShowSource ? 'div' : 'span';
+
   return (
-    <span className={styles.figure}>
-      <Img {...props} />
+    // `md-figure` is a stable, non-hashed hook for the PDF stylesheet, which is
+    // written against the built HTML and cannot know the CSS-module class name.
+    <Wrapper
+      className={`${styles.figure} md-figure${
+        showSource && canShowSource ? ` ${styles.figureSource}` : ''
+      }`}>
+      {showSource && canShowSource ? (
+        <span className={styles.source}>
+          {/* Prism ships no plantuml or mermaid grammar, so the language is
+              recorded on the block for the chip and the copy button, but there
+              is nothing to highlight. */}
+          <CodeBlock language={diagramLang ?? 'text'}>{diagramSource}</CodeBlock>
+        </span>
+      ) : (
+        <Img {...props} />
+      )}
       <span className={styles.caption}>
         {label ? (
           <span className={styles.alt}>{label}</span>
@@ -129,6 +249,52 @@ export default function ImgWrapper(props: Props): ReactNode {
           <span className={styles.spacer} />
         )}
         <span className={`${styles.actions} pdf-hide`}>
+          {canShowSource ? (
+            <button
+              type="button"
+              className={styles.action}
+              aria-pressed={showSource}
+              onClick={() => setShowSource((shown) => !shown)}>
+              {showSource ? <ImageIcon /> : <CodeIcon />}
+              {showSource ? (
+                <Translate
+                  id="theme.image.showDiagram"
+                  description="Label of the button that switches a diagram's source back to the rendered image">
+                  Diagram
+                </Translate>
+              ) : (
+                <Translate
+                  id="theme.image.showSource"
+                  description="Label of the button that switches a rendered diagram to its source code">
+                  Source
+                </Translate>
+              )}
+            </button>
+          ) : null}
+          {canAsk ? (
+            <button
+              type="button"
+              className={styles.action}
+              title={translate({
+                id: 'theme.image.askOpenWebUi.title',
+                message: 'Open this diagram in Open WebUI',
+                description:
+                  "Tooltip of the button that opens a single diagram's source in Open WebUI",
+              })}
+              onClick={() =>
+                ask({
+                  intro: diagramIntro(alt, diagramLang, siteConfig.title),
+                  body: `\`\`\`${diagramLang ?? 'text'}\n${diagramSource}\n\`\`\``,
+                })
+              }>
+              <ChatIcon className={styles.icon} />
+              <Translate
+                id="theme.image.askOpenWebUi"
+                description="Label of the button that opens a single diagram's source in Open WebUI">
+                Open WebUI
+              </Translate>
+            </button>
+          ) : null}
           <a
             className={styles.action}
             href={src}
@@ -139,7 +305,7 @@ export default function ImgWrapper(props: Props): ReactNode {
             <Translate
               id="theme.image.openLink"
               description="Label of the link that opens an image or diagram in a new tab">
-              Ouvrir
+              Open
             </Translate>
           </a>
           <a
@@ -152,11 +318,11 @@ export default function ImgWrapper(props: Props): ReactNode {
             <Translate
               id="theme.image.downloadLink"
               description="Label of the download link shown under an image or diagram">
-              Télécharger
+              Download
             </Translate>
           </a>
         </span>
       </span>
-    </span>
+    </Wrapper>
   );
 }

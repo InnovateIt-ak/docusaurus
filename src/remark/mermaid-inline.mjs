@@ -1,50 +1,51 @@
-// Plugin remark : rendu Mermaid à la compilation.
+// Remark plugin: Mermaid rendered at build time.
 //
-// Deux syntaxes sont prises en charge dans n'importe quel .md / .mdx :
+// Two syntaxes are supported in any .md / .mdx:
 //
-//   1. Un bloc de code ```mermaid … ```
-//   2. Un lien image vers un fichier .mmd / .mermaid :
-//        ![alt](chemin/vers/diagramme.mmd)
+//   1. A ```mermaid … ``` code fence
+//   2. An image link to a .mmd / .mermaid file:
+//        ![alt](path/to/diagram.mmd)
 //
-// Le diagramme est rendu en SVG au build via `@mermaid-js/mermaid-cli`, qui
-// pilote un Chromium headless. Le SVG est ensuite inséré en image data-URL —
-// donc le HTML final ne dépend plus d'aucun service, et le PDF WeasyPrint (qui
-// n'exécute pas de JavaScript) l'embarque tel quel, exactement comme le plugin
-// PlantUML.
+// The diagram is rendered to SVG at build time by `@mermaid-js/mermaid-cli`,
+// which drives a headless Chromium. The SVG is then inlined as a data-URL image
+// — so the final HTML depends on no service, and the WeasyPrint PDF (which runs
+// no JavaScript) embeds it as it is, exactly like the PlantUML plugin.
 //
-// Le rendu s'exécute dans un process enfant (voir mermaid-renderer.mjs) : la
-// config Docusaurus est chargée via jiti, qui réécrit `import.meta.url` et
-// empêche mermaid-cli de localiser son bundle dans ce process. L'enfant tourne
-// sous un Node natif, où le rendu fonctionne. Un seul Chromium est lancé pour
-// tout le build.
+// Rendering happens in a child process (see mermaid-renderer.mjs): the
+// Docusaurus config is loaded through jiti, which rewrites `import.meta.url` and
+// stops mermaid-cli from locating its own bundle in this process. The child runs
+// under a plain Node, where rendering works. One Chromium is started for the
+// whole build.
 //
-// Choix du navigateur : Puppeteer utilise son Chromium par défaut. Pour
-// réutiliser un binaire déjà présent (CI, sandbox), positionner
-// PUPPETEER_EXECUTABLE_PATH — la variable est héritée par le process enfant.
+// Choosing the browser: Puppeteer uses its own Chromium by default. To reuse a
+// binary that is already present (CI, sandbox), set PUPPETEER_EXECUTABLE_PATH —
+// the child process inherits it.
 import {visit} from 'unist-util-visit';
 import {readFile} from 'node:fs/promises';
 import {spawn} from 'node:child_process';
 import {createInterface} from 'node:readline';
 import {dirname, isAbsolute, resolve} from 'node:path';
 
-// Quand le rendu échoue (Chromium indisponible, syntaxe Mermaid invalide…), on
-// ne casse pas tout le build : le nœud est remplacé par un bloc de code visible
-// qui conserve la source et explique le problème. MERMAID_STRICT=1 fait au
-// contraire échouer le build.
+// When rendering fails (no Chromium available, invalid Mermaid syntax, …) the
+// whole build is not broken: the node becomes a visible code block that keeps
+// the source and explains the problem. MERMAID_STRICT=1 fails the build
+// instead.
 const STRICT = process.env.MERMAID_STRICT === '1';
 
-// --- Pilotage du process enfant de rendu -----------------------------------
-// jiti (qui charge ce fichier) peut réécrire `import.meta.url` ; on résout donc
-// le script enfant depuis la racine du projet, stable pour un build Docusaurus.
+// --- Driving the renderer child process ------------------------------------
+// jiti (which loads this file) may rewrite `import.meta.url`, so the child
+// script is resolved from the project root instead — stable for a Docusaurus
+// build.
 const RENDERER_PATH = resolve(process.cwd(), 'src/remark/mermaid-renderer.mjs');
 
 let child = null;
 let nextId = 0;
 const pending = new Map();
 
-// Garde le pipe stdout de l'enfant référencé tant qu'un diagramme est en
-// attente de réponse (sinon l'event loop peut se vider avant l'arrivée du SVG
-// → exit 13), et le libère une fois idle pour ne pas bloquer la fin du build.
+// Keeps the child's stdout pipe referenced for as long as a diagram is waiting
+// on an answer (otherwise the event loop can drain before the SVG arrives →
+// exit 13), and releases it once idle so it cannot hold up the end of the
+// build.
 function syncStdoutRef() {
     if (!child) return;
     if (pending.size > 0) child.stdout.ref();
@@ -57,17 +58,17 @@ function ensureChild() {
         stdio: ['pipe', 'pipe', 'inherit'],
         env: process.env,
     });
-    // Ne pas maintenir l'event loop du parent en vie à cause de l'enfant : sans
-    // cela, `npm run build` reste bloqué après avoir généré les fichiers. Quand
-    // le parent se termine, l'enfant reçoit EOF sur stdin, ferme Chromium et
-    // s'arrête (voir mermaid-renderer.mjs).
+    // Do not keep the parent's event loop alive because of the child: without
+    // this, `npm run build` hangs after the files have been generated. When the
+    // parent exits, the child gets EOF on stdin, closes Chromium and stops (see
+    // mermaid-renderer.mjs).
     //
-    // ATTENTION : on ne déréférence stdout QUE lorsqu'aucun diagramme n'est en
-    // attente (voir syncStdoutRef). Le déréférencer en permanence viderait
-    // l'event loop pendant qu'un rendu est en vol — plus aucun handle référencé,
-    // la réponse de l'enfant n'arrive jamais, et Node sort en « unsettled
-    // top-level await » (code 13). On le re-référence donc dès qu'une requête
-    // part, et on ne le libère qu'une fois toutes les réponses reçues.
+    // CAREFUL: stdout is unreferenced ONLY while no diagram is outstanding (see
+    // syncStdoutRef). Unreferencing it permanently would drain the event loop
+    // while a render is in flight — no referenced handle left, the child's reply
+    // never arrives, and Node exits on "unsettled top-level await" (code 13). So
+    // it is referenced again as soon as a request goes out, and released only
+    // once every reply is in.
     child.unref();
     child.stdout.unref();
     createInterface({input: child.stdout}).on('line', (line) => {
@@ -82,7 +83,7 @@ function ensureChild() {
         const resolver = pending.get(message.id);
         if (!resolver) return;
         pending.delete(message.id);
-        syncStdoutRef(); // idle → libère l'event loop ; sinon garde-le en vie
+        syncStdoutRef(); // idle → release the event loop; otherwise hold it
         if (message.ok) resolver.resolve(message.svg);
         else resolver.reject(new Error(message.error || 'unknown mermaid render error'));
     });
@@ -97,12 +98,12 @@ function ensureChild() {
             failAll(new Error(`mermaid renderer exited (code ${code}) with pending diagrams`));
         }
     });
-    // Ferme proprement l'enfant à la fin du build.
+    // Close the child cleanly at the end of the build.
     process.once('exit', () => {
         try {
             child?.stdin.end();
         } catch {
-            /* déjà fermé */
+            /* already closed */
         }
     });
     return child;
@@ -113,19 +114,19 @@ function renderSvgViaChild(source) {
     const id = nextId++;
     return new Promise((resolve, reject) => {
         pending.set(id, {resolve, reject});
-        syncStdoutRef(); // rendu en vol : garde l'event loop en vie jusqu'à la réponse
+        syncStdoutRef(); // render in flight: hold the event loop until the reply
         proc.stdin.write(JSON.stringify({id, source}) + '\n');
     });
 }
 
-// --- Normalisation du SVG ----------------------------------------------------
-// Donne des dimensions intrinsèques en pixels à la racine <svg>. Mermaid émet
-// `width="100%"` + un viewBox à offsets parfois négatifs (ex. "-50 -10 450 259")
-// et une `max-width` en style : sans largeur/hauteur explicites, un <img>
-// data-URL n'a pas de taille intrinsèque, et l'heuristique « image large =>
-// paysage » du générateur PDF (qui lit width/height, avec un repli viewBox
-// limité aux offsets positifs) ne peut pas le mesurer. On aligne donc le SVG
-// sur le comportement des diagrammes PlantUML : width/height en px, sans
+// --- SVG normalisation -------------------------------------------------------
+// Gives the root <svg> intrinsic pixel dimensions. Mermaid emits `width="100%"`
+// plus a viewBox whose offsets are sometimes negative (e.g. "-50 -10 450 259")
+// and a `max-width` in the style attribute: without an explicit width and
+// height, a data-URL <img> has no intrinsic size, and the PDF generator's
+// "wide image => landscape" heuristic (which reads width/height, falling back to
+// a viewBox limited to positive offsets) has nothing to measure. So the SVG is
+// brought in line with the PlantUML diagrams: width/height in px, no
 // max-width.
 function normalizeSvg(svg) {
     const viewBox = svg.match(
@@ -159,6 +160,17 @@ async function toDataUrlImage(node, source) {
     node.url = `data:image/svg+xml;base64,${base64}`;
     node.alt = node.alt || 'Mermaid diagram';
     node.title = null;
+    // Carry the source through to the browser so the rendered diagram can be
+    // flipped back to its code. `data.hProperties` is merged into the element by
+    // mdast-to-hast, so these arrive as props on the MDX <img> component.
+    node.data = {
+        ...node.data,
+        hProperties: {
+            ...node.data?.hProperties,
+            'data-diagram-source': source,
+            'data-diagram-lang': 'mermaid',
+        },
+    };
     delete node.lang;
     delete node.meta;
     delete node.value;
@@ -200,13 +212,13 @@ export default function remarkMermaidInline() {
             })());
         };
 
-        // Pattern 1 : block code ```mermaid ... ```
+        // Pattern 1: fenced code block ```mermaid ... ```
         visit(tree, 'code', (node) => {
             if (node.lang !== 'mermaid') return;
             render(node, async () => node.value);
         });
 
-        // Pattern 2 : link image ![alt](chemin/vers/fichier.mmd)
+        // Pattern 2: image link ![alt](path/to/file.mmd)
         visit(tree, 'image', (node) => {
             if (!node.url || !/\.(mmd|mermaid)$/i.test(node.url)) return;
             if (node.url.startsWith('data:')) return;

@@ -403,10 +403,30 @@ ul.toc li {
   white-space: normal;
 }
 
-/* Keep things tidy and avoid awkward breaks. */
+/* Keep things tidy and avoid awkward breaks.
+
+   A replaced element cannot be fragmented: an image taller than the printable
+   area is not continued overleaf, it is sliced at the page boundary and the rest
+   is lost — which is what a tall PlantUML activity diagram did. Constrain the
+   height as well as the width so such a diagram is scaled down to fit one page
+   instead. The box is A4 (297mm) less the 24mm/20mm page margins = 253mm; 215mm
+   leaves room for the figure's caption row and for the paragraph spacing above
+   it, so a diagram that lands mid-page still fits after `break-inside: avoid`
+   pushes it onto a fresh one. */
 .markdown img {
   max-width: 100% !important;
+  max-height: 215mm;
   height: auto;
+  /* Honour the intrinsic ratio while both constraints apply, rather than
+     stretching the diagram to the box. */
+  object-fit: contain;
+}
+
+/* The image and its caption are one unit: let them move to the next page
+   together rather than being separated — or clipped — by a break. `md-figure` is
+   the stable class the MDX <img> wrapper adds next to its CSS-module class. */
+.markdown .md-figure {
+  break-inside: avoid;
 }
 pre, code {
   white-space: pre-wrap !important;

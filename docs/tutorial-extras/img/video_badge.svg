@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="200" height="48" viewBox="0 0 200 48" role="img" aria-labelledby="title desc">
     <title id="title">Badge VIDEO</title>
-    <desc id="desc">Un badge rectangulaire arrondi avec une icône lecture et le texte VIDEO</desc>
+    <desc id="desc">A rounded rectangular badge with a play icon and the text VIDEO</desc>
     <defs>
         <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" stop-color="#111827"/>
@@ -11,11 +11,11 @@
         </filter>
     </defs>
     <rect x="1" y="1" width="198" height="46" rx="12" fill="url(#g)" stroke="#374151" filter="url(#shadow)"/>
-    <!-- pastille à gauche -->
+    <!-- Dot on the left -->
     <circle cx="28" cy="24" r="14" fill="#ef4444"/>
-    <!-- icône play -->
+    <!-- Play icon -->
     <polygon points="24,18 24,30 34,24" fill="white"/>
-    <!-- texte -->
+    <!-- Text -->
     <text x="56" y="30" font-family="system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif"
           font-size="18" font-weight="700" letter-spacing=".12em" fill="#f9fafb">
         VIDEO
