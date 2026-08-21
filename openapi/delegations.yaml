@@ -1,0 +1,220 @@
+openapi: 3.0.3
+info:
+  title: Delegations API
+  version: 1.2.0
+  description: >-
+    Sample service listing EU delegations and the staff assigned to them. Used
+    alongside the Petstore sample to exercise a second specification.
+  license:
+    name: Apache-2.0
+    url: 'https://www.apache.org/licenses/LICENSE-2.0.html'
+servers:
+  - url: 'https://api.example.eu/delegations/v1'
+tags:
+  - name: delegation
+    description: EU delegations around the world
+  - name: staff
+    description: People posted to a delegation
+paths:
+  /delegations:
+    get:
+      tags:
+        - delegation
+      summary: List delegations
+      operationId: listDelegations
+      parameters:
+        - name: region
+          in: query
+          description: Filter by region code
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - open
+              - suspended
+              - closed
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Delegation'
+        '400':
+          description: Invalid region or status value
+  '/delegations/{delegationId}':
+    get:
+      tags:
+        - delegation
+      summary: Find a delegation by id
+      operationId: getDelegation
+      parameters:
+        - name: delegationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Delegation'
+        '404':
+          description: Delegation not found
+  '/delegations/{delegationId}/staff':
+    get:
+      tags:
+        - staff
+      summary: List the staff posted to a delegation
+      operationId: listDelegationStaff
+      parameters:
+        - name: delegationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StaffMember'
+components:
+  schemas:
+    Delegation:
+      title: Delegation
+      description: An EU delegation in a host country or to an organisation
+      type: object
+      required:
+        - id
+        - name
+        - country
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Stable identifier of the delegation
+          x-source: registry.delegation.id
+        name:
+          type: string
+          description: Official name, e.g. "Delegation of the European Union to Canada"
+          x-source: registry.delegation.official_name
+        country:
+          $ref: '#/components/schemas/Country'
+        status:
+          type: string
+          description: Operating status of the delegation
+          enum:
+            - open
+            - suspended
+            - closed
+          x-source: registry.delegation.status
+        openedOn:
+          type: string
+          format: date
+          description: Date the delegation opened
+        closedOn:
+          type: string
+          format: date
+          nullable: true
+          description: Date the delegation closed, null while it is operating
+        headOfDelegation:
+          $ref: '#/components/schemas/StaffMember'
+        staffCount:
+          type: integer
+          format: int32
+          description: Number of people currently posted
+        tags:
+          type: array
+          items:
+            type: string
+          description: Free-form labels used for reporting
+    Country:
+      title: Country
+      description: Host country of a delegation
+      type: object
+      required:
+        - code
+        - name
+      properties:
+        code:
+          type: string
+          description: ISO 3166-1 alpha-2 code
+          x-source: reference.country.iso2
+        name:
+          type: string
+          description: English country name
+        region:
+          type: string
+          description: Geographic region used for grouping
+          enum:
+            - africa
+            - americas
+            - asia-pacific
+            - europe
+            - middle-east
+    StaffMember:
+      title: Staff member
+      description: A person posted to a delegation
+      type: object
+      required:
+        - id
+        - lastName
+      properties:
+        id:
+          type: string
+          format: uuid
+          x-source: hr.person.id
+        firstName:
+          type: string
+        lastName:
+          type: string
+        role:
+          type: string
+          description: Function held at the delegation
+          enum:
+            - head-of-delegation
+            - deputy
+            - attache
+            - support
+        email:
+          type: string
+          format: email
+          nullable: true
+          description: Professional address, null when not published
+        postedUntil:
+          type: string
+          format: date
+          nullable: true
+          description: End of the current posting, null when open-ended
+    Error:
+      title: Error
+      description: Error payload returned on a 4xx or 5xx response
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: string

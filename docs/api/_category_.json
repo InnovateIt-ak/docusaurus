@@ -1,0 +1,7 @@
+{
+  "label": "API",
+  "link": {
+    "type": "generated-index",
+    "description": "Reference material for the APIs described in openapi/."
+  }
+}
