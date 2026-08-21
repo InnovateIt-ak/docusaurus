@@ -90,12 +90,12 @@ export default function MDXTable(props: Props): ReactNode {
             }}
             placeholder={translate({
               id: 'theme.table.filterPlaceholder',
-              message: 'Filtrer les lignes…',
+              message: 'Filter rows…',
               description: 'Placeholder of the filter box shown above a large table',
             })}
             aria-label={translate({
               id: 'theme.table.filterLabel',
-              message: 'Filtrer les lignes du tableau',
+              message: 'Filter the table rows',
               description: 'Accessible label of the filter box shown above a large table',
             })}
           />
@@ -103,16 +103,16 @@ export default function MDXTable(props: Props): ReactNode {
             {filtering ? (
               <Translate
                 id="theme.table.filterCount"
-                description="Number of table rows matching the filter, e.g. 3 / 12 lignes"
+                description="Number of table rows matching the filter, e.g. 3 / 12 rows"
                 values={{shown, total}}>
-                {'{shown} / {total} lignes'}
+                {'{shown} / {total} rows'}
               </Translate>
             ) : (
               <Translate
                 id="theme.table.rowCount"
                 description="Total number of rows in a table, shown when no filter is applied"
                 values={{total}}>
-                {'{total} lignes'}
+                {'{total} rows'}
               </Translate>
             )}
           </span>
@@ -126,7 +126,7 @@ export default function MDXTable(props: Props): ReactNode {
           <Translate
             id="theme.table.filterNoResult"
             description="Message shown when no table row matches the filter">
-            Aucune ligne ne correspond.
+            No row matches.
           </Translate>
         </p>
       )}
