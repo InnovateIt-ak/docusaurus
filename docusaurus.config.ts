@@ -124,14 +124,14 @@ const config: Config = {
     ],
     plugins: [
         // API data models: render every spec in openapi/ as a docs page under
-        // docs/architecture/api (plugins/openapi-schema-doc). Discovered, not
+        // docs/api/datamodel (plugins/openapi-schema-doc). Discovered, not
         // listed: dropping a new spec in openapi/ is enough to get its page.
         // Generated on the fly at build time, regenerated on spec edits in dev,
         // and not committed (see .gitignore).
         [
             './plugins/openapi-schema-doc',
             {
-                discover: [{dir: 'openapi', outDir: 'docs/architecture/api/datamodel'}],
+                discover: [{dir: 'openapi', outDir: 'docs/api/datamodel'}],
             },
         ],
         // Changelog: fetch GitHub Releases at build time and expose them as
