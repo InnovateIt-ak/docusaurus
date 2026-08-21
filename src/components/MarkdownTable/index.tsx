@@ -12,17 +12,9 @@ import styles from './styles.module.css';
 
 type Props = ComponentProps<'table'>;
 
-// Below this many data rows a filter bar is more furniture than help: the reader
+// Below this many data rows a search box is more furniture than help: the reader
 // can already see the whole table.
 const MIN_ROWS_FOR_TOOLBAR = 6;
-
-// A column earns a dropdown when its values repeat — a status or an owner, not a
-// description. Too many distinct values and the dropdown is just a longer list
-// than the table; too few (one) and it filters nothing. Long values are excluded
-// as well: a sentence makes an unreadable option, however few of them there are.
-const MAX_CHOICES_PER_COLUMN = 12;
-const MAX_DISTINCT_RATIO = 0.6;
-const MAX_CHOICE_LENGTH = 32;
 
 /** Flattens a cell's React subtree to the text a reader would see. */
 function toText(node: ReactNode): string {
@@ -80,41 +72,8 @@ function readTable(children: ReactNode): {
   return {head, bodies};
 }
 
-type ColumnChoice = {index: number; label: string; values: string[]};
-
-function columnChoices(headers: string[], cells: string[][]): ColumnChoice[] {
-  const choices: ColumnChoice[] = [];
-  for (let index = 0; index < headers.length; index += 1) {
-    const values = new Set<string>();
-    let tooLong = false;
-    for (const row of cells) {
-      const value = row[index]?.trim();
-      if (value) {
-        if (value.length > MAX_CHOICE_LENGTH) {
-          tooLong = true;
-          break;
-        }
-        values.add(value);
-      }
-    }
-    const withinBudget =
-      !tooLong &&
-      values.size > 1 &&
-      values.size <= MAX_CHOICES_PER_COLUMN &&
-      values.size <= cells.length * MAX_DISTINCT_RATIO;
-    if (withinBudget) {
-      choices.push({
-        index,
-        label: headers[index] || `#${index + 1}`,
-        values: [...values].sort((a, b) => a.localeCompare(b)),
-      });
-    }
-  }
-  return choices;
-}
-
 /**
- * Wraps a markdown table with a search box and per-column dropdowns.
+ * Wraps a markdown table with a search box.
  *
  * The unfiltered table is what renders on the server and on first paint, so the
  * hydrated markup matches — and so the PDF, which never runs this component's
@@ -122,74 +81,41 @@ function columnChoices(headers: string[], cells: string[][]): ColumnChoice[] {
  */
 export default function MarkdownTable({children, ...props}: Props): ReactNode {
   const [query, setQuery] = useState('');
-  const [selected, setSelected] = useState<Record<number, string>>({});
 
   const {head, bodies} = useMemo(() => readTable(children), [children]);
 
-  const headers = useMemo(
-    () => childrenOf(childrenOf(head)[0]).map((cell) => toText(cell).trim()),
-    [head],
-  );
-
-  // One flat list of every body row, each paired with its cells as plain text —
-  // once as displayed (for the dropdowns) and once folded (for the search).
+  // One flat list of every body row, paired with its cell text folded for
+  // search. Cells are joined with a space so a term cannot match across the
+  // boundary between two of them.
   const rows = useMemo(
     () =>
       bodies.flatMap((body, bodyIndex) =>
-        body.rows.map((row, rowIndex) => {
-          const cells = childrenOf(row).map((cell) => toText(cell).trim());
-          return {
-            key: `${bodyIndex}-${rowIndex}`,
-            bodyIndex,
-            element: row,
-            cells,
-            haystack: fold(cells.join(' ')),
-          };
-        }),
+        body.rows.map((row) => ({
+          bodyIndex,
+          element: row,
+          haystack: fold(childrenOf(row).map(toText).join(' ')),
+        })),
       ),
     [bodies],
-  );
-
-  const choices = useMemo(
-    () => columnChoices(headers, rows.map((row) => row.cells)),
-    [headers, rows],
   );
 
   // Every whitespace-separated term must appear somewhere in the row (AND), so
   // narrowing a wide table is a matter of adding words: "status enum".
   const terms = useMemo(() => fold(query).split(/\s+/).filter(Boolean), [query]);
 
-  const activeColumns = useMemo(
-    () => Object.entries(selected).filter(([, value]) => value),
-    [selected],
+  const visible = useMemo(
+    () =>
+      terms.length === 0
+        ? rows
+        : rows.filter((row) => terms.every((term) => row.haystack.includes(term))),
+    [rows, terms],
   );
 
-  const filtering = terms.length > 0 || activeColumns.length > 0;
-
-  const visible = useMemo(() => {
-    if (!filtering) {
-      return rows;
-    }
-    return rows.filter((row) => {
-      for (const [index, value] of activeColumns) {
-        if (row.cells[Number(index)] !== value) {
-          return false;
-        }
-      }
-      return terms.every((term) => row.haystack.includes(term));
-    });
-  }, [rows, terms, activeColumns, filtering]);
-
-  // Nothing recognisable as a data table (no rows, or a layout table): render it
-  // exactly as it came.
-  if (rows.length < MIN_ROWS_FOR_TOOLBAR || headers.length === 0) {
+  // Nothing recognisable as a data table (too few rows, or no header row):
+  // render it exactly as it came.
+  if (rows.length < MIN_ROWS_FOR_TOOLBAR || head === null) {
     return <table {...props}>{children}</table>;
   }
-
-  const reset = () => {
-    setQuery('');
-    setSelected({});
-  };
 
   return (
     <div className={styles.wrapper}>
@@ -215,48 +141,28 @@ export default function MarkdownTable({children, ...props}: Props): ReactNode {
             description: 'Accessible label of the search box above a markdown table',
           })}
         />
-        {choices.map((choice) => (
-          <select
-            key={choice.index}
-            className={styles.select}
-            value={selected[choice.index] ?? ''}
-            aria-label={choice.label}
-            onChange={(event) =>
-              setSelected((current) => ({
-                ...current,
-                [choice.index]: event.target.value,
-              }))
-            }>
-            <option value="">{choice.label}</option>
-            {choice.values.map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
-          </select>
-        ))}
         <span className={styles.count} role="status" aria-live="polite">
-          {filtering ? (
+          {terms.length > 0 ? (
             <Translate
               id="theme.table.matchCount"
-              description="Number of table rows matching the filters, e.g. 3 / 12 rows"
+              description="Number of table rows matching the search, e.g. 3 / 12 rows"
               values={{shown: visible.length, total: rows.length}}>
               {'{shown} / {total} rows'}
             </Translate>
           ) : (
             <Translate
               id="theme.table.rowCount"
-              description="Total number of rows in a table, shown when no filter is applied"
+              description="Total number of rows in a table, shown when no search is active"
               values={{total: rows.length}}>
               {'{total} rows'}
             </Translate>
           )}
         </span>
-        {filtering ? (
-          <button type="button" className={styles.reset} onClick={reset}>
+        {terms.length > 0 ? (
+          <button type="button" className={styles.reset} onClick={() => setQuery('')}>
             <Translate
               id="theme.table.reset"
-              description="Label of the button that clears the filters above a markdown table">
+              description="Label of the button that clears the search above a markdown table">
               Reset
             </Translate>
           </button>
@@ -284,7 +190,7 @@ export default function MarkdownTable({children, ...props}: Props): ReactNode {
         <p className={`${styles.empty} pdf-hide`} role="status">
           <Translate
             id="theme.table.noResults"
-            description="Message shown when a markdown table's filters match no row">
+            description="Message shown when a markdown table's search matches no row">
             No rows match.
           </Translate>
         </p>

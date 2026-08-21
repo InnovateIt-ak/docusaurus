@@ -12,8 +12,7 @@
   margin-bottom: 0.6rem;
 }
 
-.search,
-.select {
+.search {
   font: inherit;
   font-size: 0.85rem;
   color: var(--ifm-font-color-base);
@@ -28,15 +27,9 @@
   min-width: 0;
 }
 
-.search:focus,
-.select:focus {
+.search:focus {
   outline: none;
   border-color: var(--ifm-color-primary);
-}
-
-.select {
-  flex: 0 0 auto;
-  max-width: 14rem;
 }
 
 /* Pushed to the end of the row so the count sits away from the controls even
