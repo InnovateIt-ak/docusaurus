@@ -2,6 +2,10 @@
 // Markdown doc page, so the data model is documented next to the Redoc pages and
 // never drifts from the spec — the YAML stays the single source of truth.
 //
+// Specs are named one by one via `specs`, and/or discovered from a folder via
+// `discover` — dropping a new spec in that folder is then enough to get a page,
+// with no config change.
+//
 // The page is written into docs/ (it is generated, so .gitignore'd) at two
 // moments:
 //   * when the plugin is created — i.e. while the config is being loaded, before
@@ -110,6 +114,52 @@ function renderMarkdown(spec, {title, sidebarPosition} = {}) {
   return out.join('');
 }
 
+const SPEC_EXTENSIONS = new Set(['.yaml', '.yml', '.json']);
+
+// Expand a {dir, outDir} rule into one entry per spec file found in `dir`.
+// The output page keeps the spec's file name (api.yaml -> api.md) and its title
+// comes from the spec's own info.title, so several specs never collide.
+function discoverEntries(siteDir, rule) {
+  const dir = path.resolve(siteDir, rule.dir);
+  const outDir = rule.outDir ?? rule.dir;
+
+  let files;
+  try {
+    files = fs.readdirSync(dir);
+  } catch (error) {
+    console.warn(`[openapi-schema-doc] cannot read ${rule.dir}: ${error.message}`);
+    return [];
+  }
+
+  return files
+    .filter((file) => SPEC_EXTENSIONS.has(path.extname(file).toLowerCase()))
+    .sort()
+    .map((file) => ({
+      ...rule,
+      spec: path.join(rule.dir, file),
+      out: path.join(outDir, `${path.basename(file, path.extname(file))}.md`),
+    }));
+}
+
+// Two entries writing the same page would overwrite each other on every pass,
+// and each rewrite retriggers the docs watcher — a rebuild loop in dev. Drop the
+// duplicates loudly instead.
+function dropDuplicateOutputs(entries) {
+  const seen = new Map();
+  for (const entry of entries) {
+    const key = path.normalize(entry.out);
+    if (seen.has(key)) {
+      console.warn(
+        `[openapi-schema-doc] ${entry.spec} would overwrite ${entry.out} ` +
+        `(already written from ${seen.get(key).spec}) — skipped`,
+      );
+      continue;
+    }
+    seen.set(key, entry);
+  }
+  return [...seen.values()];
+}
+
 // Generate one entry; returns true when the file was (re)written. Failures are
 // non-fatal: a malformed spec logs a warning and leaves the previous page in
 // place rather than breaking the whole site build.
@@ -140,11 +190,18 @@ function generate(siteDir, entry) {
 
 /**
  * @param {import('@docusaurus/types').LoadContext} context
- * @param {{specs?: Array<{spec: string, out: string, title?: string, sidebarPosition?: number}>}} options
+ * @param {{
+ *   specs?: Array<{spec: string, out: string, title?: string, sidebarPosition?: number}>,
+ *   discover?: Array<{dir: string, outDir?: string, sidebarPosition?: number}>,
+ * }} options
  */
 module.exports = function openapiSchemaDocPlugin(context, options = {}) {
   const {siteDir} = context;
-  const entries = (options.specs ?? []).filter((entry) => entry?.spec && entry?.out);
+  const rules = (options.discover ?? []).filter((rule) => rule?.dir);
+  const entries = dropDuplicateOutputs([
+    ...(options.specs ?? []).filter((entry) => entry?.spec && entry?.out),
+    ...rules.flatMap((rule) => discoverEntries(siteDir, rule)),
+  ]);
 
   // Runs while the config loads, before the docs plugin scans docs/.
   for (const entry of entries) generate(siteDir, entry);
@@ -153,13 +210,24 @@ module.exports = function openapiSchemaDocPlugin(context, options = {}) {
     name: 'docusaurus-plugin-openapi-schema-doc',
 
     getPathsToWatch() {
-      return entries.map((entry) => path.resolve(siteDir, entry.spec));
+      // The discovered folders are watched too, so adding or removing a spec is
+      // picked up in dev — not just edits to the specs already found.
+      return [
+        ...entries.map((entry) => path.resolve(siteDir, entry.spec)),
+        ...rules.map((rule) => path.resolve(siteDir, rule.dir)),
+      ];
     },
 
     // Re-runs whenever a watched spec changes: rewriting the page makes the docs
     // plugin pick it up, so the dev server shows the new data model.
     async loadContent() {
-      for (const entry of entries) {
+      // Re-discover: a spec added to a watched folder since the last pass must
+      // get its page without restarting the dev server.
+      const current = dropDuplicateOutputs([
+        ...entries,
+        ...rules.flatMap((rule) => discoverEntries(siteDir, rule)),
+      ]);
+      for (const entry of current) {
         if (generate(siteDir, entry)) {
           console.log(`[openapi-schema-doc] regenerated ${entry.out}`);
         }
