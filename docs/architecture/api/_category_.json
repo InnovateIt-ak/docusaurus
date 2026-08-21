@@ -1,7 +1,7 @@
 {
-  "label": "API data models",
+  "label": "API",
   "link": {
     "type": "generated-index",
-    "description": "Schemas of each OpenAPI specification in openapi/, generated at build time."
+    "description": "Reference material for the APIs described in openapi/."
   }
 }

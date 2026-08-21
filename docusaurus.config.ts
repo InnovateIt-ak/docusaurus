@@ -131,7 +131,7 @@ const config: Config = {
         [
             './plugins/openapi-schema-doc',
             {
-                discover: [{dir: 'openapi', outDir: 'docs/architecture/api'}],
+                discover: [{dir: 'openapi', outDir: 'docs/architecture/api/datamodel'}],
             },
         ],
         // Changelog: fetch GitHub Releases at build time and expose them as
