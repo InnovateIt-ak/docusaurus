@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>UI/UX des Docs EEAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" />
+<style>
+  :root {
+    --ground: #f6f7f9;
+    --paper: #ffffff;
+    --paper-2: #eef1f6;
+    --ink: #131a26;
+    --ink-2: #4a5567;
+    --ink-3: #79849a;
+    --rule: #dde2ea;
+    --rule-2: #c3cbd8;
+    --accent: #004494;
+    --accent-ink: #003273;
+    --accent-soft: #e7eef8;
+    --gold: #b98900;
+    --gold-soft: #fdf3d8;
+    --red: #a4231c;
+    --red-soft: #fbeae8;
+    --green: #14664f;
+    --green-soft: #e4f2ed;
+    --measure: 70ch;
+    --display: "Libre Franklin", "Segoe UI", Helvetica, Arial, sans-serif;
+    --body: "Source Sans 3", "Segoe UI", Helvetica, Arial, sans-serif;
+    --mono: "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --ground: #0e1420;
+      --paper: #151c2a;
+      --paper-2: #1c2534;
+      --ink: #e7ecf4;
+      --ink-2: #a8b3c5;
+      --ink-3: #7b8699;
+      --rule: #263040;
+      --rule-2: #384457;
+      --accent: #79aeea;
+      --accent-ink: #a9cbf3;
+      --accent-soft: #16273d;
+      --gold: #e4b64a;
+      --gold-soft: #2c2413;
+      --red: #e8918a;
+      --red-soft: #331d1c;
+      --green: #63c4a5;
+      --green-soft: #122b25;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --ground: #0e1420;
+    --paper: #151c2a;
+    --paper-2: #1c2534;
+    --ink: #e7ecf4;
+    --ink-2: #a8b3c5;
+    --ink-3: #7b8699;
+    --rule: #263040;
+    --rule-2: #384457;
+    --accent: #79aeea;
+    --accent-ink: #a9cbf3;
+    --accent-soft: #16273d;
+    --gold: #e4b64a;
+    --gold-soft: #2c2413;
+    --red: #e8918a;
+    --red-soft: #331d1c;
+    --green: #63c4a5;
+    --green-soft: #122b25;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 17px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-underline-offset: 3px; }
+  a:focus-visible, button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+  code, kbd, .mono { font-family: var(--mono); }
+  code {
+    font-size: 0.86em;
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 0.05em 0.34em;
+    word-break: break-word;
+  }
+  kbd {
+    font-family: var(--mono);
+    font-size: 0.78em;
+    background: var(--paper);
+    border: 1px solid var(--rule-2);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    padding: 0.1em 0.42em;
+    color: var(--ink-2);
+  }
+  h1, h2, h3, h4 { font-family: var(--display); text-wrap: balance; letter-spacing: -0.015em; }
+
+  /* ---------- masthead ---------- */
+  .masthead {
+    border-bottom: 1px solid var(--rule);
+    background: var(--paper);
+  }
+  .masthead-in {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 52px 32px 34px;
+  }
+  .kicker {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 14px;
+  }
+  .masthead h1 {
+    margin: 0;
+    font-size: clamp(30px, 4.6vw, 46px);
+    font-weight: 700;
+    line-height: 1.06;
+    max-width: 18ch;
+  }
+  .standfirst {
+    margin: 18px 0 0;
+    max-width: 62ch;
+    font-size: 19px;
+    color: var(--ink-2);
+  }
+  .masthead-meta {
+    margin-top: 26px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 26px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--ink-3);
+  }
+  .masthead-meta b { color: var(--ink-2); font-weight: 500; }
+
+  /* ---------- shell ---------- */
+  .shell {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 32px 96px;
+    display: grid;
+    grid-template-columns: 208px minmax(0, 1fr);
+    gap: 56px;
+    align-items: start;
+  }
+  .rail {
+    position: sticky;
+    top: 24px;
+    padding-top: 44px;
+    font-size: 14px;
+  }
+  .rail p {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 12px;
+  }
+  .rail ol { list-style: none; margin: 0 0 28px; padding: 0; display: grid; gap: 9px; }
+  .rail a { color: var(--ink-2); text-decoration: none; display: block; line-height: 1.35; }
+  .rail a:hover { color: var(--accent); }
+  .legend { border-top: 1px solid var(--rule); padding-top: 16px; display: grid; gap: 8px; }
+  .legend div { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-3); }
+
+  .col { padding-top: 44px; min-width: 0; }
+  section + section { margin-top: 56px; border-top: 1px solid var(--rule); padding-top: 44px; }
+  section > h2 {
+    margin: 0;
+    font-size: 27px;
+    font-weight: 600;
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 10px;
+  }
+  .intro { max-width: var(--measure); color: var(--ink-2); margin: 14px 0 0; }
+  .col p, .col li { max-width: var(--measure); }
+
+  /* ---------- chips ---------- */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 3px;
+    border: 1px solid var(--rule-2);
+    color: var(--ink-2);
+    background: var(--paper);
+    white-space: nowrap;
+  }
+  .chip.bug { color: var(--red); background: var(--red-soft); border-color: color-mix(in srgb, var(--red) 35%, transparent); }
+  .chip.win { color: var(--accent); background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 35%, transparent); }
+  .chip.care { color: var(--gold); background: var(--gold-soft); border-color: color-mix(in srgb, var(--gold) 40%, transparent); }
+  .chip.done { color: var(--green); background: var(--green-soft); border-color: color-mix(in srgb, var(--green) 35%, transparent); }
+  .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .dot.bug { background: var(--red); }
+  .dot.win { background: var(--accent); }
+  .dot.care { background: var(--gold); }
+
+  /* ---------- entries ---------- */
+  .entry {
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    border-radius: 4px;
+    padding: 20px 22px;
+    margin-top: 18px;
+  }
+  .entry-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 10px 14px;
+    margin-bottom: 10px;
+  }
+  .entry-head h3 {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 600;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .entry p { margin: 0 0 10px; }
+  .entry p:last-child { margin-bottom: 0; }
+  .ref {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--ink-3);
+    display: block;
+    margin: 0 0 12px;
+    word-break: break-word;
+  }
+  .fix {
+    margin-top: 12px;
+    border-top: 1px dashed var(--rule-2);
+    padding-top: 12px;
+    font-size: 15.5px;
+    color: var(--ink-2);
+  }
+  .fix b { color: var(--ink); font-weight: 600; font-family: var(--display); }
+  pre {
+    margin: 12px 0 0;
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 12px 14px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--ink-2);
+  }
+  pre code { background: none; border: 0; padding: 0; font-size: inherit; }
+  pre .del { color: var(--red); }
+  pre .add { color: var(--green); }
+
+  ul.plain { padding-left: 1.15em; margin: 12px 0 0; }
+  ul.plain li { margin-bottom: 7px; }
+  ul.plain li::marker { color: var(--accent); }
+
+  /* ---------- before / after schematic ---------- */
+  .ba {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px;
+    margin-top: 18px;
+  }
+  .ba figure { margin: 0; }
+  .ba figcaption {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 8px;
+  }
+  .page {
+    border: 1px solid var(--rule-2);
+    border-radius: 4px;
+    background: var(--paper);
+    padding: 14px;
+    display: grid;
+    gap: 9px;
+    min-height: 250px;
+    align-content: start;
+  }
+  .bar { height: 9px; border-radius: 2px; background: var(--rule); }
+  .bar.short { width: 45%; }
+  .bar.mid { width: 72%; }
+  .bar.title { height: 15px; width: 62%; background: var(--rule-2); }
+  .mark {
+    font-family: var(--mono);
+    font-size: 11px;
+    border: 1px dashed color-mix(in srgb, var(--red) 55%, transparent);
+    color: var(--red);
+    background: var(--red-soft);
+    border-radius: 3px;
+    padding: 3px 7px;
+    width: fit-content;
+  }
+  .mark.ok {
+    border-style: solid;
+    border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .actionbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+    background: var(--accent-soft);
+    border-radius: 4px;
+    padding: 7px;
+  }
+  .actionbar span {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    background: var(--paper);
+    border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+    border-radius: 3px;
+    padding: 2px 7px;
+  }
+
+  /* ---------- table ---------- */
+  .table-wrap { overflow-x: auto; margin-top: 20px; border: 1px solid var(--rule); border-radius: 4px; background: var(--paper); }
+  table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 15px; }
+  thead th {
+    background: var(--accent);
+    color: var(--ground);
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 13.5px;
+    letter-spacing: 0.02em;
+    text-align: left;
+    padding: 10px 14px;
+  }
+  tbody td { padding: 10px 14px; border-top: 1px solid var(--rule); vertical-align: top; color: var(--ink-2); }
+  tbody td:first-child { color: var(--ink); }
+  tbody td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  .lots { display: grid; gap: 14px; margin-top: 20px; }
+  .lot {
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 18px;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    border-radius: 4px;
+    padding: 16px 18px;
+  }
+  .lot .when {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding-top: 3px;
+  }
+  .lot h3 { margin: 0 0 6px; font-size: 17px; font-weight: 600; }
+  .lot p { margin: 0; font-size: 15.5px; color: var(--ink-2); }
+
+  footer.closing {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 32px 72px;
+    color: var(--ink-3);
+    font-size: 14.5px;
+  }
+  footer.closing p { max-width: var(--measure); }
+
+  @media (max-width: 900px) {
+    .shell { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0 22px 72px; }
+    .rail { position: static; padding-top: 34px; }
+    .rail ol { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); display: grid; }
+    .masthead-in { padding: 38px 22px 28px; }
+    footer.closing { padding: 0 22px 56px; }
+    .lot { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-in">
+    <p class="kicker">Audit &amp; propositions</p>
+    <h1>Ce qu'il reste à faire sur l'interface des Docs</h1>
+    <p class="standfirst">
+      Le portail a déjà l'essentiel : palette <kbd>⌘K</kbd>, copie Markdown, provenance de page,
+      export PDF, diagrammes rendus au build. Ce qui manque n'est pas une fonctionnalité de plus,
+      c'est de la cohérence — et six réglages qui ne font pas ce qu'ils annoncent.
+    </p>
+    <div class="masthead-meta">
+      <span><b>Périmètre</b> : src/, plugins/, docusaurus.config.ts</span>
+      <span><b>Constats</b> : 6 défauts, 5 axes</span>
+      <span><b>Statut</b> : propositions, rien n'est encore appliqué</span>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+  <nav class="rail" aria-label="Sommaire">
+    <p>Sommaire</p>
+    <ol>
+      <li><a href="#defauts">Défauts constatés</a></li>
+      <li><a href="#recherche">Axe 1 — Une seule recherche</a></li>
+      <li><a href="#actions">Axe 2 — Actions de page</a></li>
+      <li><a href="#tokens">Axe 3 — Design system</a></li>
+      <li><a href="#lecture">Axe 4 — Confort de lecture</a></li>
+      <li><a href="#a11y">Axe 5 — Accessibilité</a></li>
+      <li><a href="#priorites">Priorisation</a></li>
+      <li><a href="#lots">Découpage</a></li>
+    </ol>
+    <div class="legend">
+      <div><span class="dot bug"></span> Défaut : le code ne fait pas ce qu'il dit</div>
+      <div><span class="dot win"></span> Gain net, effort contenu</div>
+      <div><span class="dot care"></span> Chantier de fond</div>
+    </div>
+  </nav>
+
+  <main class="col">
+
+    <section id="defauts">
+      <p class="eyebrow">À corriger d'abord</p>
+      <h2>Six réglages qui ne s'appliquent pas</h2>
+      <p class="intro">
+        Ceux-là ne se discutent pas : de la configuration est écrite, lue par personne, et le
+        résultat visible est différent de l'intention. Les corriger coûte quelques lignes et
+        rend au site des choix déjà faits.
+      </p>
+
+      <div class="entry">
+        <div class="entry-head">
+          <h3>Les icônes des cartes d'accueil retombent toutes sur la même</h3>
+          <span class="chip bug">défaut</span>
+          <span class="chip">5 min</span>
+        </div>
+        <span class="ref">docusaurus.config.ts:149 → src/pages/index.tsx:72</span>
+        <p>
+          L'option <code>icons</code> du plugin <code>home-cards</code> fournit des emoji
+          (<code>'Guide': '🧭'</code>), mais la page d'accueil ne rend que des noms d'icônes Lucide :
+          <code>isIconName(c.icon) ? c.icon : 'file-text'</code>. Un emoji n'est pas un nom du
+          registre, donc chaque carte configurée bascule sur l'icône générique « fichier ».
+          Ironie du sort : sans cette option, le plugin déduisait déjà <code>compass</code>,
+          <code>landmark</code> et <code>graduation-cap</code> à partir des libellés.
+        </p>
+        <div class="fix">
+          <b>Correctif</b> — supprimer l'option, ou passer des noms du registre.
+          <pre><code><span class="del">- icons: {'Guide': '🧭', 'Architecture': '🏛️', …}</span>
+<span class="add">+ icons: {'Guide': 'compass', 'Architecture': 'landmark'}   // ou rien du tout</span></code></pre>
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="entry-head">
+          <h3>Les cartes « PDF » et « Changelog » ne s'affichent jamais</h3>
+          <span class="chip bug">défaut</span>
+          <span class="chip">30 min</span>
+        </div>
+        <span class="ref">src/pages/index.tsx:69 — cards.slice(0, 4)</span>
+        <p>
+          Le plugin concatène les sections du sidebar <em>puis</em> les <code>extraCards</code>.
+          La page n'en garde que quatre. <code>docs/</code> compte déjà sept sections de premier
+          niveau : les deux cartes transverses configurées à la main sont systématiquement coupées.
+        </p>
+        <div class="fix">
+          <b>Correctif</b> — que le plugin expose <code>sections</code> et <code>extras</code>
+          séparément, et que la page rende les extras dans leur propre rangée (« Ressources »).
+          Les entrées transverses ne sont pas en concurrence avec les sections, elles les complètent.
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="entry-head">
+          <h3>Le mode sombre par défaut n'est pas appliqué</h3>
+          <span class="chip bug">défaut</span>
+          <span class="chip">5 min</span>
+        </div>
+        <span class="ref">docusaurus.config.ts:265 — themeConfig['@docusaurus/theme-classic'].colorMode</span>
+        <p>
+          <code>colorMode</code> se déclare à la racine de <code>themeConfig</code>. Imbriqué sous
+          une clé <code>'@docusaurus/theme-classic'</code>, l'objet est simplement ignoré :
+          <code>defaultMode: 'dark'</code>, <code>respectPrefersColorScheme</code> et
+          <code>disableSwitch: true</code> n'ont aucun effet. Le site démarre en clair et le
+          sélecteur reste affiché.
+        </p>
+        <div class="fix">
+          <b>Correctif</b> — remonter le bloc d'un niveau, et surtout <em>trancher</em> :
+          <code>disableSwitch: true</code> contredit le composant <code>ColorModeToggle</code>
+          swizzlé exprès pour inverser ses icônes. Ma recommandation : garder le sélecteur,
+          <code>respectPrefersColorScheme: true</code>, pas de <code>defaultMode</code> imposé.
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="entry-head">
+          <h3><kbd>⌘K</kbd> déclenche deux choses à la fois</h3>
+          <span class="chip bug">défaut</span>
+          <span class="chip">10 min</span>
+        </div>
+        <span class="ref">src/components/CommandPalette/index.tsx:74 + option searchBarShortcut du thème de recherche</span>
+        <p>
+          Notre écouteur global ouvre la palette ; <code>@easyops-cn/docusaurus-search-local</code>
+          lie <kbd>⌘K</kbd> à son propre champ de navbar (activé par défaut).
+          <code>preventDefault()</code> n'empêche pas l'autre écouteur de s'exécuter : les deux
+          réagissent, et c'est le dernier à prendre le focus qui gagne — donc un comportement
+          instable selon l'ordre de montage.
+        </p>
+        <div class="fix">
+          <b>Correctif</b> — <code>searchBarShortcut: false</code> dans les options du thème de
+          recherche. La palette devient le seul propriétaire du raccourci.
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="entry-head">
+          <h3>Le « champ de recherche » du hero n'est pas un champ</h3>
+          <span class="chip bug">défaut</span>
+          <span class="chip">15 min</span>
+        </div>
+        <span class="ref">src/pages/index.tsx:56 — &lt;Link className={styles.search}&gt;</span>
+        <p>
+          Il en a la bordure, l'ombre, la loupe et le texte grisé « Browse the documentation… ».
+          Cliquer navigue vers la première section du sidebar. C'est le seul élément de la page
+          qui promet autre chose que ce qu'il fait.
+        </p>
+        <div class="fix">
+          <b>Correctif</b> — en faire un vrai déclencheur de la palette (<code>&lt;button&gt;</code>
+          qui l'ouvre, avec <kbd>⌘K</kbd> affiché à droite). L'ouverture de la palette devient
+          alors une API publique du composant plutôt qu'un état local.
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="entry-head">
+          <h3>Code mort : <code>HomepageFeatures</code></h3>
+          <span class="chip bug">défaut</span>
+          <span class="chip">2 min</span>
+        </div>
+        <span class="ref">src/components/HomepageFeatures/ — 82 lignes, plus aucun import</span>
+        <p>
+          Reliquat du gabarit d'origine, remplacé par les cartes dérivées du sidebar. À supprimer :
+          tout composant conservé « au cas où » finit par être copié par erreur.
+        </p>
+      </div>
+    </section>
+
+    <section id="recherche">
+      <p class="eyebrow">Axe 1</p>
+      <h2>Une seule recherche, visible</h2>
+      <p class="intro">
+        Il existe aujourd'hui trois portes d'entrée : le champ de la navbar, la palette <kbd>⌘K</kbd>
+        et la page <code>/search</code>. Elles ne donnent ni les mêmes résultats ni la même
+        interaction, et la plus aboutie — la palette — est invisible : rien à l'écran ne l'annonce.
+      </p>
+
+      <div class="entry">
+        <div class="entry-head">
+          <h3>La palette devient le point d'entrée unique</h3>
+          <span class="chip win">gain net</span>
+          <span class="chip">M</span>
+        </div>
+        <ul class="plain">
+          <li><b>Un déclencheur visible</b> dans la navbar, à la place du champ : une pastille
+            « Rechercher <kbd>⌘K</kbd> ». Le raccourci ne s'apprend que s'il est écrit.</li>
+          <li><b>Indexer les titres de section</b>, pas seulement les pages : le plugin
+            <code>command-palette</code> n'émet que <code>title</code> + <code>permalink</code>.
+            Ajouter les <code>h2</code>/<code>h3</code> avec leur ancre permet d'atterrir sur le bon
+            paragraphe d'un document long comme <code>architecture/</code>.</li>
+          <li><b>Fusionner le plein texte</b> : la ligne « Rechercher “…” dans toutes les pages »
+            existe déjà et renvoie vers <code>/search</code>. Mieux : afficher directement les
+            résultats plein texte sous les correspondances de titres, dans la même liste.</li>
+          <li><b>Filtres par section</b> (<code>Guide</code>, <code>Architecture</code>,
+            <code>API</code>…) et <b>pages récentes</b> à l'ouverture, quand la requête est vide —
+            aujourd'hui on y affiche les 8 premières pages de l'index, ce qui n'aide personne.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="actions">
+      <p class="eyebrow">Axe 2</p>
+      <h2>Rassembler les actions de page</h2>
+      <p class="intro">
+        Ce qu'on peut faire d'une page est éparpillé sur toute sa hauteur : copier en haut,
+        provenance et « éditer » après le contenu, PDF tout en bas, « ouvrir dans Open WebUI »
+        dans la légende de chaque diagramme. Aucune de ces actions n'est mauvaise ; c'est leur
+        dispersion qui coûte.
+      </p>
+
+      <div class="ba">
+        <figure>
+          <figcaption>Aujourd'hui</figcaption>
+          <div class="page">
+            <div class="mark">Copier en Markdown</div>
+            <div class="bar title"></div>
+            <div class="bar"></div>
+            <div class="bar mid"></div>
+            <div class="bar"></div>
+            <div class="bar short"></div>
+            <div class="mark">Mis à jour · par · Éditer</div>
+            <div class="mark">Télécharger en PDF</div>
+          </div>
+        </figure>
+        <figure>
+          <figcaption>Proposition</figcaption>
+          <div class="page">
+            <div class="bar title"></div>
+            <div class="actionbar">
+              <span>Copier</span><span>PDF</span><span>Éditer</span><span>⋯</span>
+            </div>
+            <div class="bar"></div>
+            <div class="bar mid"></div>
+            <div class="bar"></div>
+            <div class="bar short"></div>
+            <div class="mark ok">Mis à jour il y a 3 j · par A. Dupont</div>
+          </div>
+        </figure>
+      </div>
+
+      <div class="entry">
+        <div class="entry-head">
+          <h3>Une barre d'actions sous le titre</h3>
+          <span class="chip win">gain net</span>
+          <span class="chip">M</span>
+        </div>
+        <p>
+          Quatre actions au même endroit : <b>Copier en Markdown</b>, <b>PDF</b>, <b>Éditer</b>,
+          et un menu <b>⋯</b> pour le reste (Open WebUI sur la page entière, lien permanent,
+          signaler une erreur). La provenance descend en pied de page, en une ligne discrète —
+          c'est une information de confiance, pas une action.
+        </p>
+        <ul class="plain">
+          <li>Le bouton PDF reste un <code>&lt;a&gt;</code> brut : le fichier est produit par la CI
+            après le build, il ne doit pas passer par le vérificateur de liens
+            (<code>src/theme/DocItem/Footer/index.tsx</code> le documente déjà).</li>
+          <li>La barre garde la classe <code>pdf-hide</code> pour rester hors de l'export.</li>
+          <li>Sur mobile, elle se réduit aux icônes seules, sans libellé.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="tokens">
+      <p class="eyebrow">Axe 3</p>
+      <h2>Sortir le design system des commentaires</h2>
+      <p class="intro">
+        Les décisions visuelles du projet sont bonnes et argumentées — « la profondeur vient des
+        filets, jamais des ombres », le papier blanc des diagrammes, le bleu institutionnel.
+        Elles vivent dans des commentaires CSS et dans des hexadécimaux recopiés à la main.
+        <code>#004494</code> apparaît quatre fois dans <code>custom.css</code>, une cinquième dans
+        <code>docusaurus.config.ts</code>, une sixième dans la feuille WeasyPrint.
+      </p>
+
+      <div class="entry">
+        <div class="entry-head">
+          <h3>Un fichier de tokens, importé partout</h3>
+          <span class="chip care">chantier</span>
+          <span class="chip">M</span>
+        </div>
+        <p>
+          <code>src/css/tokens.css</code> déclare la marque une seule fois ; <code>custom.css</code>,
+          les modules CSS et la feuille PDF y puisent. Le jour où le bleu change, il change à un
+          seul endroit — y compris dans le PDF, qui est aujourd'hui le plus facile à oublier.
+        </p>
+        <pre><code>:root {
+  --eeas-blue: #004494;      /* navbar, en-têtes de tableau, accents */
+  --eeas-gold: #ffcc00;      /* survol navbar uniquement */
+  --eeas-paper: #ffffff;     /* fond des diagrammes, identique au PDF */
+  --eeas-rule: rgba(45,49,66,.12);
+  --eeas-radius: 8px;
+  --eeas-focus: 0 0 0 3px color-mix(in srgb, var(--eeas-blue) 22%, transparent);
+}</code></pre>
+        <ul class="plain">
+          <li><b>Un anneau de focus unique</b> : la recette existe déjà pour le champ de recherche,
+            elle n'est appliquée nulle part ailleurs. Un <code>:focus-visible</code> global
+            cohérent est le geste d'accessibilité le plus rentable du lot.</li>
+          <li><b>Typographie</b> : le site tourne sur la pile système. Une famille de texte assumée
+            (auto-hébergée, pas de CDN tiers — contrainte institutionnelle) et une échelle de
+            tailles déclarée donneraient au portail une identité propre, aujourd'hui portée par la
+            seule couleur.</li>
+          <li><b>Largeur de page</b> : l'accueil est à 1400 px, les pages de doc à la largeur
+            Docusaurus par défaut. On passe de l'une à l'autre avec un décalage visible.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="lecture">
+      <p class="eyebrow">Axe 4</p>
+      <h2>Se repérer dans une page longue</h2>
+      <p class="intro">
+        Les pages d'architecture font plusieurs écrans, avec des diagrammes inclus depuis
+        d'autres fichiers. Le sommaire de droite indique déjà la section active — c'est un bon
+        début, il manque le reste du repérage.
+      </p>
+
+      <div class="entry">
+        <div class="entry-head">
+          <h3>Repères de progression</h3>
+          <span class="chip win">gain net</span>
+          <span class="chip">S</span>
+        </div>
+        <ul class="plain">
+          <li><b>Barre de progression</b> de lecture, filet de 2 px sous la navbar.</li>
+          <li><b>Temps de lecture estimé</b> à côté de la provenance : une page de 20 min ne se
+            commence pas comme une de 2 min.</li>
+          <li><b>Sommaire replié sur mobile</b> et rendu atteignable depuis le haut de page.</li>
+        </ul>
+      </div>
+
+      <div class="entry">
+        <div class="entry-head">
+          <h3>État éditorial de la page</h3>
+          <span class="chip care">chantier</span>
+          <span class="chip">M</span>
+        </div>
+        <p>
+          Une doc interne se périme sans prévenir. Un champ <code>status</code> en front matter
+          (<code>draft</code>, <code>review</code>, <code>stable</code>) rendu en pastille près du
+          titre, plus un bandeau automatique quand <code>lastUpdatedAt</code> dépasse un seuil
+          (« Cette page n'a pas été revue depuis 18 mois »). La donnée existe déjà : le composant
+          <code>DocProvenance</code> la lit.
+        </p>
+      </div>
+
+      <div class="entry">
+        <div class="entry-head">
+          <h3>« Cette page vous a-t-elle aidé ? » et une vraie page 404</h3>
+          <span class="chip win">gain net</span>
+          <span class="chip">S</span>
+        </div>
+        <p>
+          Deux pouces en pied de page, qui ouvrent une issue GitHub pré-remplie avec l'URL de la
+          page en cas de « non » — pas de collecte, pas de service tiers. Et une page 404 qui
+          propose la palette de recherche et les sections principales, au lieu de la page vide par
+          défaut : <code>src/pages/</code> n'en contient aucune.
+        </p>
+      </div>
+    </section>
+
+    <section id="a11y">
+      <p class="eyebrow">Axe 5</p>
+      <h2>Accessibilité : ce que la palette doit encore respecter</h2>
+      <p class="intro">
+        Le reste du site s'appuie sur Docusaurus, qui fait le travail. La palette est du code
+        maison, et c'est là que se concentrent les écarts — sur un portail d'institution publique,
+        ce n'est pas un détail de confort.
+      </p>
+      <div class="entry">
+        <div class="entry-head">
+          <h3>Corrections ciblées</h3>
+          <span class="chip win">gain net</span>
+          <span class="chip">S</span>
+        </div>
+        <ul class="plain">
+          <li><b>Piège de focus</b> : la boîte de dialogue est <code>aria-modal</code> mais
+            <kbd>Tab</kbd> sort vers la page derrière. Enfermer le focus, et rendre le fond
+            inerte.</li>
+          <li><b>Motif combobox</b> : le champ n'est pas relié à la liste. Il faut
+            <code>role="combobox"</code>, <code>aria-controls</code>,
+            <code>aria-activedescendant</code> — sinon un lecteur d'écran n'annonce pas la ligne
+            active pendant la navigation aux flèches.</li>
+          <li><b>Superposition cliquable</b> : le fond porte <code>role="button"</code> avec
+            <code>tabIndex={-1}</code>. Le fermer relève de <kbd>Échap</kbd> et du clic, pas d'un
+            bouton fantôme annoncé à l'utilisateur.</li>
+          <li><b>Tableaux larges</b> : leur conteneur n'a pas d'<code>overflow-x</code> ; sur
+            mobile, c'est la page entière qui défile latéralement.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="priorites">
+      <p class="eyebrow">Arbitrage</p>
+      <h2>Ce que ça rapporte, ce que ça coûte</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Proposition</th><th>Effet visible</th><th>Effort</th><th>Nature</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Icônes des cartes d'accueil</td><td>Élevé — c'est la première page vue</td><td class="num">5 min</td><td>Défaut</td></tr>
+            <tr><td>Cartes PDF / Changelog affichées</td><td>Élevé — deux entrées disparues</td><td class="num">30 min</td><td>Défaut</td></tr>
+            <tr><td>Conflit <kbd>⌘K</kbd></td><td>Moyen — comportement instable</td><td class="num">10 min</td><td>Défaut</td></tr>
+            <tr><td>colorMode remonté + arbitrage</td><td>Moyen — thème au démarrage</td><td class="num">5 min</td><td>Défaut</td></tr>
+            <tr><td>Déclencheur de recherche visible</td><td>Élevé — rend ⌘K découvrable</td><td class="num">2 h</td><td>Ajout</td></tr>
+            <tr><td>Barre d'actions unifiée</td><td>Élevé — regroupe 4 actions</td><td class="num">1 j</td><td>Refonte</td></tr>
+            <tr><td>Index des titres de section</td><td>Élevé sur les pages longues</td><td class="num">1 j</td><td>Ajout</td></tr>
+            <tr><td>Fichier de tokens + focus global</td><td>Diffus mais durable</td><td class="num">1 j</td><td>Fond</td></tr>
+            <tr><td>Correctifs a11y de la palette</td><td>Décisif pour l'accès clavier</td><td class="num">0,5 j</td><td>Conformité</td></tr>
+            <tr><td>Page 404 + retour « utile ? »</td><td>Moyen</td><td class="num">0,5 j</td><td>Ajout</td></tr>
+            <tr><td>État éditorial des pages</td><td>Moyen, croît avec le corpus</td><td class="num">1 j</td><td>Fond</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="lots">
+      <p class="eyebrow">Mise en œuvre</p>
+      <h2>Quatre lots, dans cet ordre</h2>
+      <div class="lots">
+        <div class="lot">
+          <div class="when">Lot 1</div>
+          <div>
+            <h3>Rendre au site ce qui est déjà configuré</h3>
+            <p>Les six défauts ci-dessus. Une demi-journée, aucun risque, et l'accueil cesse
+              d'afficher quatre fois la même icône.</p>
+          </div>
+        </div>
+        <div class="lot">
+          <div class="when">Lot 2</div>
+          <div>
+            <h3>Recherche et actions</h3>
+            <p>Déclencheur visible, palette propriétaire du raccourci, index des titres de section,
+              barre d'actions unifiée sous le titre. C'est le lot que les lecteurs remarqueront.</p>
+          </div>
+        </div>
+        <div class="lot">
+          <div class="when">Lot 3</div>
+          <div>
+            <h3>Tokens, focus, typographie</h3>
+            <p>Le socle. Invisible pris isolément, mais c'est lui qui empêche les trois prochaines
+              contributions de réintroduire un bleu en dur.</p>
+          </div>
+        </div>
+        <div class="lot">
+          <div class="when">Lot 4</div>
+          <div>
+            <h3>Confort et cycle de vie</h3>
+            <p>Progression de lecture, temps estimé, état éditorial, page 404, retour lecteur.
+              À prendre au fil de l'eau.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer class="closing">
+  <p>
+    Rien de ce document n'est appliqué au site : c'est une proposition, faite après lecture de
+    <code>src/</code>, <code>plugins/</code> et <code>docusaurus.config.ts</code>. Les références
+    de fichiers et de lignes renvoient à l'état de la branche au moment de l'audit.
+  </p>
+</footer>
+
+</body>
+</html>
