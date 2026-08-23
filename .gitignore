@@ -38,3 +38,7 @@ out
 # openapi/. The whole folder is generated except its category label, so a new
 # spec needs no .gitignore change.
 /docs/api/**/*.md
+
+# Python bytecode (weasyprint exporter)
+__pycache__/
+*.py[cod]
