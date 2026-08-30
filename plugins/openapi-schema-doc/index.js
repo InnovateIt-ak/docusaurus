@@ -149,16 +149,21 @@ function discoverEntries(siteDir, rule) {
 
 // Two entries writing the same page would overwrite each other on every pass,
 // and each rewrite retriggers the docs watcher — a rebuild loop in dev. Drop the
-// duplicates loudly instead.
+// duplicates loudly instead. Same spec, same page is not a collision though —
+// only a repeated rule — so it is deduplicated silently, and the warning keeps
+// meaning what it says: two different specs are fighting over one page.
 function dropDuplicateOutputs(entries) {
   const seen = new Map();
   for (const entry of entries) {
     const key = path.normalize(entry.out);
-    if (seen.has(key)) {
-      console.warn(
-        `[openapi-schema-doc] ${entry.spec} would overwrite ${entry.out} ` +
-        `(already written from ${seen.get(key).spec}) — skipped`,
-      );
+    const previous = seen.get(key);
+    if (previous) {
+      if (path.normalize(previous.spec) !== path.normalize(entry.spec)) {
+        console.warn(
+          `[openapi-schema-doc] ${entry.spec} would overwrite ${entry.out} ` +
+          `(already written from ${previous.spec}) — skipped`,
+        );
+      }
       continue;
     }
     seen.set(key, entry);
@@ -204,12 +209,21 @@ function generate(siteDir, entry) {
 module.exports = function openapiSchemaDocPlugin(context, options = {}) {
   const {siteDir} = context;
   const rules = (options.discover ?? []).filter((rule) => rule?.dir);
-  const entries = dropDuplicateOutputs([
-    ...(options.specs ?? []).filter((entry) => entry?.spec && entry?.out),
-    ...rules.flatMap((rule) => discoverEntries(siteDir, rule)),
-  ]);
+  const listed = (options.specs ?? []).filter((entry) => entry?.spec && entry?.out);
+
+  // Only the listed specs are fixed; the discovered ones are re-read on every
+  // pass, never carried over from the previous one. Merging a previous pass'
+  // entries with a fresh discovery would have every discovered spec collide
+  // with itself, and a spec deleted from a watched folder would stay in the
+  // list forever.
+  const collectEntries = () =>
+    dropDuplicateOutputs([
+      ...listed,
+      ...rules.flatMap((rule) => discoverEntries(siteDir, rule)),
+    ]);
 
   // Runs while the config loads, before the docs plugin scans docs/.
+  let entries = collectEntries();
   for (const entry of entries) generate(siteDir, entry);
 
   return {
@@ -228,12 +242,10 @@ module.exports = function openapiSchemaDocPlugin(context, options = {}) {
     // plugin pick it up, so the dev server shows the new data model.
     async loadContent() {
       // Re-discover: a spec added to a watched folder since the last pass must
-      // get its page without restarting the dev server.
-      const current = dropDuplicateOutputs([
-        ...entries,
-        ...rules.flatMap((rule) => discoverEntries(siteDir, rule)),
-      ]);
-      for (const entry of current) {
+      // get its page without restarting the dev server, and one removed from it
+      // must stop being regenerated.
+      entries = collectEntries();
+      for (const entry of entries) {
         if (generate(siteDir, entry)) {
           console.log(`[openapi-schema-doc] regenerated ${entry.out}`);
         }
