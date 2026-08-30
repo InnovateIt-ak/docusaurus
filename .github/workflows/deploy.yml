@@ -142,11 +142,20 @@ jobs:
           fi
 
           # weasy <output-path-under-build-root> <title> [extra generator args…]
+          #
+          # The image is used for the runtime only (WeasyPrint, the native
+          # Pango/cairo stack and the fonts); the exporter itself is run from
+          # the checkout mounted at /data. The image bakes in a copy of
+          # generate_pdf.py / report.css but is only rebuilt on pushes to
+          # master, so running its copy would render every branch preview with
+          # the exporter from master — a change to the PDF layout could never be
+          # previewed on its PR. `--stylesheet` defaults to the report.css next
+          # to the script, so it follows the checkout too.
           weasy() {
             out="$1"; title="$2"; shift 2
             mkdir -p "$(dirname "$out")"
             docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/data" \
-              "$IMAGE" \
+              --entrypoint python "$IMAGE" /data/docker/weasyprint/generate_pdf.py \
               --build-dir=/data/build --output="/data/$out" \
               --base-url="$BASE_URL" --title="$title" \
               --eyebrow="Documentation" "$@" \

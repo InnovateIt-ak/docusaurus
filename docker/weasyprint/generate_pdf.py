@@ -17,7 +17,6 @@ Usage:
 """
 
 import argparse
-import base64
 import datetime
 import functools
 import html
@@ -35,12 +34,10 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 # the author has to add.
 WIDE_TABLE_MIN_COLUMNS = 7
 
-# A diagram/image whose aspect ratio (width / height) is at least this wide, and
-# whose intrinsic width is at least this many CSS pixels, is rendered on a
-# landscape page so it stays readable instead of being shrunk to the portrait
-# column width (e.g. wide PlantUML sequence diagrams).
-WIDE_IMAGE_MIN_RATIO = 1.4
-WIDE_IMAGE_MIN_WIDTH = 700
+# Diagrams are deliberately *not* moved to a landscape page of their own: they
+# are vector SVGs, so scaling one down to the portrait column width keeps it
+# perfectly readable, while a dedicated landscape page forced a break before and
+# after the diagram and left large empty areas around it.
 
 
 def log(message: str) -> None:
@@ -103,57 +100,6 @@ def tag_wide_tables(soup, node) -> bool:
             wrapper["class"] = ["landscape-block"]
             table.wrap(wrapper)
             found = True
-    return found
-
-
-def _image_dimensions(img):
-    """Return (width, height) in px for an <img>, or None if unknown.
-
-    Reads the width/height (or viewBox) of inline SVG data URLs — that is how the
-    PlantUML plugin embeds diagrams — and falls back to width/height attributes.
-    """
-    src = img.get("src", "")
-    if src.startswith("data:image/svg+xml;base64,"):
-        try:
-            svg = base64.b64decode(src.split(",", 1)[1]).decode("utf-8", "replace")
-        except (ValueError, UnicodeError):
-            return None
-        m = re.search(r'<svg[^>]*\bwidth="([\d.]+)(?:px)?"[^>]*\bheight="([\d.]+)', svg)
-        if not m:
-            m = re.search(r'viewBox="[\d.]+ [\d.]+ ([\d.]+) ([\d.]+)"', svg)
-        if m:
-            return float(m.group(1)), float(m.group(2))
-        return None
-    try:
-        return float(img.get("width")), float(img.get("height"))
-    except (TypeError, ValueError):
-        return None
-
-
-def tag_wide_images(soup, node) -> bool:
-    """Wrap wide diagrams/images in a landscape block, mirroring wide tables.
-
-    Generic: based on the image's intrinsic aspect ratio, so any wide diagram is
-    rotated to a landscape page without per-page markup. Returns True if one was
-    found.
-    """
-    found = False
-    for img in node.find_all("img"):
-        dims = _image_dimensions(img)
-        if not dims:
-            continue
-        width, height = dims
-        if height <= 0 or width < WIDE_IMAGE_MIN_WIDTH:
-            continue
-        if width / height < WIDE_IMAGE_MIN_RATIO:
-            continue
-        # Wrap the closest block container (usually the <p> the image sits in) so
-        # the landscape <div> is not placed inside a <p>.
-        target = img.parent if (img.parent is not None and img.parent.name == "p") else img
-        wrapper = soup.new_tag("div")
-        wrapper["class"] = ["landscape-block"]
-        target.wrap(wrapper)
-        found = True
     return found
 
 
@@ -263,10 +209,9 @@ def extract_article(page_html: str, index: int):
     for anchor in node.select("a.hash-link"):
         anchor.decompose()
 
-    # Wrap wide tables and wide diagrams in a landscape block so they fit the
-    # page while the surrounding text stays portrait.
+    # Wrap wide tables in a landscape block so they fit the page while the
+    # surrounding text stays portrait. Diagrams stay inline, in portrait.
     tag_wide_tables(soup, node)
-    tag_wide_images(soup, node)
 
     heading = node.find("h1")
     if heading:

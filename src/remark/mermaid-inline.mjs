@@ -123,9 +123,8 @@ function renderSvgViaChild(source) {
 // Gives the root <svg> intrinsic pixel dimensions. Mermaid emits `width="100%"`
 // plus a viewBox whose offsets are sometimes negative (e.g. "-50 -10 450 259")
 // and a `max-width` in the style attribute: without an explicit width and
-// height, a data-URL <img> has no intrinsic size, and the PDF generator's
-// "wide image => landscape" heuristic (which reads width/height, falling back to
-// a viewBox limited to positive offsets) has nothing to measure. So the SVG is
+// height, a data-URL <img> has no intrinsic size, so it has no aspect ratio to
+// scale by and the PDF renderer cannot fit it to the page. So the SVG is
 // brought in line with the PlantUML diagrams: width/height in px, no
 // max-width.
 function normalizeSvg(svg) {
