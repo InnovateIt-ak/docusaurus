@@ -750,3 +750,20 @@ body { counter-reset: chapter figure tablenum; }
    The `.pdf-hide` class is added by the component next to its (hashed) module
    class; !important beats the site stylesheet that WeasyPrint also loads. */
 .pdf-hide { display: none !important; }
+
+/* --- PDF-only: unfold the schema-format tabs --------------------------------
+   The generated API data-model pages put a resource's JSON, JSON-LD and merge
+   patch representations in tabs (plugins/openapi-schema-doc). A tab strip is an
+   on-screen affordance: nobody clicks paper, and the user agent stylesheet drops
+   the [hidden] panels, so every format but the selected one would simply be
+   missing from the PDF. Print them all instead, one after the other, drop the
+   strip, and head each panel with the format it holds — the generator carries
+   that label in `data-format` for exactly this. */
+[role="tabpanel"][hidden] { display: block !important; }
+ul[role="tablist"] { display: none !important; }
+.schema-format::before {
+  content: attr(data-format);
+  display: block;
+  font-weight: 700;
+  margin: 1rem 0 0.35rem;
+}

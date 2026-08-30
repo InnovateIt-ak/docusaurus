@@ -7,6 +7,10 @@
 // `discover` — dropping a new spec in that folder is then enough to get a page,
 // with no config change.
 //
+// Schemas that are one resource in several media types — `Acl`, `Acl.jsonld`,
+// `Acl.jsonMergePatch`, as API Platform names them — share a section, with one
+// tab per format rather than three sections repeating each other.
+//
 // The page is written into docs/ (it is generated, so .gitignore'd) at two
 // moments:
 //   * when the plugin is created — i.e. while the config is being loaded, before
@@ -78,57 +82,200 @@ function fieldType(prop) {
     return base || (prop.properties ? 'object' : '');
 }
 
-// OpenAPI 3.0 says `nullable: true`; 3.1 says `type: [..., "null"]`.
+// OpenAPI 3.0 says `nullable: true`; 3.1 says `type: [..., "null"]`, or pairs the
+// real type with a `null` branch in an `anyOf`/`oneOf` — which is how a nullable
+// `$ref` has to be written, since a `$ref` takes no sibling keywords.
 const isNullable = (prop) =>
-    Boolean(prop.nullable) || (Array.isArray(prop.type) && prop.type.includes('null'));
+    Boolean(prop.nullable)
+    || (Array.isArray(prop.type) && prop.type.includes('null'))
+    || [...(prop.anyOf ?? []), ...(prop.oneOf ?? [])].some((branch) => branch?.type === 'null');
+
+// A long enum — a list of country codes, say — would blow the column up and
+// swamp the rest of the row, so only the first values are shown and the others
+// counted. The specification stays the place to read the full list.
+const ENUM_PREVIEW = 12;
+function enumValues(prop) {
+    if (!Array.isArray(prop.enum)) return '';
+    const values = prop.enum.map((value) => (value === null ? 'null' : String(value)));
+    if (values.length <= ENUM_PREVIEW) return values.join(', ');
+    return `${values.slice(0, ENUM_PREVIEW).join(', ')}, … (+${values.length - ENUM_PREVIEW} more)`;
+}
+
+// A schema is rarely spelled out in one place: `allOf` composes it from other
+// schemas — a `$ref` to a shared base plus an inline object, typically. Flatten
+// the composition into the fields the resource actually carries, and keep the
+// names of the schemas it inherits them from.
+function flattenSchema(schema, schemas) {
+    const properties = {};
+    const required = new Set();
+    const bases = [];
+    const seen = new Set();
+
+    const visit = (node, isRoot) => {
+        if (!node || typeof node !== 'object') return;
+        if (node.$ref) {
+            const name = refName(node.$ref);
+            if (seen.has(name)) return;
+            seen.add(name);
+            if (!isRoot) bases.push(name);
+            visit(schemas[name], false);
+            return;
+        }
+        // Base first, own properties last: a schema overriding an inherited
+        // field should be the one that shows, and in the inherited field's place.
+        for (const part of node.allOf ?? []) visit(part, false);
+        Object.assign(properties, node.properties ?? {});
+        for (const field of node.required ?? []) required.add(field);
+    };
+
+    visit(schema, true);
+    return {properties, required, bases};
+}
+
+// The description of a composed schema sits either on the schema itself or on
+// the inline branch of its `allOf` — never on the shared base, whose own
+// description says nothing about this resource.
+const schemaDescription = (schema) =>
+    schema.description ?? (schema.allOf ?? []).find((part) => !part.$ref && part.description)?.description;
+
+// API Platform names every representation of a resource after the media type it
+// serialises to: `Acl` is the plain JSON one, `Acl.jsonld` the JSON-LD (Hydra)
+// one, `Acl.jsonMergePatch` the PATCH body. They document the same resource, so
+// they are merged into a single section with one tab per format instead of three
+// sections repeating each other. A `-group` suffix (`User.jsonld-user.read`) is
+// a serialization group, not a format: it keeps its own section, since the two
+// groups genuinely hold different fields.
+const SCHEMA_FORMATS = [
+    {token: null, value: 'json', label: 'JSON'},
+    {token: 'jsonld', value: 'jsonld', label: 'JSON-LD'},
+    {token: 'jsonMergePatch', value: 'merge-patch', label: 'JSON Merge Patch'},
+];
+
+function schemaVariant(name) {
+    for (const format of SCHEMA_FORMATS) {
+        if (!format.token) continue;
+        const suffix = new RegExp(`\\.${format.token}(?=$|[.-])`);
+        if (suffix.test(name)) return {base: name.replace(suffix, ''), format};
+    }
+    return {base: name, format: SCHEMA_FORMATS[0]};
+}
+
+// Group the schemas by the resource they represent, keeping the order the spec
+// lists them in, and each group's variants in format order (JSON first).
+function groupSchemas(schemas) {
+    const groups = new Map();
+    for (const [name, schema] of Object.entries(schemas)) {
+        const {base, format} = schemaVariant(name);
+        if (!groups.has(base)) groups.set(base, []);
+        groups.get(base).push({name, format, schema: schema ?? {}});
+    }
+
+    for (const variants of groups.values()) {
+        variants.sort((a, b) => SCHEMA_FORMATS.indexOf(a.format) - SCHEMA_FORMATS.indexOf(b.format));
+        // Two variants of one format under the same resource would collide on
+        // the tab they select; the second keeps its full name as its tab.
+        const taken = new Set();
+        for (const variant of variants) {
+            variant.value = taken.has(variant.format.value) ? variant.name : variant.format.value;
+            variant.label = taken.has(variant.format.value) ? variant.name : variant.format.label;
+            taken.add(variant.format.value);
+        }
+    }
+    return groups;
+}
+
+// The line under a heading or a tab: which schema this is, and what it extends.
+// The name is given only when the heading does not already carry it, so the
+// sentence starts with whichever half is there.
+function schemaNote(name, bases) {
+    const inherits = bases.length ? `extends ${bases.join(', ')}` : '';
+    const text = [name, inherits].filter(Boolean).join(' — ');
+    if (!text) return '';
+    return `_${cell(name ? text : text.charAt(0).toUpperCase() + text.slice(1))}._\n\n`;
+}
+
+// One schema's field table, composition resolved.
+function schemaTable(schema, schemas, name) {
+    const {properties, required, bases} = flattenSchema(schema, schemas);
+    const out = [schemaNote(name, bases)];
+
+    const fields = Object.keys(properties);
+    if (!fields.length) {
+        out.push(`_No properties declared (type: ${cell(schema.type ?? 'unknown')})._\n\n`);
+        return out.join('');
+    }
+
+    out.push('| Field | Type | Required | Nullable | Enum | Source | Description |\n');
+    out.push('|---|---|---|---|---|---|---|\n');
+    for (const field of fields) {
+        const prop = properties[field] ?? {};
+        out.push(
+            `| ${cell(field)} ` +
+            `| ${cell(fieldType(prop))} ` +
+            `| ${required.has(field) ? 'Yes' : 'No'} ` +
+            `| ${isNullable(prop) ? 'Yes' : 'No'} ` +
+            `| ${cell(enumValues(prop))} ` +
+            `| ${cell(prop['x-source'] ?? '')} ` +
+            `| ${cell(prop.description ?? '')} |\n`,
+        );
+    }
+    out.push('\n');
+    return out.join('');
+}
 
 function renderOpenApi(spec, {title, sidebarPosition} = {}) {
     const info = spec.info ?? {};
     const schemas = spec.components?.schemas ?? {};
     const specName = title || info.title || 'OpenAPI';
 
-    const out = [docHeader(specName, sidebarPosition)];
-    if (info.description) out.push(`${cell(info.description)}\n\n`);
+    const body = [];
+    if (info.description) body.push(`${cell(info.description)}\n\n`);
 
-    const names = Object.keys(schemas);
-    if (!names.length) {
-        out.push('_No `components.schemas` found in this specification._\n');
-        return out.join('');
+    const groups = groupSchemas(schemas);
+    if (!groups.size) {
+        body.push('_No `components.schemas` found in this specification._\n');
+        return docHeader(specName, sidebarPosition) + body.join('');
     }
 
-    for (const name of names) {
-        const schema = schemas[name] ?? {};
-        const required = new Set(schema.required ?? []);
-        const props = schema.properties ?? {};
+    // Only a page that shows tabs imports them: an unused import in a generated
+    // page is a puzzle for whoever opens it.
+    let usesTabs = false;
 
-        out.push(`## ${cell(name)}\n\n`);
-        if (schema.description) out.push(`${cell(schema.description)}\n\n`);
-
-        const fields = Object.keys(props);
-        if (!fields.length) {
-            out.push(`_No properties declared (type: ${cell(schema.type ?? 'unknown')})._\n\n`);
+    for (const [base, variants] of groups) {
+        if (variants.length === 1) {
+            const [only] = variants;
+            body.push(`## ${cell(only.name)}\n\n`);
+            const description = schemaDescription(only.schema);
+            if (description) body.push(`${cell(description)}\n\n`);
+            body.push(schemaTable(only.schema, schemas));
             continue;
         }
 
-        out.push('| Field | Type | Required | Nullable | Enum | Source | Description |\n');
-        out.push('|---|---|---|---|---|---|---|\n');
-        for (const field of fields) {
-            const prop = props[field] ?? {};
-            const enumValues = Array.isArray(prop.enum) ? prop.enum.join(', ') : '';
-            out.push(
-                `| ${cell(field)} ` +
-                `| ${cell(fieldType(prop))} ` +
-                `| ${required.has(field) ? 'Yes' : 'No'} ` +
-                `| ${isNullable(prop) ? 'Yes' : 'No'} ` +
-                `| ${cell(enumValues)} ` +
-                `| ${cell(prop['x-source'] ?? '')} ` +
-                `| ${cell(prop.description ?? '')} |\n`,
-            );
+        usesTabs = true;
+        body.push(`## ${cell(base)}\n\n`);
+        // `groupId` makes the whole page follow one choice: pick JSON-LD on any
+        // resource and every other one switches with it, and the choice is
+        // remembered on the next visit.
+        body.push('<Tabs groupId="schema-format">\n');
+        for (const variant of variants) {
+            body.push(`<TabItem value=${JSON.stringify(variant.value)} label=${JSON.stringify(variant.label)}>\n`);
+            // The wrapper carries the tab's label into the DOM, where the PDF
+            // stylesheet reads it: on paper every tab is printed one after the
+            // other, and each needs to say which format it is (report.css).
+            body.push(`<div className="schema-format" data-format=${JSON.stringify(variant.label)}>\n\n`);
+            const description = schemaDescription(variant.schema);
+            if (description) body.push(`${cell(description)}\n\n`);
+            body.push(schemaTable(variant.schema, schemas, variant.name === base ? null : variant.name));
+            body.push('</div>\n');
+            body.push('</TabItem>\n');
         }
-        out.push('\n');
+        body.push('</Tabs>\n\n');
     }
 
-    return out.join('');
+    const imports = usesTabs
+        ? "import Tabs from '@theme/Tabs';\nimport TabItem from '@theme/TabItem';\n\n"
+        : '';
+    return docHeader(specName, sidebarPosition) + imports + body.join('');
 }
 
 // ---------------------------------------------------------------------------
