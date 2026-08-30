@@ -160,14 +160,34 @@ function schemaVariant(name) {
     return {base: name, format: SCHEMA_FORMATS[0]};
 }
 
+// The part of a name before its first `-`: `User-user.write` and
+// `User.jsonld-user.read` are the same resource written and read, so they belong
+// in one section, under a tab each. The suffix only counts as a serialization
+// group when another schema shares the stem — a lone `Foo-Bar` is just a schema
+// named `Foo-Bar`, not the `Bar` representation of a `Foo`.
+const stemOf = (base) => base.split('-')[0];
+
 // Group the schemas by the resource they represent, keeping the order the spec
 // lists them in, and each group's variants in format order (JSON first).
 function groupSchemas(schemas) {
+    const parsed = Object.entries(schemas).map(([name, schema]) => ({
+        name,
+        schema: schema ?? {},
+        ...schemaVariant(name),
+    }));
+
+    const stems = new Map();
+    for (const variant of parsed) {
+        const stem = stemOf(variant.base);
+        if (!stems.has(stem)) stems.set(stem, new Set());
+        stems.get(stem).add(variant.base);
+    }
+
     const groups = new Map();
-    for (const [name, schema] of Object.entries(schemas)) {
-        const {base, format} = schemaVariant(name);
-        if (!groups.has(base)) groups.set(base, []);
-        groups.get(base).push({name, format, schema: schema ?? {}});
+    for (const variant of parsed) {
+        const resource = stems.get(stemOf(variant.base)).size > 1 ? stemOf(variant.base) : variant.base;
+        if (!groups.has(resource)) groups.set(resource, []);
+        groups.get(resource).push(variant);
     }
 
     for (const variants of groups.values()) {
@@ -241,8 +261,12 @@ function renderOpenApi(spec, {title, sidebarPosition} = {}) {
     // page is a puzzle for whoever opens it.
     let usesTabs = false;
 
-    for (const [base, variants] of groups) {
-        if (variants.length === 1) {
+    for (const [resource, variants] of groups) {
+        // A schema named after no format at all — an ordinary OpenAPI spec, or a
+        // DTO — is not a representation of anything, so it stays a plain section.
+        // One that names a format gets its tab even when it is alone: `Me.jsonld`
+        // is the JSON-LD representation of `Me`, and the page says so.
+        if (variants.length === 1 && !variants[0].format.token) {
             const [only] = variants;
             body.push(`## ${cell(only.name)}\n\n`);
             const description = schemaDescription(only.schema);
@@ -252,7 +276,7 @@ function renderOpenApi(spec, {title, sidebarPosition} = {}) {
         }
 
         usesTabs = true;
-        body.push(`## ${cell(base)}\n\n`);
+        body.push(`## ${cell(resource)}\n\n`);
         // `groupId` makes the whole page follow one choice: pick JSON-LD on any
         // resource and every other one switches with it, and the choice is
         // remembered on the next visit.
@@ -265,7 +289,7 @@ function renderOpenApi(spec, {title, sidebarPosition} = {}) {
             body.push(`<div className="schema-format" data-format=${JSON.stringify(variant.label)}>\n\n`);
             const description = schemaDescription(variant.schema);
             if (description) body.push(`${cell(description)}\n\n`);
-            body.push(schemaTable(variant.schema, schemas, variant.name === base ? null : variant.name));
+            body.push(schemaTable(variant.schema, schemas, variant.name === resource ? null : variant.name));
             body.push('</div>\n');
             body.push('</TabItem>\n');
         }
