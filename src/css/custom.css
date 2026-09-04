@@ -354,4 +354,25 @@
     margin-left: auto;
     max-width: 22rem;
   }
+
+  /* Collapsing the sidebar must not re-lay-out the page. The theme widens the
+     container by the sidebar's width and re-centres it, which at this size
+     slides the article left and pulls the table of contents back in from the
+     edge — the reader hides the sidebar and the two columns they were reading
+     move. Here the reclaimed strip is left as margin instead: the row keeps the
+     width and the position it had, and only the sidebar disappears.
+
+     The widening is `max-width: calc(var(--ifm-container-width) +
+     var(--doc-sidebar-width)) !important` from a cascade layer, which no
+     unlayered rule can outrank — so it is defused through the variable it
+     computes from rather than by fighting the declaration. */
+  .docs-wrapper .container {
+    --ifm-container-width: 100%;
+  }
+  .docs-wrapper main[class*='docMainContainerEnhanced'] > .container {
+    padding-left: calc(
+      var(--doc-sidebar-width) - var(--doc-sidebar-hidden-width) +
+        var(--ifm-spacing-horizontal)
+    );
+  }
 }
