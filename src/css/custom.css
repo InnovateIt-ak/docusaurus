@@ -322,3 +322,36 @@
 .navbar-sidebar {
   font-size: 0.95rem;
 }
+
+
+/* ---- Very wide screens: use the width instead of centring in it -----------
+   A doc page is a `.container` capped at --ifm-container-width-xl (1320px),
+   centred in whatever the sidebar leaves. Past ~1620px of viewport that cap
+   starts costing: the whole page drifts to the middle, leaving a margin on the
+   right while the table of contents sits pinned against the prose rather than
+   near the edge the reader's eye goes to.
+
+   Above 1600px the row is given the full width instead, and the two columns
+   then take the space that means something to each: the article keeps a
+   readable measure (64rem, close to the ~960px it gets at 1440px, so line
+   length does not grow with the monitor) and starts right after the sidebar,
+   and the table of contents is pushed to the right edge. The space that used
+   to be split into two margins ends up between them.
+
+   The cap is set on the column's inner container, not on the column: the
+   theme's own `.docItemCol` carries `max-width: 75% !important` from a cascade
+   layer, which no unlayered rule of ours can outrank. */
+@media (min-width: 1600px) {
+  .docs-wrapper .container {
+    --ifm-container-width-xl: 100%;
+  }
+  .docs-wrapper .row > .col:first-child > div {
+    max-width: 64rem;
+  }
+  /* Pushed to the right edge, and kept to a column width: at 25% of a 2560px
+     screen the table of contents would otherwise be 530px of mostly air. */
+  .docs-wrapper .row > .col--3 {
+    margin-left: auto;
+    max-width: 22rem;
+  }
+}
