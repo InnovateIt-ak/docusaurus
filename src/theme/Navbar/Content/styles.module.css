@@ -1,0 +1,64 @@
+/* Companion stylesheet of the swizzled Navbar/Content. The first two rules are
+   upstream's, kept verbatim so the swizzle changes nothing it did not mean to;
+   the rest lays out the single-line row of left items and its "More" menu. */
+
+/* Hide color mode toggle in small viewports */
+@media (max-width: 996px) {
+  .colorModeToggle {
+    display: none;
+  }
+}
+
+/* Restore some Infima style that broke with CSS Cascade Layers
+   See https://github.com/facebook/docusaurus/pull/11142 */
+:global(.navbar__items--right) > :last-child {
+  padding-right: 0;
+}
+
+/* The row of left items. It takes the space the brand and the right-hand items
+   leave and never asks for more (`flex-basis: 0`, `min-width: 0`), which is
+   what makes its width independent of the number of items in it — the fold
+   decides what to show, not the other way round. */
+.leftItems {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* Clipping, worn only until the first measurement: it is what keeps the
+   server-rendered (and JavaScript-less) bar from letting a dozen items run
+   under the search field. It cannot stay on afterwards — the "More" menu opens
+   *below* the row, and an ancestor that clips would cut it off. Between a
+   resize and the measurement that follows there is no clipping either, and
+   none is needed: the observer runs before the browser paints. */
+.clipped {
+  overflow: hidden;
+}
+
+/* The measurement mirror: the full item list at natural width, taken out of the
+   layout so it costs nothing, and hidden with `visibility` (not `display`) so
+   it still has the widths we are here to read. `visibility: hidden` also drops
+   it from the accessibility tree and the tab order, so the duplicated links are
+   invisible to a screen reader and unreachable by keyboard. */
+.mirror {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Heading of a folded dropdown inside the "More" menu: the parent's label, kept
+   as a section title above its (flattened) children. */
+.overflowHeading {
+  padding: 0.35rem var(--ifm-navbar-item-padding-horizontal, 0.75rem) 0.15rem;
+  font-size: 0.75rem;
+  font-weight: var(--ifm-font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ifm-color-emphasis-600);
+}

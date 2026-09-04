@@ -190,3 +190,88 @@
     width: auto;
   }
 }
+
+
+/* ---- Crowded navbar: one line, never a broken label -----------------------
+   A site with a long project title and a dozen sections used to give a navbar
+   that wrapped onto two rows and split labels mid-phrase ("LikeC4 Architecture
+   / Diagrams"). Two things fix that, and they work together:
+
+     * here: nothing in the bar is allowed to wrap, and the brand title gives
+       way (ellipsis) instead of stealing the room the items need;
+     * src/theme/Navbar/Content: the left items that no longer fit on the line
+       are folded into a "More" dropdown, measured on resize.
+
+   Without the no-wrap rules the fold would measure labels that have already
+   broken in two, so these are what make the row's width mean what it says. */
+.navbar__item,
+.navbar__link,
+.navbar__title {
+  white-space: nowrap;
+}
+/* The brand is the one thing that may be shortened, and only once the bar has
+   nothing left to give: the items row yields its space first (it may fold into
+   "More"), so the title is ellipsed rather than wrapped only when even that is
+   not enough. A title that fits is never cut. */
+.navbar__title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Search and theme toggle keep their size; the items row absorbs the shortage
+   (see .leftItems in the swizzled Navbar/Content). */
+.navbar__items--right {
+  flex-shrink: 0;
+}
+/* A folded navbar can hand the "More" menu a dozen entries — more than a short
+   viewport has room for. Cap it and let it scroll rather than run off-screen.
+   Applies to every navbar dropdown, the "📄 PDF" one included. */
+.navbar .dropdown__menu {
+  max-height: min(70vh, 32rem);
+  overflow-y: auto;
+}
+
+@media (max-width: 996px) {
+  /* The mobile drawer is a vertical list: labels have the full width and wrap
+     naturally, so the no-wrap above would only truncate them for nothing. */
+  .navbar-sidebar .menu__link,
+  .navbar-sidebar .navbar__link {
+    white-space: normal;
+  }
+}
+
+
+/* ---- Navbar at 90% ---------------------------------------------------------
+   The bar reads better a notch smaller than the page: shorter, with tighter
+   items and a ~10% smaller type, which is the scale the site was judged best
+   at. Everything below is scoped to `.navbar` (and its mobile drawer) — the
+   page, the sidebar and the PDF keep their own scale — and is expressed by
+   overriding the Infima navbar tokens, so links, the brand, the dropdowns and
+   the search field all follow from one place.
+
+   Working smaller here also buys the items room: ten sections that needed a
+   fold into "More" at full size often fit on the line at this one. */
+.navbar {
+  font-size: 0.9rem;
+  --ifm-navbar-height: 3.4rem;
+  --ifm-navbar-item-padding-horizontal: 0.6rem;
+}
+.navbar__logo {
+  height: 1.75rem;
+}
+.navbar__title {
+  font-size: 1.1rem;
+}
+/* The search pill follows the same 10%: the widths above were set against the
+   full-size bar and would now sit taller than the links beside them. */
+.navbar__search-input {
+  height: 1.95rem;
+  width: 10.5rem;
+}
+.navbar__search-input:focus {
+  width: 13rem;
+}
+/* The mobile drawer inherits `.navbar`'s size through `.navbar-sidebar`; give
+   its list back a comfortable touch size. */
+.navbar-sidebar {
+  font-size: 0.95rem;
+}
