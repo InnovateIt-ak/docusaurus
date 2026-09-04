@@ -113,13 +113,13 @@
 /* Underline offset below the text baseline, so it reads as a marker under the
    item and not as a link decoration. No border, no fill: nothing here moves the
    item by a pixel when it becomes current. */
-[data-theme='light'] .navbar__link:hover,
-[data-theme='light'] .navbar__link--active {
+[data-theme='light'] .navbar__inner .navbar__link:hover,
+[data-theme='light'] .navbar__inner .navbar__link--active {
   text-decoration: underline;
   text-underline-offset: 7px;
   text-decoration-thickness: 2px;
 }
-[data-theme='light'] .navbar__link--active {
+[data-theme='light'] .navbar__inner .navbar__link--active {
   font-weight: var(--ifm-font-weight-bold);
 }
 /* Theme toggle + mobile hamburger icons inherit currentColor. */
@@ -134,6 +134,35 @@
 [data-theme='light'] .navbar .clean-btn:focus-visible,
 [data-theme='light'] .navbar__toggle:hover {
   background: rgba(255, 255, 255, 0.15);
+}
+
+/* The mobile drawer lives INSIDE .navbar, so it inherited the whole blue
+   treatment above and opened as a full-height slab of EU blue. Only the bar is
+   meant to carry the colour: the drawer keeps a blue header — continuous with
+   the bar it slides out of — and gives its list back the page's own ground and
+   ink. The tokens are reset on the drawer rather than the colours overridden
+   item by item, so links, categories and the collapse chevrons all follow. */
+[data-theme='light'] .navbar-sidebar {
+  --ifm-navbar-link-color: var(--ifm-font-color-base);
+  --ifm-navbar-link-hover-color: var(--ifm-color-primary);
+  --ifm-menu-color: var(--ifm-font-color-base);
+  /* --ifm-background-color is `transparent` in light mode (the body paints the
+     page); the drawer is an overlay and needs a real surface under it. */
+  background-color: var(--ifm-background-surface-color);
+  color: var(--ifm-font-color-base);
+}
+/* Header of the drawer: the bar, continued. */
+[data-theme='light'] .navbar-sidebar__brand {
+  background-color: rgb(0, 68, 148);
+}
+[data-theme='light'] .navbar-sidebar__brand .navbar__title,
+[data-theme='light'] .navbar-sidebar__brand .clean-btn {
+  color: #ffffff;
+}
+/* "Back to main menu" sits on the white list, not on the blue header. */
+[data-theme='light'] .navbar-sidebar__back {
+  color: var(--ifm-font-color-base);
+  background: var(--ifm-color-emphasis-100);
 }
 
 /* ---- Enriched provenance block -------------------------------------------
