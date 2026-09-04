@@ -89,24 +89,51 @@
 }
 
 
-/* ---- Light-mode top navbar ------------------------------------------------
-   The bar used to be painted EU blue in light mode, with white links and a gold
-   hover. It read as a band of colour laid over a white page — and the active
-   section, gold on blue, was the loudest thing on screen. The bar now sits on
-   the page's own ground: Infima's white navbar, dark links, and the EU blue
-   kept where it means something — the hovered and the active section. What
-   separates the bar from the page is a hairline, not a colour.
+/* ---- Light-mode top navbar: EU-blue background ---------------------------
+   In light mode the top navbar (NOT the left sidebar) is painted EU blue.
+   Overriding the Infima navbar variables (rather than .navbar directly) keeps
+   links, the brand title, the theme toggle and the mobile hamburger legible,
+   since they all read from these tokens. Scoped to light mode only, so dark
+   mode and the (light) PDF are untouched.
 
-   The blue itself is not gone from the site: the sidebar's active item, the
-   links, the table headers and the PDF all still carry it. */
+   Everything on the bar is white — including the hovered and the active
+   section, which are marked by an underline rather than by a second colour.
+   The gold (#ffcc00) this used to hover and mark with was the loudest thing on
+   a page that is otherwise blue-and-white; the underline says the same thing
+   without shouting, and it is what the section already gets in the sidebar. */
 [data-theme='light'] .navbar {
-  --ifm-navbar-link-hover-color: var(--ifm-color-primary);
-  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+  --ifm-navbar-background-color: rgb(0, 68, 148);
+  --ifm-navbar-link-color: #ffffff;
+  --ifm-navbar-link-hover-color: #ffffff;
 }
-/* The active section, marked by weight and colour rather than by a fill. */
+[data-theme='light'] .navbar__title,
+[data-theme='light'] .navbar__brand:hover .navbar__title {
+  color: #ffffff;
+}
+/* Underline offset below the text baseline, so it reads as a marker under the
+   item and not as a link decoration. No border, no fill: nothing here moves the
+   item by a pixel when it becomes current. */
+[data-theme='light'] .navbar__link:hover,
 [data-theme='light'] .navbar__link--active {
-  color: var(--ifm-color-primary);
+  text-decoration: underline;
+  text-underline-offset: 7px;
+  text-decoration-thickness: 2px;
+}
+[data-theme='light'] .navbar__link--active {
   font-weight: var(--ifm-font-weight-bold);
+}
+/* Theme toggle + mobile hamburger icons inherit currentColor. */
+[data-theme='light'] .navbar .clean-btn,
+[data-theme='light'] .navbar__toggle {
+  color: #ffffff;
+}
+/* The theme-toggle button's hover/focus fill defaults to a light grey
+   (--ifm-color-emphasis-200), which reads as a jarring solid white disc on the
+   blue navbar. Replace it with a subtle translucent-white overlay. */
+[data-theme='light'] .navbar .clean-btn:hover,
+[data-theme='light'] .navbar .clean-btn:focus-visible,
+[data-theme='light'] .navbar__toggle:hover {
+  background: rgba(255, 255, 255, 0.15);
 }
 
 /* ---- Enriched provenance block -------------------------------------------
@@ -119,10 +146,10 @@
 }
 
 
-/* ---- Markdown table headers: EU-blue, matching the PDF --------------------
-   The generated PDF paints table headers EU blue (docker/weasyprint/report.css).
-   Bring that to the site so the header row reads identically across web and
-   PDF, in both themes.
+/* ---- Markdown table headers: EU-blue, matching the navbar and the PDF ------
+   The generated PDF paints table headers EU blue (docker/weasyprint/report.css)
+   and the light-mode navbar uses the same institutional blue. Bring that to the
+   site so the header row reads identically across web and PDF, in both themes.
    The blue is fixed (not var(--ifm-color-primary), which lightens in dark mode)
    so white-on-blue contrast stays strong everywhere. */
 .markdown table thead tr,
@@ -140,9 +167,9 @@
 /* ---- Navbar search input: prettier pill field ----------------------------
    Style only the input of the local-search bar (@easyops-cn/docusaurus-search-
    local renders the global `.navbar__search-input`). Rounded pill, soft border,
-   an EU-blue focus ring, and a gentle widen on focus. The field reads as a
-   pill on the bar's own ground in both themes — light or dark surface, dark or
-   light text — since the bar no longer carries a colour of its own. */
+   an EU-blue focus ring, and a gentle widen on focus. On the EU-blue light
+   navbar the field is a solid white pill (dark text); dark mode keeps a surface
+   field with a blue focus ring. */
 .navbar__search-input {
   height: 2.15rem;
   width: 12rem;
@@ -156,6 +183,22 @@
   width: 15rem;
   border-color: var(--ifm-color-primary);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--ifm-color-primary) 22%, transparent);
+}
+
+/* Solid white pill with dark text on the EU-blue navbar. The search-hint keys
+   (ctrl/K) read their text/background from these same vars, so keeping them
+   dark-on-white (not white-on-white) is what keeps the hint legible. */
+[data-theme='light'] .navbar {
+  --ifm-navbar-search-input-background-color: #ffffff;
+  --ifm-navbar-search-input-color: var(--ifm-font-color-base);
+  --ifm-navbar-search-input-placeholder-color: var(--ifm-color-emphasis-500);
+}
+[data-theme='light'] .navbar__search-input {
+  border-color: rgba(255, 255, 255, 0.55);
+}
+[data-theme='light'] .navbar__search-input:focus {
+  border-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4);
 }
 
 @media (max-width: 996px) {
