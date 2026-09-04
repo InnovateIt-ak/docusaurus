@@ -123,9 +123,10 @@ const config: Config = {
         ],
     ],
     plugins: [
-        // API data models: render every spec in openapi/ as a docs page under
-        // docs/api/datamodel (plugins/openapi-schema-doc). Discovered, not
-        // listed: dropping a new spec in openapi/ is enough to get its page.
+        // API data models: render every spec in openapi/ — OpenAPI (.yaml, .yml,
+        // .json) or JSON-LD (.jsonld) — as a docs page under docs/api/datamodel
+        // (plugins/openapi-schema-doc). Discovered, not listed: dropping a new
+        // spec in openapi/ is enough to get its page.
         // Generated on the fly at build time, regenerated on spec edits in dev,
         // and not committed (see .gitignore).
         [

@@ -1,0 +1,4691 @@
+openapi: 3.1.0
+info:
+  title: 'Sample API Platform'
+  description: ''
+  version: 1.0.0
+servers:
+  -
+    url: /
+    description: ''
+paths:
+  /acl:
+    get:
+      operationId: api_acl_get_collection
+      tags:
+        - Acl
+      responses:
+        '200':
+          description: 'Acl collection'
+          content:
+            application/ld+json:
+              schema:
+                type: object
+                description: 'Acl.jsonld collection.'
+                allOf:
+                  - { $ref: '#/components/schemas/HydraCollectionBaseSchema' }
+                  - { type: object, required: [member], properties: { member: { type: array, items: { $ref: '#/components/schemas/Acl.jsonld' } } } }
+        '403':
+          description: Forbidden
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Retrieves the collection of Acl resources.'
+      description: 'Retrieves the collection of Acl resources.'
+      parameters:
+        -
+          name: page
+          in: query
+          description: 'The collection page number'
+          required: false
+          deprecated: false
+          schema:
+            type: integer
+            default: 1
+          style: form
+          explode: true
+        -
+          name: itemsPerPage
+          in: query
+          description: 'The number of items per page'
+          required: false
+          deprecated: false
+          schema:
+            type: integer
+            default: 30
+            minimum: 0
+            maximum: 30
+          style: form
+          explode: true
+        -
+          name: pagination
+          in: query
+          description: 'Enable or disable pagination'
+          required: false
+          deprecated: false
+          schema:
+            type: boolean
+          style: form
+          explode: true
+    post:
+      operationId: api_acl_post
+      tags:
+        - Acl
+      responses:
+        '201':
+          description: 'Acl resource created'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/AclResourcePost.jsonld'
+          links: {}
+        '400':
+          description: 'Invalid input'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+        '422':
+          description: 'An error occurred'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+          links: {}
+        '403':
+          description: Forbidden
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Creates a Acl resource.'
+      description: 'Creates a Acl resource.'
+      parameters: []
+      requestBody:
+        description: 'The new Acl resource'
+        content:
+          application/ld+json:
+            schema:
+              $ref: '#/components/schemas/AclResourcePost'
+        required: true
+  /acl-list:
+    get:
+      operationId: api_acl-list_get_collection
+      tags:
+        - Acl
+      responses:
+        '200':
+          description: 'AclList collection'
+          content:
+            application/ld+json:
+              schema:
+                type: object
+                description: 'AclList.jsonld collection.'
+                allOf:
+                  - { $ref: '#/components/schemas/HydraCollectionBaseSchema' }
+                  - { type: object, required: [member], properties: { member: { type: array, items: { $ref: '#/components/schemas/AclList.jsonld' } } } }
+        '403':
+          description: Forbidden
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Retrieves the collection of AclList resources.'
+      description: 'Retrieves the collection of AclList resources.'
+      parameters:
+        -
+          name: page
+          in: query
+          description: 'The collection page number'
+          required: false
+          deprecated: false
+          schema:
+            type: integer
+            default: 1
+          style: form
+          explode: true
+        -
+          name: itemsPerPage
+          in: query
+          description: 'The number of items per page'
+          required: false
+          deprecated: false
+          schema:
+            type: integer
+            default: 30
+            minimum: 0
+            maximum: 30
+          style: form
+          explode: true
+        -
+          name: pagination
+          in: query
+          description: 'Enable or disable pagination'
+          required: false
+          deprecated: false
+          schema:
+            type: boolean
+          style: form
+          explode: true
+        -
+          name: role
+          in: query
+          description: 'Filter by role id'
+          required: false
+          deprecated: false
+          schema:
+            type: string
+          style: form
+          explode: true
+    post:
+      operationId: api_acl-list_post
+      tags:
+        - Acl
+      responses:
+        '201':
+          description: 'AclList resource created'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/AclListResourcePost.jsonld'
+          links: {}
+        '400':
+          description: 'Invalid input'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+        '422':
+          description: 'An error occurred'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+          links: {}
+        '403':
+          description: Forbidden
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Creates a AclList resource.'
+      description: 'Creates a AclList resource.'
+      parameters: []
+      requestBody:
+        description: 'The new AclList resource'
+        content:
+          application/ld+json:
+            schema:
+              $ref: '#/components/schemas/AclListResourcePost'
+        required: true
+  '/acl-list/{id}':
+    get:
+      operationId: api_acl-list_id_get
+      tags:
+        - Acl
+      responses:
+        '200':
+          description: 'AclList resource'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/AclList.jsonld'
+        '403':
+          description: Forbidden
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+        '404':
+          description: 'Not found'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Retrieves a AclList resource.'
+      description: 'Retrieves a AclList resource.'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'AclList identifier'
+          required: true
+          deprecated: false
+          schema:
+            type: string
+          style: simple
+          explode: false
+    delete:
+      operationId: api_acl-list_id_delete
+      tags:
+        - Acl
+      responses:
+        '204':
+          description: 'AclList resource deleted'
+        '403':
+          description: Forbidden
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+        '404':
+          description: 'Not found'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Removes the AclList resource.'
+      description: 'Removes the AclList resource.'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'AclList identifier'
+          required: true
+          deprecated: false
+          schema:
+            type: string
+          style: simple
+          explode: false
+    patch:
+      operationId: api_acl-list_id_patch
+      tags:
+        - Acl
+      responses:
+        '200':
+          description: 'AclList resource updated'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/AclListResourcePatch.jsonld'
+          links: {}
+        '400':
+          description: 'Invalid input'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+        '422':
+          description: 'An error occurred'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+          links: {}
+        '403':
+          description: Forbidden
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+        '404':
+          description: 'Not found'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Updates the AclList resource.'
+      description: 'Updates the AclList resource.'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'AclList identifier'
+          required: true
+          deprecated: false
+          schema:
+            type: string
+          style: simple
+          explode: false
+      requestBody:
+        description: 'The updated AclList resource'
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/AclListResourcePatch.jsonMergePatch'
+        required: true
+  /acl-roles:
+    get:
+      operationId: api_acl-roles_get_collection
+      tags:
+        - Acl
+      responses:
+        '200':
+          description: 'AclRole collection'
+          content:
+            application/ld+json:
+              schema:
+                type: object
+                description: 'AclRole.jsonld collection.'
+                allOf:
+                  - { $ref: '#/components/schemas/HydraCollectionBaseSchema' }
+                  - { type: object, required: [member], properties: { member: { type: array, items: { $ref: '#/components/schemas/AclRole.jsonld' } } } }
+        '403':
+          description: Forbidden
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Retrieves the collection of AclRole resources.'
+      description: 'Retrieves the collection of AclRole resources.'
+      parameters:
+        -
+          name: page
+          in: query
+          description: 'The collection page number'
+          required: false
+          deprecated: false
+          schema:
+            type: integer
+            default: 1
+          style: form
+          explode: true
+        -
+          name: itemsPerPage
+          in: query
+          description: 'The number of items per page'
+          required: false
+          deprecated: false
+          schema:
+            type: integer
+            default: 30
+            minimum: 0
+            maximum: 30
+          style: form
+          explode: true
+        -
+          name: pagination
+          in: query
+          description: 'Enable or disable pagination'
+          required: false
+          deprecated: false
+          schema:
+            type: boolean
+          style: form
+          explode: true
+    post:
+      operationId: api_acl-roles_post
+      tags:
+        - Acl
+      responses:
+        '201':
+          description: 'AclRole resource created'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/AclRoleResourcePost.AclRoleResource.jsonld'
+          links: {}
+        '400':
+          description: 'Invalid input'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+        '422':
+          description: 'An error occurred'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+          links: {}
+        '403':
+          description: Forbidden
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Creates a AclRole resource.'
+      description: 'Creates a AclRole resource.'
+      parameters: []
+      requestBody:
+        description: 'The new AclRole resource'
+        content:
+          application/ld+json:
+            schema:
+              $ref: '#/components/schemas/AclRoleResourcePost.AclRoleInputDto'
+        required: true
+  '/acl-roles/{id}':
+    get:
+      operationId: api_acl-roles_id_get
+      tags:
+        - Acl
+      responses:
+        '200':
+          description: 'AclRole resource'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/AclRole.jsonld'
+        '403':
+          description: Forbidden
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+        '404':
+          description: 'Not found'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Retrieves a AclRole resource.'
+      description: 'Retrieves a AclRole resource.'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'AclRole identifier'
+          required: true
+          deprecated: false
+          schema:
+            type: string
+          style: simple
+          explode: false
+    delete:
+      operationId: api_acl-roles_id_delete
+      tags:
+        - Acl
+      responses:
+        '204':
+          description: 'AclRole resource deleted'
+        '403':
+          description: Forbidden
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+        '404':
+          description: 'Not found'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Removes the AclRole resource.'
+      description: 'Removes the AclRole resource.'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'AclRole identifier'
+          required: true
+          deprecated: false
+          schema:
+            type: string
+          style: simple
+          explode: false
+    patch:
+      operationId: api_acl-roles_id_patch
+      tags:
+        - Acl
+      responses:
+        '200':
+          description: 'AclRole resource updated'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/AclRoleResourcePatch.jsonld'
+          links: {}
+        '400':
+          description: 'Invalid input'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+        '422':
+          description: 'An error occurred'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+          links: {}
+        '403':
+          description: Forbidden
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+        '404':
+          description: 'Not found'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Updates the AclRole resource.'
+      description: 'Updates the AclRole resource.'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'AclRole identifier'
+          required: true
+          deprecated: false
+          schema:
+            type: string
+          style: simple
+          explode: false
+      requestBody:
+        description: 'The updated AclRole resource'
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/AclRoleResourcePatch.jsonMergePatch'
+        required: true
+  '/acl/{id}':
+    get:
+      operationId: api_acl_id_get
+      tags:
+        - Acl
+      responses:
+        '200':
+          description: 'Acl resource'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Acl.jsonld'
+        '403':
+          description: Forbidden
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+        '404':
+          description: 'Not found'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Retrieves a Acl resource.'
+      description: 'Retrieves a Acl resource.'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'Acl identifier'
+          required: true
+          deprecated: false
+          schema:
+            type: string
+          style: simple
+          explode: false
+    delete:
+      operationId: api_acl_id_delete
+      tags:
+        - Acl
+      responses:
+        '204':
+          description: 'Acl resource deleted'
+        '403':
+          description: Forbidden
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+        '404':
+          description: 'Not found'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Removes the Acl resource.'
+      description: 'Removes the Acl resource.'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'Acl identifier'
+          required: true
+          deprecated: false
+          schema:
+            type: string
+          style: simple
+          explode: false
+    patch:
+      operationId: api_acl_id_patch
+      tags:
+        - Acl
+      responses:
+        '200':
+          description: 'Acl resource updated'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/AclResourcePatch.jsonld'
+          links: {}
+        '400':
+          description: 'Invalid input'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+        '422':
+          description: 'An error occurred'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+          links: {}
+        '403':
+          description: Forbidden
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+        '404':
+          description: 'Not found'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Updates the Acl resource.'
+      description: 'Updates the Acl resource.'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'Acl identifier'
+          required: true
+          deprecated: false
+          schema:
+            type: string
+          style: simple
+          explode: false
+      requestBody:
+        description: 'The updated Acl resource'
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/AclResourcePatch.jsonMergePatch'
+        required: true
+  /categories:
+    get:
+      operationId: api_categories_get_collection
+      tags:
+        - Category
+      responses:
+        '200':
+          description: 'Category collection'
+          content:
+            application/ld+json:
+              schema:
+                type: object
+                description: 'Category.jsonld collection.'
+                allOf:
+                  - { $ref: '#/components/schemas/HydraCollectionBaseSchema' }
+                  - { type: object, required: [member], properties: { member: { type: array, items: { $ref: '#/components/schemas/Category.jsonld' } } } }
+      summary: 'Retrieves the collection of Category resources.'
+      description: 'Retrieves the collection of Category resources.'
+      parameters:
+        -
+          name: page
+          in: query
+          description: 'The collection page number'
+          required: false
+          deprecated: false
+          schema:
+            type: integer
+            default: 1
+          style: form
+          explode: true
+        -
+          name: itemsPerPage
+          in: query
+          description: 'The number of items per page'
+          required: false
+          deprecated: false
+          schema:
+            type: integer
+            default: 30
+            minimum: 0
+            maximum: 30
+          style: form
+          explode: true
+        -
+          name: pagination
+          in: query
+          description: 'Enable or disable pagination'
+          required: false
+          deprecated: false
+          schema:
+            type: boolean
+          style: form
+          explode: true
+    post:
+      operationId: api_categories_post
+      tags:
+        - Category
+      responses:
+        '201':
+          description: 'Category resource created'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Category.jsonld'
+          links: {}
+        '400':
+          description: 'Invalid input'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+        '422':
+          description: 'An error occurred'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+          links: {}
+      summary: 'Creates a Category resource.'
+      description: 'Creates a Category resource.'
+      parameters: []
+      requestBody:
+        description: 'The new Category resource'
+        content:
+          application/ld+json:
+            schema:
+              $ref: '#/components/schemas/Category'
+        required: true
+  '/categories/{id}':
+    get:
+      operationId: api_categories_id_get
+      tags:
+        - Category
+      responses:
+        '200':
+          description: 'Category resource'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Category.jsonld'
+        '404':
+          description: 'Not found'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Retrieves a Category resource.'
+      description: 'Retrieves a Category resource.'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'Category identifier'
+          required: true
+          deprecated: false
+          schema:
+            type: string
+          style: simple
+          explode: false
+    delete:
+      operationId: api_categories_id_delete
+      tags:
+        - Category
+      responses:
+        '204':
+          description: 'Category resource deleted'
+        '404':
+          description: 'Not found'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Removes the Category resource.'
+      description: 'Removes the Category resource.'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'Category identifier'
+          required: true
+          deprecated: false
+          schema:
+            type: string
+          style: simple
+          explode: false
+    patch:
+      operationId: api_categories_id_patch
+      tags:
+        - Category
+      responses:
+        '200':
+          description: 'Category resource updated'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Category.jsonld'
+          links: {}
+        '400':
+          description: 'Invalid input'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+        '422':
+          description: 'An error occurred'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+          links: {}
+        '404':
+          description: 'Not found'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Updates the Category resource.'
+      description: 'Updates the Category resource.'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'Category identifier'
+          required: true
+          deprecated: false
+          schema:
+            type: string
+          style: simple
+          explode: false
+      requestBody:
+        description: 'The updated Category resource'
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/Category.jsonMergePatch'
+        required: true
+  /health:
+    get:
+      operationId: api_health_get
+      tags:
+        - Common
+      responses:
+        '200':
+          description: 'Health resource'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Health.jsonld'
+        '404':
+          description: 'Not found'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Retrieves a Health resource.'
+      description: 'Retrieves a Health resource.'
+      parameters: []
+  /countries:
+    get:
+      operationId: api_countries_get_collection
+      tags:
+        - Country
+      responses:
+        '200':
+          description: 'Country collection'
+          content:
+            application/ld+json:
+              schema:
+                type: object
+                description: 'Country.jsonld collection.'
+                allOf:
+                  - { $ref: '#/components/schemas/HydraCollectionBaseSchema' }
+                  - { type: object, required: [member], properties: { member: { type: array, items: { $ref: '#/components/schemas/Country.jsonld' } } } }
+      summary: 'Retrieves the collection of Country resources.'
+      description: 'Retrieves the collection of Country resources.'
+      parameters:
+        -
+          name: page
+          in: query
+          description: 'The collection page number'
+          required: false
+          deprecated: false
+          schema:
+            type: integer
+            default: 1
+          style: form
+          explode: true
+        -
+          name: itemsPerPage
+          in: query
+          description: 'The number of items per page'
+          required: false
+          deprecated: false
+          schema:
+            type: integer
+            default: 30
+            minimum: 0
+            maximum: 30
+          style: form
+          explode: true
+        -
+          name: pagination
+          in: query
+          description: 'Enable or disable pagination'
+          required: false
+          deprecated: false
+          schema:
+            type: boolean
+          style: form
+          explode: true
+  '/countries/{code}':
+    get:
+      operationId: api_countries_code_get
+      tags:
+        - Country
+      responses:
+        '200':
+          description: 'Country resource'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Country.jsonld'
+        '404':
+          description: 'Not found'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Retrieves a Country resource.'
+      description: 'Retrieves a Country resource.'
+      parameters:
+        -
+          name: code
+          in: path
+          description: 'Country identifier'
+          required: true
+          deprecated: false
+          schema:
+            type: string
+          style: simple
+          explode: false
+    patch:
+      operationId: api_countries_code_patch
+      tags:
+        - Country
+      responses:
+        '200':
+          description: 'Country resource updated'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Country.jsonld'
+          links: {}
+        '400':
+          description: 'Invalid input'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+        '422':
+          description: 'An error occurred'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+          links: {}
+        '404':
+          description: 'Not found'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Updates the Country resource.'
+      description: 'Updates the Country resource.'
+      parameters:
+        -
+          name: code
+          in: path
+          description: 'Country identifier'
+          required: true
+          deprecated: false
+          schema:
+            type: string
+          style: simple
+          explode: false
+      requestBody:
+        description: 'The updated Country resource'
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/Country.jsonMergePatch'
+        required: true
+  /regions:
+    get:
+      operationId: api_regions_get_collection
+      tags:
+        - Region
+      responses:
+        '200':
+          description: 'Region collection'
+          content:
+            application/ld+json:
+              schema:
+                type: object
+                description: 'Region.jsonld collection.'
+                allOf:
+                  - { $ref: '#/components/schemas/HydraCollectionBaseSchema' }
+                  - { type: object, required: [member], properties: { member: { type: array, items: { $ref: '#/components/schemas/Region.jsonld' } } } }
+      summary: 'Retrieves the collection of Region resources.'
+      description: 'Retrieves the collection of Region resources.'
+      parameters:
+        -
+          name: page
+          in: query
+          description: 'The collection page number'
+          required: false
+          deprecated: false
+          schema:
+            type: integer
+            default: 1
+          style: form
+          explode: true
+        -
+          name: itemsPerPage
+          in: query
+          description: 'The number of items per page'
+          required: false
+          deprecated: false
+          schema:
+            type: integer
+            default: 30
+            minimum: 0
+            maximum: 30
+          style: form
+          explode: true
+        -
+          name: pagination
+          in: query
+          description: 'Enable or disable pagination'
+          required: false
+          deprecated: false
+          schema:
+            type: boolean
+          style: form
+          explode: true
+    post:
+      operationId: api_regions_post
+      tags:
+        - Region
+      responses:
+        '201':
+          description: 'Region resource created'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Region.jsonld'
+          links: {}
+        '400':
+          description: 'Invalid input'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+        '422':
+          description: 'An error occurred'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+          links: {}
+      summary: 'Creates a Region resource.'
+      description: 'Creates a Region resource.'
+      parameters: []
+      requestBody:
+        description: 'The new Region resource'
+        content:
+          application/ld+json:
+            schema:
+              $ref: '#/components/schemas/Region'
+        required: true
+  '/regions/{id}':
+    get:
+      operationId: api_regions_id_get
+      tags:
+        - Region
+      responses:
+        '200':
+          description: 'Region resource'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Region.jsonld'
+        '404':
+          description: 'Not found'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Retrieves a Region resource.'
+      description: 'Retrieves a Region resource.'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'Region identifier'
+          required: true
+          deprecated: false
+          schema:
+            type: string
+          style: simple
+          explode: false
+    delete:
+      operationId: api_regions_id_delete
+      tags:
+        - Region
+      responses:
+        '204':
+          description: 'Region resource deleted'
+        '404':
+          description: 'Not found'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Removes the Region resource.'
+      description: 'Removes the Region resource.'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'Region identifier'
+          required: true
+          deprecated: false
+          schema:
+            type: string
+          style: simple
+          explode: false
+    patch:
+      operationId: api_regions_id_patch
+      tags:
+        - Region
+      responses:
+        '200':
+          description: 'Region resource updated'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Region.jsonld'
+          links: {}
+        '400':
+          description: 'Invalid input'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+        '422':
+          description: 'An error occurred'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+          links: {}
+        '404':
+          description: 'Not found'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Updates the Region resource.'
+      description: 'Updates the Region resource.'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'Region identifier'
+          required: true
+          deprecated: false
+          schema:
+            type: string
+          style: simple
+          explode: false
+      requestBody:
+        description: 'The updated Region resource'
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/Region.jsonMergePatch'
+        required: true
+  /topics:
+    get:
+      operationId: api_topics_get_collection
+      tags:
+        - Topic
+      responses:
+        '200':
+          description: 'Topic collection'
+          content:
+            application/ld+json:
+              schema:
+                type: object
+                description: 'Topic.jsonld collection.'
+                allOf:
+                  - { $ref: '#/components/schemas/HydraCollectionBaseSchema' }
+                  - { type: object, required: [member], properties: { member: { type: array, items: { $ref: '#/components/schemas/Topic.jsonld' } } } }
+      summary: 'Retrieves the collection of Topic resources.'
+      description: 'Retrieves the collection of Topic resources.'
+      parameters:
+        -
+          name: page
+          in: query
+          description: 'The collection page number'
+          required: false
+          deprecated: false
+          schema:
+            type: integer
+            default: 1
+          style: form
+          explode: true
+        -
+          name: itemsPerPage
+          in: query
+          description: 'The number of items per page'
+          required: false
+          deprecated: false
+          schema:
+            type: integer
+            default: 30
+            minimum: 0
+            maximum: 30
+          style: form
+          explode: true
+        -
+          name: pagination
+          in: query
+          description: 'Enable or disable pagination'
+          required: false
+          deprecated: false
+          schema:
+            type: boolean
+          style: form
+          explode: true
+    post:
+      operationId: api_topics_post
+      tags:
+        - Topic
+      responses:
+        '201':
+          description: 'Topic resource created'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Topic.jsonld'
+          links: {}
+        '400':
+          description: 'Invalid input'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+        '422':
+          description: 'An error occurred'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+          links: {}
+      summary: 'Creates a Topic resource.'
+      description: 'Creates a Topic resource.'
+      parameters: []
+      requestBody:
+        description: 'The new Topic resource'
+        content:
+          application/ld+json:
+            schema:
+              $ref: '#/components/schemas/Topic'
+        required: true
+  '/topics/{id}':
+    get:
+      operationId: api_topics_id_get
+      tags:
+        - Topic
+      responses:
+        '200':
+          description: 'Topic resource'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Topic.jsonld'
+        '404':
+          description: 'Not found'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Retrieves a Topic resource.'
+      description: 'Retrieves a Topic resource.'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'Topic identifier'
+          required: true
+          deprecated: false
+          schema:
+            type: string
+          style: simple
+          explode: false
+    delete:
+      operationId: api_topics_id_delete
+      tags:
+        - Topic
+      responses:
+        '204':
+          description: 'Topic resource deleted'
+        '404':
+          description: 'Not found'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Removes the Topic resource.'
+      description: 'Removes the Topic resource.'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'Topic identifier'
+          required: true
+          deprecated: false
+          schema:
+            type: string
+          style: simple
+          explode: false
+    patch:
+      operationId: api_topics_id_patch
+      tags:
+        - Topic
+      responses:
+        '200':
+          description: 'Topic resource updated'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Topic.jsonld'
+          links: {}
+        '400':
+          description: 'Invalid input'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+        '422':
+          description: 'An error occurred'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+          links: {}
+        '404':
+          description: 'Not found'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Updates the Topic resource.'
+      description: 'Updates the Topic resource.'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'Topic identifier'
+          required: true
+          deprecated: false
+          schema:
+            type: string
+          style: simple
+          explode: false
+      requestBody:
+        description: 'The updated Topic resource'
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/Topic.jsonMergePatch'
+        required: true
+  /me:
+    get:
+      operationId: api_me_get
+      tags:
+        - User
+      responses:
+        '200':
+          description: 'Me resource'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Me.jsonld'
+        '404':
+          description: 'Not found'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Retrieves a Me resource.'
+      description: 'Retrieves a Me resource.'
+      parameters: []
+  /users:
+    get:
+      operationId: api_users_get_collection
+      tags:
+        - User
+      responses:
+        '200':
+          description: 'User collection'
+          content:
+            application/ld+json:
+              schema:
+                type: object
+                description: 'User.jsonld-user.read collection.'
+                allOf:
+                  - { $ref: '#/components/schemas/HydraCollectionBaseSchema' }
+                  - { type: object, required: [member], properties: { member: { type: array, items: { $ref: '#/components/schemas/User.jsonld-user.read' } } } }
+      summary: 'Retrieves the collection of User resources.'
+      description: 'Retrieves the collection of User resources.'
+      parameters:
+        -
+          name: page
+          in: query
+          description: 'The collection page number'
+          required: false
+          deprecated: false
+          schema:
+            type: integer
+            default: 1
+          style: form
+          explode: true
+        -
+          name: itemsPerPage
+          in: query
+          description: 'The number of items per page'
+          required: false
+          deprecated: false
+          schema:
+            type: integer
+            default: 30
+            minimum: 0
+            maximum: 30
+          style: form
+          explode: true
+        -
+          name: pagination
+          in: query
+          description: 'Enable or disable pagination'
+          required: false
+          deprecated: false
+          schema:
+            type: boolean
+          style: form
+          explode: true
+        -
+          name: isActive
+          in: query
+          description: 'Only display active users'
+          required: false
+          deprecated: false
+          schema:
+            type: boolean
+          style: form
+          explode: true
+        -
+          name: q
+          in: query
+          description: 'Search name / email'
+          required: false
+          deprecated: false
+          schema:
+            type: string
+          style: form
+          explode: true
+        -
+          name: type
+          in: query
+          description: 'Filter by type'
+          required: false
+          deprecated: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - external
+                - internal
+          style: form
+          explode: true
+    post:
+      operationId: api_users_post
+      tags:
+        - User
+      responses:
+        '201':
+          description: 'User resource created'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/User.jsonld-user.read'
+          links: {}
+        '400':
+          description: 'Invalid input'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+        '422':
+          description: 'An error occurred'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+          links: {}
+        '403':
+          description: Forbidden
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Creates a User resource.'
+      description: 'Creates a User resource.'
+      parameters: []
+      requestBody:
+        description: 'The new User resource'
+        content:
+          application/ld+json:
+            schema:
+              $ref: '#/components/schemas/User-user.write'
+        required: true
+  '/users/{id}':
+    get:
+      operationId: api_users_id_get
+      tags:
+        - User
+      responses:
+        '200':
+          description: 'User resource'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/User.jsonld-user.read'
+        '403':
+          description: Forbidden
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+        '404':
+          description: 'Not found'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Retrieves a User resource.'
+      description: 'Retrieves a User resource.'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'User identifier'
+          required: true
+          deprecated: false
+          schema:
+            type: string
+          style: simple
+          explode: false
+    delete:
+      operationId: api_users_id_delete
+      tags:
+        - User
+      responses:
+        '204':
+          description: 'User resource deleted'
+        '403':
+          description: Forbidden
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+        '404':
+          description: 'Not found'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Removes the User resource.'
+      description: 'Removes the User resource.'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'User identifier'
+          required: true
+          deprecated: false
+          schema:
+            type: string
+          style: simple
+          explode: false
+    patch:
+      operationId: api_users_id_patch
+      tags:
+        - User
+      responses:
+        '200':
+          description: 'User resource updated'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/User.jsonld-user.read'
+          links: {}
+        '400':
+          description: 'Invalid input'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+        '422':
+          description: 'An error occurred'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConstraintViolation'
+          links: {}
+        '403':
+          description: Forbidden
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+        '404':
+          description: 'Not found'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {}
+      summary: 'Updates the User resource.'
+      description: 'Updates the User resource.'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'User identifier'
+          required: true
+          deprecated: false
+          schema:
+            type: string
+          style: simple
+          explode: false
+      requestBody:
+        description: 'The updated User resource'
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/User-user.write.jsonMergePatch'
+        required: true
+components:
+  schemas:
+    Acl:
+      type: object
+      properties:
+        id:
+          type:
+            - integer
+            - 'null'
+        sub:
+          description: 'Who is making the request'
+          type: string
+        act:
+          description: 'What operation is performed'
+          type:
+            - string
+            - 'null'
+        obj:
+          description: 'What resource is being accessed'
+          type: string
+        uriTemplate:
+          description: 'URI Template of the affected resource'
+          type:
+            - string
+            - 'null'
+        description:
+          description: 'Description of this Acl'
+          type:
+            - string
+            - 'null'
+        slug:
+          description: 'Unique slug identifying the resource - Equal between environments for same acl'
+          type:
+            - string
+            - 'null'
+    Acl.jsonld:
+      allOf:
+        -
+          $ref: '#/components/schemas/HydraItemBaseSchema'
+        -
+          type: object
+          properties:
+            id:
+              type:
+                - integer
+                - 'null'
+            sub:
+              description: 'Who is making the request'
+              type: string
+            act:
+              description: 'What operation is performed'
+              type:
+                - string
+                - 'null'
+            obj:
+              description: 'What resource is being accessed'
+              type: string
+            uriTemplate:
+              description: 'URI Template of the affected resource'
+              type:
+                - string
+                - 'null'
+            description:
+              description: 'Description of this Acl'
+              type:
+                - string
+                - 'null'
+            slug:
+              description: 'Unique slug identifying the resource - Equal between environments for same acl'
+              type:
+                - string
+                - 'null'
+    AclList.jsonld:
+      allOf:
+        -
+          $ref: '#/components/schemas/HydraItemBaseSchema'
+        -
+          type: object
+          properties:
+            id:
+              type:
+                - integer
+                - 'null'
+            acl:
+              anyOf:
+                -
+                  $ref: '#/components/schemas/Acl.jsonld'
+                -
+                  type: 'null'
+            role:
+              anyOf:
+                -
+                  $ref: '#/components/schemas/AclRole.jsonld'
+                -
+                  type: 'null'
+            createdAt:
+              readOnly: true
+              description: 'At what time was this relation created'
+              type:
+                - string
+                - 'null'
+              format: date-time
+            updatedAt:
+              readOnly: true
+              description: 'When was the last update of this relation'
+              type:
+                - string
+                - 'null'
+              format: date-time
+    AclListResourceDelete.jsonld:
+      allOf:
+        -
+          $ref: '#/components/schemas/HydraItemBaseSchema'
+        -
+          type: object
+    AclListResourcePatch.jsonMergePatch:
+      type: object
+      properties:
+        id:
+          type:
+            - integer
+            - 'null'
+        acl:
+          anyOf:
+            -
+              $ref: '#/components/schemas/Acl'
+            -
+              type: 'null'
+        role:
+          anyOf:
+            -
+              $ref: '#/components/schemas/AclRole'
+            -
+              type: 'null'
+        createdAt:
+          readOnly: true
+          description: 'At what time was this relation created'
+          type:
+            - string
+            - 'null'
+          format: date-time
+        updatedAt:
+          readOnly: true
+          description: 'When was the last update of this relation'
+          type:
+            - string
+            - 'null'
+          format: date-time
+    AclListResourcePatch.jsonld:
+      allOf:
+        -
+          $ref: '#/components/schemas/HydraItemBaseSchema'
+        -
+          type: object
+          properties:
+            id:
+              type:
+                - integer
+                - 'null'
+            acl:
+              anyOf:
+                -
+                  $ref: '#/components/schemas/Acl.jsonld'
+                -
+                  type: 'null'
+            role:
+              anyOf:
+                -
+                  $ref: '#/components/schemas/AclRole.jsonld'
+                -
+                  type: 'null'
+            createdAt:
+              readOnly: true
+              description: 'At what time was this relation created'
+              type:
+                - string
+                - 'null'
+              format: date-time
+            updatedAt:
+              readOnly: true
+              description: 'When was the last update of this relation'
+              type:
+                - string
+                - 'null'
+              format: date-time
+    AclListResourcePost:
+      type: object
+      properties:
+        id:
+          type:
+            - integer
+            - 'null'
+        acl:
+          anyOf:
+            -
+              $ref: '#/components/schemas/Acl'
+            -
+              type: 'null'
+        role:
+          anyOf:
+            -
+              $ref: '#/components/schemas/AclRole'
+            -
+              type: 'null'
+    AclListResourcePost.jsonld:
+      allOf:
+        -
+          $ref: '#/components/schemas/HydraItemBaseSchema'
+        -
+          type: object
+          properties:
+            id:
+              type:
+                - integer
+                - 'null'
+            acl:
+              anyOf:
+                -
+                  $ref: '#/components/schemas/Acl.jsonld'
+                -
+                  type: 'null'
+            role:
+              anyOf:
+                -
+                  $ref: '#/components/schemas/AclRole.jsonld'
+                -
+                  type: 'null'
+    AclResourceDelete.jsonld:
+      allOf:
+        -
+          $ref: '#/components/schemas/HydraItemBaseSchema'
+        -
+          type: object
+    AclResourcePatch.jsonMergePatch:
+      type: object
+      properties:
+        id:
+          type:
+            - integer
+            - 'null'
+        sub:
+          description: 'Who is making the request'
+          type: string
+        act:
+          description: 'What operation is performed'
+          type:
+            - string
+            - 'null'
+        obj:
+          description: 'What resource is being accessed'
+          type: string
+        uriTemplate:
+          description: 'URI Template of the affected resource'
+          type:
+            - string
+            - 'null'
+        description:
+          description: 'Description of this Acl'
+          type:
+            - string
+            - 'null'
+        slug:
+          description: 'Unique slug identifying the resource - Equal between environments for same acl'
+          type:
+            - string
+            - 'null'
+    AclResourcePatch.jsonld:
+      allOf:
+        -
+          $ref: '#/components/schemas/HydraItemBaseSchema'
+        -
+          type: object
+          properties:
+            id:
+              type:
+                - integer
+                - 'null'
+            sub:
+              description: 'Who is making the request'
+              type: string
+            act:
+              description: 'What operation is performed'
+              type:
+                - string
+                - 'null'
+            obj:
+              description: 'What resource is being accessed'
+              type: string
+            uriTemplate:
+              description: 'URI Template of the affected resource'
+              type:
+                - string
+                - 'null'
+            description:
+              description: 'Description of this Acl'
+              type:
+                - string
+                - 'null'
+            slug:
+              description: 'Unique slug identifying the resource - Equal between environments for same acl'
+              type:
+                - string
+                - 'null'
+    AclResourcePost:
+      type: object
+      properties:
+        id:
+          type:
+            - integer
+            - 'null'
+        sub:
+          description: 'Who is making the request'
+          type: string
+        act:
+          description: 'What operation is performed'
+          type:
+            - string
+            - 'null'
+        obj:
+          description: 'What resource is being accessed'
+          type: string
+        uriTemplate:
+          description: 'URI Template of the affected resource'
+          type:
+            - string
+            - 'null'
+        description:
+          description: 'Description of this Acl'
+          type:
+            - string
+            - 'null'
+        slug:
+          description: 'Unique slug identifying the resource - Equal between environments for same acl'
+          type:
+            - string
+            - 'null'
+    AclResourcePost.jsonld:
+      allOf:
+        -
+          $ref: '#/components/schemas/HydraItemBaseSchema'
+        -
+          type: object
+          properties:
+            id:
+              type:
+                - integer
+                - 'null'
+            sub:
+              description: 'Who is making the request'
+              type: string
+            act:
+              description: 'What operation is performed'
+              type:
+                - string
+                - 'null'
+            obj:
+              description: 'What resource is being accessed'
+              type: string
+            uriTemplate:
+              description: 'URI Template of the affected resource'
+              type:
+                - string
+                - 'null'
+            description:
+              description: 'Description of this Acl'
+              type:
+                - string
+                - 'null'
+            slug:
+              description: 'Unique slug identifying the resource - Equal between environments for same acl'
+              type:
+                - string
+                - 'null'
+    AclRole:
+      type: object
+      properties:
+        id:
+          type:
+            - integer
+            - 'null'
+        name:
+          description: 'The role name'
+          type:
+            - string
+            - 'null'
+        description:
+          description: 'The role description'
+          type:
+            - string
+            - 'null'
+        slug:
+          description: 'Unique slug identifier of the role'
+          type:
+            - string
+            - 'null'
+        createdAt:
+          description: 'At what time was this role created'
+          type:
+            - string
+            - 'null'
+          format: date-time
+        updatedAt:
+          description: 'When was the last update of this role'
+          type:
+            - string
+            - 'null'
+          format: date-time
+        acls:
+          description: 'List of acls related to this role'
+          type:
+            - array
+            - 'null'
+          items:
+            type:
+              - string
+              - 'null'
+    AclRole.jsonld:
+      allOf:
+        -
+          $ref: '#/components/schemas/HydraItemBaseSchema'
+        -
+          type: object
+          properties:
+            id:
+              type:
+                - integer
+                - 'null'
+            name:
+              description: 'The role name'
+              type:
+                - string
+                - 'null'
+            description:
+              description: 'The role description'
+              type:
+                - string
+                - 'null'
+            slug:
+              description: 'Unique slug identifier of the role'
+              type:
+                - string
+                - 'null'
+            createdAt:
+              description: 'At what time was this role created'
+              type:
+                - string
+                - 'null'
+              format: date-time
+            updatedAt:
+              description: 'When was the last update of this role'
+              type:
+                - string
+                - 'null'
+              format: date-time
+            acls:
+              description: 'List of acls related to this role'
+              type:
+                - array
+                - 'null'
+              items:
+                type:
+                  - string
+                  - 'null'
+    AclRoleResourceDelete.jsonld:
+      allOf:
+        -
+          $ref: '#/components/schemas/HydraItemBaseSchema'
+        -
+          type: object
+    AclRoleResourcePatch.jsonMergePatch:
+      type: object
+      properties:
+        id:
+          type:
+            - integer
+            - 'null'
+        name:
+          description: 'The role name'
+          type:
+            - string
+            - 'null'
+        description:
+          description: 'The role description'
+          type:
+            - string
+            - 'null'
+        slug:
+          description: 'Unique slug identifier of the role'
+          type:
+            - string
+            - 'null'
+        createdAt:
+          description: 'At what time was this role created'
+          type:
+            - string
+            - 'null'
+          format: date-time
+        updatedAt:
+          description: 'When was the last update of this role'
+          type:
+            - string
+            - 'null'
+          format: date-time
+    AclRoleResourcePatch.jsonld:
+      allOf:
+        -
+          $ref: '#/components/schemas/HydraItemBaseSchema'
+        -
+          type: object
+          properties:
+            id:
+              type:
+                - integer
+                - 'null'
+            name:
+              description: 'The role name'
+              type:
+                - string
+                - 'null'
+            description:
+              description: 'The role description'
+              type:
+                - string
+                - 'null'
+            slug:
+              description: 'Unique slug identifier of the role'
+              type:
+                - string
+                - 'null'
+            createdAt:
+              description: 'At what time was this role created'
+              type:
+                - string
+                - 'null'
+              format: date-time
+            updatedAt:
+              description: 'When was the last update of this role'
+              type:
+                - string
+                - 'null'
+              format: date-time
+    AclRoleResourcePost.AclRoleInputDto:
+      type: object
+      properties:
+        id:
+          default: 0
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        acls:
+          type: array
+          items:
+            type: string
+    AclRoleResourcePost.AclRoleResource.jsonld:
+      allOf:
+        -
+          $ref: '#/components/schemas/HydraItemBaseSchema'
+        -
+          type: object
+          properties:
+            id:
+              type:
+                - integer
+                - 'null'
+            name:
+              description: 'The role name'
+              type:
+                - string
+                - 'null'
+            description:
+              description: 'The role description'
+              type:
+                - string
+                - 'null'
+            slug:
+              description: 'Unique slug identifier of the role'
+              type:
+                - string
+                - 'null'
+            createdAt:
+              description: 'At what time was this role created'
+              type:
+                - string
+                - 'null'
+              format: date-time
+            updatedAt:
+              description: 'When was the last update of this role'
+              type:
+                - string
+                - 'null'
+              format: date-time
+            acls:
+              description: 'List of acls related to this role'
+              type:
+                - array
+                - 'null'
+              items:
+                type:
+                  - string
+                  - 'null'
+    Category:
+      type: object
+      description: 'Creates a new category.'
+      properties:
+        id:
+          readOnly: true
+          description: 'Unique identifier of the category.'
+          type:
+            - integer
+            - 'null'
+        name:
+          description: 'Name of the category.'
+          type:
+            - string
+            - 'null'
+        topics:
+          type: array
+          items:
+            $ref: '#/components/schemas/Topic.jsonld'
+    Category.jsonMergePatch:
+      type: object
+      description: 'Partially updates an existing category.'
+      properties:
+        id:
+          readOnly: true
+          description: 'Unique identifier of the category.'
+          type:
+            - integer
+            - 'null'
+        name:
+          description: 'Name of the category.'
+          type:
+            - string
+            - 'null'
+        topics:
+          type: array
+          items:
+            $ref: '#/components/schemas/Topic.jsonld'
+    Category.jsonld:
+      allOf:
+        -
+          $ref: '#/components/schemas/HydraItemBaseSchema'
+        -
+          type: object
+          properties:
+            id:
+              readOnly: true
+              description: 'Unique identifier of the category.'
+              type:
+                - integer
+                - 'null'
+            name:
+              description: 'Name of the category.'
+              type:
+                - string
+                - 'null'
+            topics:
+              type: array
+              items:
+                $ref: '#/components/schemas/Topic.jsonld'
+      description: 'Retrieves a category by its identifier.'
+    ConstraintViolation:
+      type: object
+      description: 'Unprocessable entity'
+      properties:
+        status:
+          default: 422
+          type: integer
+        violations:
+          type: array
+          items:
+            type: object
+            properties:
+              propertyPath:
+                type: string
+                description: 'The property path of the violation'
+              message:
+                type: string
+                description: 'The message associated with the violation'
+              code:
+                type: string
+                description: 'The code of the violation'
+              hint:
+                type: string
+                description: 'An extra hint to understand the violation'
+              payload:
+                type: object
+                additionalProperties: true
+                description: 'The serialized payload of the violation'
+            required:
+              - propertyPath
+              - message
+        detail:
+          readOnly: true
+          type: string
+        type:
+          readOnly: true
+          type: string
+        title:
+          readOnly: true
+          type:
+            - string
+            - 'null'
+        instance:
+          readOnly: true
+          type:
+            - string
+            - 'null'
+    ConstraintViolation.jsonld:
+      allOf:
+        -
+          $ref: '#/components/schemas/HydraItemBaseSchema'
+        -
+          type: object
+          properties:
+            status:
+              default: 422
+              type: integer
+            violations:
+              type: array
+              items:
+                type: object
+                properties:
+                  propertyPath: { type: string, description: 'The property path of the violation' }
+                  message: { type: string, description: 'The message associated with the violation' }
+                  code: { type: string, description: 'The code of the violation' }
+                  hint: { type: string, description: 'An extra hint to understand the violation' }
+                  payload: { type: object, additionalProperties: true, description: 'The serialized payload of the violation' }
+                required:
+                  - propertyPath
+                  - message
+            detail:
+              readOnly: true
+              type: string
+            description:
+              readOnly: true
+              type: string
+            type:
+              readOnly: true
+              type: string
+            title:
+              readOnly: true
+              type:
+                - string
+                - 'null'
+            instance:
+              readOnly: true
+              type:
+                - string
+                - 'null'
+      description: 'Unprocessable entity'
+    Country.jsonMergePatch:
+      type: object
+      description: 'Partially updates an existing country (e.g. to assign it to a region).'
+      properties:
+        code:
+          readOnly: true
+          description: 'ISO code of the country.'
+          type:
+            - string
+            - 'null'
+        name:
+          readOnly: true
+          description: 'Name of the country.'
+          type:
+            - string
+            - 'null'
+        region:
+          $ref: '#/components/schemas/Region.jsonld'
+    Country.jsonld:
+      allOf:
+        -
+          $ref: '#/components/schemas/HydraItemBaseSchema'
+        -
+          type: object
+          properties:
+            code:
+              readOnly: true
+              description: 'ISO code of the country.'
+              type:
+                - string
+                - 'null'
+            name:
+              readOnly: true
+              description: 'Name of the country.'
+              type:
+                - string
+                - 'null'
+            region:
+              $ref: '#/components/schemas/Region.jsonld'
+      description: 'Retrieves a country by its ISO code.'
+    Error:
+      type: object
+      description: 'A representation of common errors.'
+      properties:
+        title:
+          readOnly: true
+          description: 'A short, human-readable summary of the problem.'
+          type:
+            - string
+            - 'null'
+        detail:
+          readOnly: true
+          description: 'A human-readable explanation specific to this occurrence of the problem.'
+          type:
+            - string
+            - 'null'
+        status:
+          type:
+            - integer
+            - 'null'
+          examples:
+            - 404
+          default: 400
+        instance:
+          readOnly: true
+          description: 'A URI reference that identifies the specific occurrence of the problem. It may or may not yield further information if dereferenced.'
+          type:
+            - string
+            - 'null'
+        type:
+          readOnly: true
+          description: 'A URI reference that identifies the problem type'
+          type: string
+    Error.jsonld:
+      allOf:
+        -
+          $ref: '#/components/schemas/HydraItemBaseSchema'
+        -
+          type: object
+          properties:
+            title:
+              readOnly: true
+              description: 'A short, human-readable summary of the problem.'
+              type:
+                - string
+                - 'null'
+            detail:
+              readOnly: true
+              description: 'A human-readable explanation specific to this occurrence of the problem.'
+              type:
+                - string
+                - 'null'
+            status:
+              type:
+                - integer
+                - 'null'
+              examples:
+                - 404
+              default: 400
+            instance:
+              readOnly: true
+              description: 'A URI reference that identifies the specific occurrence of the problem. It may or may not yield further information if dereferenced.'
+              type:
+                - string
+                - 'null'
+            type:
+              readOnly: true
+              description: 'A URI reference that identifies the problem type'
+              type: string
+            description:
+              readOnly: true
+              type:
+                - string
+                - 'null'
+      description: 'A representation of common errors.'
+    Health.jsonld:
+      allOf:
+        -
+          $ref: '#/components/schemas/HydraItemBaseSchema'
+        -
+          type: object
+          properties:
+            date:
+              description: 'Current date'
+              type: string
+              format: date-time
+            status:
+              description: 'Health status'
+              type: string
+    HydraCollectionBaseSchema:
+      allOf:
+        -
+          $ref: '#/components/schemas/HydraCollectionBaseSchemaNoPagination'
+        -
+          type: object
+          properties:
+            view:
+              type: object
+              properties:
+                '@id':
+                  type: string
+                  format: iri-reference
+                '@type':
+                  type: string
+                first:
+                  type: [string, 'null']
+                  format: iri-reference
+                last:
+                  type: [string, 'null']
+                  format: iri-reference
+                previous:
+                  type: [string, 'null']
+                  format: iri-reference
+                next:
+                  type: [string, 'null']
+                  format: iri-reference
+              example:
+                '@id': string
+                '@type': string
+                first: string
+                last: string
+                previous: string
+                next: string
+    HydraCollectionBaseSchemaNoPagination:
+      type: object
+      properties:
+        totalItems:
+          type: integer
+          minimum: 0
+        search:
+          type: object
+          properties:
+            '@type':
+              type: string
+            template:
+              type: string
+            variableRepresentation:
+              type: string
+            mapping:
+              type: array
+              items:
+                type: object
+                properties:
+                  '@type': { type: string }
+                  variable: { type: string }
+                  property: { type: [string, 'null'] }
+                  required: { type: boolean }
+    HydraItemBaseSchema:
+      type: object
+      properties:
+        '@context':
+          oneOf:
+            -
+              type: string
+            -
+              type: object
+              properties:
+                '@vocab':
+                  type: string
+                hydra:
+                  type: string
+                  enum: ['http://www.w3.org/ns/hydra/core#']
+              required:
+                - '@vocab'
+                - hydra
+              additionalProperties: true
+        '@id':
+          type: string
+        '@type':
+          type: string
+      required:
+        - '@id'
+        - '@type'
+    Me.jsonld:
+      allOf:
+        -
+          $ref: '#/components/schemas/HydraItemBaseSchema'
+        -
+          type: object
+          properties:
+            id:
+              type:
+                - integer
+                - 'null'
+            email:
+              description: 'Email of the user'
+              type:
+                - string
+                - 'null'
+            username:
+              description: 'Name of the user'
+              type:
+                - string
+                - 'null'
+            userId:
+              description: 'UserId of the user (pseudo/nickname)'
+              type:
+                - string
+                - 'null'
+            firstName:
+              description: 'First name of the user'
+              type:
+                - string
+                - 'null'
+            lastName:
+              description: 'Last name of the user'
+              type:
+                - string
+                - 'null'
+            authIssuer:
+              description: 'Auth Issuer'
+              type:
+                - string
+                - 'null'
+              enum:
+                - sso-connect
+                - sso-login
+                - null
+            type:
+              description: 'Type of user'
+              type:
+                - string
+                - 'null'
+              enum:
+                - internal
+                - external
+                - null
+            country:
+              description: 'Country of the user'
+              type:
+                - string
+                - 'null'
+              enum:
+                - AFG
+                - ALB
+                - DZA
+                - ASM
+                - AND
+                - AGO
+                - AIA
+                - ATA
+                - ATG
+                - ARG
+                - ARM
+                - ABW
+                - AUS
+                - AUT
+                - AZE
+                - BHS
+                - BHR
+                - BGD
+                - BRB
+                - BLR
+                - BEL
+                - BLZ
+                - BEN
+                - BMU
+                - BTN
+                - BOL
+                - BES
+                - BIH
+                - BWA
+                - BVT
+                - BRA
+                - IOT
+                - BRN
+                - BGR
+                - BFA
+                - BDI
+                - KHM
+                - CMR
+                - CAN
+                - CPV
+                - CYM
+                - CAF
+                - TCD
+                - CHL
+                - CHN
+                - CXR
+                - CCK
+                - COL
+                - COM
+                - COG
+                - COD
+                - COK
+                - CRI
+                - CIV
+                - HRV
+                - CUB
+                - CUW
+                - CYP
+                - CZE
+                - DNK
+                - DJI
+                - DMA
+                - DOM
+                - ECU
+                - EGY
+                - EUE
+                - SLV
+                - GNQ
+                - ERI
+                - EST
+                - SWZ
+                - ETH
+                - FLK
+                - FRO
+                - FJI
+                - FIN
+                - FRA
+                - GUF
+                - PYF
+                - ATF
+                - GAB
+                - GMB
+                - GEO
+                - DEU
+                - GHA
+                - GIB
+                - GRC
+                - GRL
+                - GRD
+                - GLP
+                - GUM
+                - GTM
+                - GGY
+                - GIN
+                - GNB
+                - GUY
+                - HTI
+                - HMD
+                - VAT
+                - HND
+                - HKG
+                - HUN
+                - ISL
+                - IND
+                - IDN
+                - IRN
+                - IRQ
+                - IRL
+                - IMN
+                - ISR
+                - ITA
+                - JAM
+                - JPN
+                - JEY
+                - JOR
+                - KAZ
+                - KEN
+                - KIR
+                - PRK
+                - KOR
+                - KWT
+                - KGZ
+                - LAO
+                - LVA
+                - LBN
+                - LSO
+                - LBR
+                - LBY
+                - LIE
+                - LTU
+                - LUX
+                - MAC
+                - MDG
+                - MWI
+                - MYS
+                - MDV
+                - MLI
+                - MLT
+                - MHL
+                - MTQ
+                - MRT
+                - MUS
+                - MYT
+                - MEX
+                - FSM
+                - MDA
+                - MCO
+                - MNG
+                - MNE
+                - MSR
+                - MAR
+                - MOZ
+                - MMR
+                - NAM
+                - NRU
+                - NPL
+                - NLD
+                - NCL
+                - NZL
+                - NIC
+                - NER
+                - NGA
+                - NIU
+                - NFK
+                - MKD
+                - MNP
+                - NOR
+                - OMN
+                - PAK
+                - PLW
+                - PSE
+                - PAN
+                - PNG
+                - PRY
+                - PER
+                - PHL
+                - PCN
+                - POL
+                - PRT
+                - PRI
+                - QAT
+                - REU
+                - ROU
+                - RUS
+                - RWA
+                - BLM
+                - SHN
+                - KNA
+                - LCA
+                - MAF
+                - SPM
+                - VCT
+                - WSM
+                - SMR
+                - STP
+                - SAU
+                - SEN
+                - SRB
+                - SYC
+                - SLE
+                - SGP
+                - SXM
+                - SVK
+                - SVN
+                - SLB
+                - SOM
+                - ZAF
+                - SGS
+                - SSD
+                - ESP
+                - LKA
+                - SDN
+                - SUR
+                - SJM
+                - SWE
+                - CHE
+                - SYR
+                - TWN
+                - TJK
+                - TZA
+                - THA
+                - TLS
+                - TGO
+                - TKL
+                - TON
+                - TTO
+                - TUN
+                - TUR
+                - TKM
+                - TCA
+                - TUV
+                - UGA
+                - UKR
+                - ARE
+                - GBR
+                - USA
+                - UMI
+                - URY
+                - UZB
+                - VUT
+                - VEN
+                - VNM
+                - VGB
+                - VIR
+                - WLF
+                - ESH
+                - YEM
+                - ZMB
+                - ZWE
+                - null
+            institution:
+              description: 'Institution the user is part of'
+              type:
+                - string
+                - 'null'
+            phone:
+              description: 'Phone number of the user'
+              type:
+                - string
+                - 'null'
+            roles:
+              description: 'Roles assigned to the user'
+              type: array
+              items:
+                type:
+                  - string
+                  - 'null'
+            createdAt:
+              description: 'At what time was this space created'
+              type: string
+              format: date-time
+            updatedAt:
+              description: 'When was the last update of this user'
+              type: string
+              format: date-time
+            fullName:
+              description: 'Full name of the user (combination of first & last name)'
+              type: string
+            acl:
+              description: 'Acl related to this users'
+              type: array
+              items:
+                type:
+                  - string
+                  - 'null'
+      description: 'Retrieve the User Resource for the current authenticated User'
+    Region:
+      type: object
+      description: 'Creates a new region.'
+      properties:
+        id:
+          readOnly: true
+          description: 'Unique identifier of the region.'
+          type:
+            - integer
+            - 'null'
+        name:
+          description: 'Name of the region.'
+          type:
+            - string
+            - 'null'
+        active:
+          description: 'Whether the region is active.'
+          default: true
+          type:
+            - boolean
+            - 'null'
+        parent:
+          $ref: '#/components/schemas/Region.jsonld'
+        children:
+          type: array
+          readOnly: true
+          items:
+            $ref: '#/components/schemas/Region.jsonld'
+        countries:
+          type: array
+          items:
+            $ref: '#/components/schemas/Country.jsonld'
+    Region.jsonMergePatch:
+      type: object
+      description: 'Partially updates an existing region.'
+      properties:
+        id:
+          readOnly: true
+          description: 'Unique identifier of the region.'
+          type:
+            - integer
+            - 'null'
+        name:
+          description: 'Name of the region.'
+          type:
+            - string
+            - 'null'
+        active:
+          description: 'Whether the region is active.'
+          default: true
+          type:
+            - boolean
+            - 'null'
+        parent:
+          $ref: '#/components/schemas/Region.jsonld'
+        children:
+          type: array
+          readOnly: true
+          items:
+            $ref: '#/components/schemas/Region.jsonld'
+        countries:
+          type: array
+          items:
+            $ref: '#/components/schemas/Country.jsonld'
+    Region.jsonld:
+      allOf:
+        -
+          $ref: '#/components/schemas/HydraItemBaseSchema'
+        -
+          type: object
+          properties:
+            id:
+              readOnly: true
+              description: 'Unique identifier of the region.'
+              type:
+                - integer
+                - 'null'
+            name:
+              description: 'Name of the region.'
+              type:
+                - string
+                - 'null'
+            active:
+              description: 'Whether the region is active.'
+              default: true
+              type:
+                - boolean
+                - 'null'
+            parent:
+              $ref: '#/components/schemas/Region.jsonld'
+            children:
+              type: array
+              readOnly: true
+              items:
+                $ref: '#/components/schemas/Region.jsonld'
+            countries:
+              type: array
+              items:
+                $ref: '#/components/schemas/Country.jsonld'
+      description: 'Retrieves a region by its identifier.'
+    Topic:
+      type: object
+      description: 'Creates a new topic.'
+      properties:
+        id:
+          readOnly: true
+          description: 'Unique identifier of the topic.'
+          type:
+            - integer
+            - 'null'
+        name:
+          description: 'Name of the topic.'
+          type:
+            - string
+            - 'null'
+        category:
+          $ref: '#/components/schemas/Category.jsonld'
+    Topic.jsonMergePatch:
+      type: object
+      description: 'Partially updates an existing topic.'
+      properties:
+        id:
+          readOnly: true
+          description: 'Unique identifier of the topic.'
+          type:
+            - integer
+            - 'null'
+        name:
+          description: 'Name of the topic.'
+          type:
+            - string
+            - 'null'
+        category:
+          $ref: '#/components/schemas/Category.jsonld'
+    Topic.jsonld:
+      allOf:
+        -
+          $ref: '#/components/schemas/HydraItemBaseSchema'
+        -
+          type: object
+          properties:
+            id:
+              readOnly: true
+              description: 'Unique identifier of the topic.'
+              type:
+                - integer
+                - 'null'
+            name:
+              description: 'Name of the topic.'
+              type:
+                - string
+                - 'null'
+            category:
+              $ref: '#/components/schemas/Category.jsonld'
+      description: 'Retrieves a topic by its identifier.'
+    User-user.write:
+      type: object
+      required:
+        - email
+        - username
+      properties:
+        email:
+          format: email
+          description: 'Email of the user'
+          externalDocs:
+            url: 'https://schema.org/email'
+          type:
+            - string
+            - 'null'
+        username:
+          description: 'Name of the user'
+          type:
+            - string
+            - 'null'
+        firstName:
+          description: 'First name of the user'
+          type:
+            - string
+            - 'null'
+        lastName:
+          description: 'Last name of the user'
+          type:
+            - string
+            - 'null'
+        authIssuer:
+          type: string
+          description: 'Authentication issuer'
+          enum:
+            - sso-connect
+            - sso-login
+          example: internal
+        type:
+          type: string
+          description: 'Type of user'
+          enum:
+            - internal
+            - external
+          example: internal
+        country:
+          type: string
+          enum:
+            - AFG
+            - ALB
+            - DZA
+            - ASM
+            - AND
+            - AGO
+            - AIA
+            - ATA
+            - ATG
+            - ARG
+            - ARM
+            - ABW
+            - AUS
+            - AUT
+            - AZE
+            - BHS
+            - BHR
+            - BGD
+            - BRB
+            - BLR
+            - BEL
+            - BLZ
+            - BEN
+            - BMU
+            - BTN
+            - BOL
+            - BES
+            - BIH
+            - BWA
+            - BVT
+            - BRA
+            - IOT
+            - BRN
+            - BGR
+            - BFA
+            - BDI
+            - KHM
+            - CMR
+            - CAN
+            - CPV
+            - CYM
+            - CAF
+            - TCD
+            - CHL
+            - CHN
+            - CXR
+            - CCK
+            - COL
+            - COM
+            - COG
+            - COD
+            - COK
+            - CRI
+            - CIV
+            - HRV
+            - CUB
+            - CUW
+            - CYP
+            - CZE
+            - DNK
+            - DJI
+            - DMA
+            - DOM
+            - ECU
+            - EGY
+            - SLV
+            - GNQ
+            - ERI
+            - EST
+            - SWZ
+            - ETH
+            - EUE
+            - FLK
+            - FRO
+            - FJI
+            - FIN
+            - FRA
+            - GUF
+            - PYF
+            - ATF
+            - GAB
+            - GMB
+            - GEO
+            - DEU
+            - GHA
+            - GIB
+            - GRC
+            - GRL
+            - GRD
+            - GLP
+            - GUM
+            - GTM
+            - GGY
+            - GIN
+            - GNB
+            - GUY
+            - HTI
+            - HMD
+            - VAT
+            - HND
+            - HKG
+            - HUN
+            - ISL
+            - IND
+            - IDN
+            - IRN
+            - IRQ
+            - IRL
+            - IMN
+            - ISR
+            - ITA
+            - JAM
+            - JPN
+            - JEY
+            - JOR
+            - KAZ
+            - KEN
+            - KIR
+            - PRK
+            - KOR
+            - KWT
+            - KGZ
+            - LAO
+            - LVA
+            - LBN
+            - LSO
+            - LBR
+            - LBY
+            - LIE
+            - LTU
+            - LUX
+            - MAC
+            - MDG
+            - MWI
+            - MYS
+            - MDV
+            - MLI
+            - MLT
+            - MHL
+            - MTQ
+            - MRT
+            - MUS
+            - MYT
+            - MEX
+            - FSM
+            - MDA
+            - MCO
+            - MNG
+            - MNE
+            - MSR
+            - MAR
+            - MOZ
+            - MMR
+            - NAM
+            - NRU
+            - NPL
+            - NLD
+            - NCL
+            - NZL
+            - NIC
+            - NER
+            - NGA
+            - NIU
+            - NFK
+            - MKD
+            - MNP
+            - NOR
+            - OMN
+            - PAK
+            - PLW
+            - PSE
+            - PAN
+            - PNG
+            - PRY
+            - PER
+            - PHL
+            - PCN
+            - POL
+            - PRT
+            - PRI
+            - QAT
+            - REU
+            - ROU
+            - RUS
+            - RWA
+            - BLM
+            - SHN
+            - KNA
+            - LCA
+            - MAF
+            - SPM
+            - VCT
+            - WSM
+            - SMR
+            - STP
+            - SAU
+            - SEN
+            - SRB
+            - SYC
+            - SLE
+            - SGP
+            - SXM
+            - SVK
+            - SVN
+            - SLB
+            - SOM
+            - ZAF
+            - SGS
+            - SSD
+            - ESP
+            - LKA
+            - SDN
+            - SUR
+            - SJM
+            - SWE
+            - CHE
+            - SYR
+            - TWN
+            - TJK
+            - TZA
+            - THA
+            - TLS
+            - TGO
+            - TKL
+            - TON
+            - TTO
+            - TUN
+            - TUR
+            - TKM
+            - TCA
+            - TUV
+            - UGA
+            - UKR
+            - ARE
+            - GBR
+            - USA
+            - UMI
+            - URY
+            - UZB
+            - VUT
+            - VEN
+            - VNM
+            - VGB
+            - VIR
+            - WLF
+            - ESH
+            - YEM
+            - ZMB
+            - ZWE
+          example: BEL
+        institution:
+          type:
+            - string
+            - 'null'
+        phone:
+          type:
+            - string
+            - 'null'
+        roles:
+          type: array
+          items:
+            type:
+              - string
+              - 'null'
+        isActive:
+          default: true
+          type: boolean
+    User-user.write.jsonMergePatch:
+      type: object
+      properties:
+        email:
+          format: email
+          description: 'Email of the user'
+          externalDocs:
+            url: 'https://schema.org/email'
+          type:
+            - string
+            - 'null'
+        username:
+          description: 'Name of the user'
+          type:
+            - string
+            - 'null'
+        firstName:
+          description: 'First name of the user'
+          type:
+            - string
+            - 'null'
+        lastName:
+          description: 'Last name of the user'
+          type:
+            - string
+            - 'null'
+        authIssuer:
+          type: string
+          description: 'Authentication issuer'
+          enum:
+            - sso-connect
+            - sso-login
+          example: internal
+        type:
+          type: string
+          description: 'Type of user'
+          enum:
+            - internal
+            - external
+          example: internal
+        country:
+          type: string
+          enum:
+            - AFG
+            - ALB
+            - DZA
+            - ASM
+            - AND
+            - AGO
+            - AIA
+            - ATA
+            - ATG
+            - ARG
+            - ARM
+            - ABW
+            - AUS
+            - AUT
+            - AZE
+            - BHS
+            - BHR
+            - BGD
+            - BRB
+            - BLR
+            - BEL
+            - BLZ
+            - BEN
+            - BMU
+            - BTN
+            - BOL
+            - BES
+            - BIH
+            - BWA
+            - BVT
+            - BRA
+            - IOT
+            - BRN
+            - BGR
+            - BFA
+            - BDI
+            - KHM
+            - CMR
+            - CAN
+            - CPV
+            - CYM
+            - CAF
+            - TCD
+            - CHL
+            - CHN
+            - CXR
+            - CCK
+            - COL
+            - COM
+            - COG
+            - COD
+            - COK
+            - CRI
+            - CIV
+            - HRV
+            - CUB
+            - CUW
+            - CYP
+            - CZE
+            - DNK
+            - DJI
+            - DMA
+            - DOM
+            - ECU
+            - EGY
+            - SLV
+            - GNQ
+            - ERI
+            - EST
+            - SWZ
+            - ETH
+            - EUE
+            - FLK
+            - FRO
+            - FJI
+            - FIN
+            - FRA
+            - GUF
+            - PYF
+            - ATF
+            - GAB
+            - GMB
+            - GEO
+            - DEU
+            - GHA
+            - GIB
+            - GRC
+            - GRL
+            - GRD
+            - GLP
+            - GUM
+            - GTM
+            - GGY
+            - GIN
+            - GNB
+            - GUY
+            - HTI
+            - HMD
+            - VAT
+            - HND
+            - HKG
+            - HUN
+            - ISL
+            - IND
+            - IDN
+            - IRN
+            - IRQ
+            - IRL
+            - IMN
+            - ISR
+            - ITA
+            - JAM
+            - JPN
+            - JEY
+            - JOR
+            - KAZ
+            - KEN
+            - KIR
+            - PRK
+            - KOR
+            - KWT
+            - KGZ
+            - LAO
+            - LVA
+            - LBN
+            - LSO
+            - LBR
+            - LBY
+            - LIE
+            - LTU
+            - LUX
+            - MAC
+            - MDG
+            - MWI
+            - MYS
+            - MDV
+            - MLI
+            - MLT
+            - MHL
+            - MTQ
+            - MRT
+            - MUS
+            - MYT
+            - MEX
+            - FSM
+            - MDA
+            - MCO
+            - MNG
+            - MNE
+            - MSR
+            - MAR
+            - MOZ
+            - MMR
+            - NAM
+            - NRU
+            - NPL
+            - NLD
+            - NCL
+            - NZL
+            - NIC
+            - NER
+            - NGA
+            - NIU
+            - NFK
+            - MKD
+            - MNP
+            - NOR
+            - OMN
+            - PAK
+            - PLW
+            - PSE
+            - PAN
+            - PNG
+            - PRY
+            - PER
+            - PHL
+            - PCN
+            - POL
+            - PRT
+            - PRI
+            - QAT
+            - REU
+            - ROU
+            - RUS
+            - RWA
+            - BLM
+            - SHN
+            - KNA
+            - LCA
+            - MAF
+            - SPM
+            - VCT
+            - WSM
+            - SMR
+            - STP
+            - SAU
+            - SEN
+            - SRB
+            - SYC
+            - SLE
+            - SGP
+            - SXM
+            - SVK
+            - SVN
+            - SLB
+            - SOM
+            - ZAF
+            - SGS
+            - SSD
+            - ESP
+            - LKA
+            - SDN
+            - SUR
+            - SJM
+            - SWE
+            - CHE
+            - SYR
+            - TWN
+            - TJK
+            - TZA
+            - THA
+            - TLS
+            - TGO
+            - TKL
+            - TON
+            - TTO
+            - TUN
+            - TUR
+            - TKM
+            - TCA
+            - TUV
+            - UGA
+            - UKR
+            - ARE
+            - GBR
+            - USA
+            - UMI
+            - URY
+            - UZB
+            - VUT
+            - VEN
+            - VNM
+            - VGB
+            - VIR
+            - WLF
+            - ESH
+            - YEM
+            - ZMB
+            - ZWE
+          example: BEL
+        institution:
+          type:
+            - string
+            - 'null'
+        phone:
+          type:
+            - string
+            - 'null'
+        roles:
+          type: array
+          items:
+            type:
+              - string
+              - 'null'
+        isActive:
+          default: true
+          type: boolean
+    User.jsonld-user.read:
+      allOf:
+        -
+          $ref: '#/components/schemas/HydraItemBaseSchema'
+        -
+          type: object
+          properties:
+            id:
+              type:
+                - integer
+                - 'null'
+            email:
+              format: email
+              description: 'Email of the user'
+              externalDocs:
+                url: 'https://schema.org/email'
+              type:
+                - string
+                - 'null'
+            username:
+              description: 'Name of the user'
+              type:
+                - string
+                - 'null'
+            firstName:
+              description: 'First name of the user'
+              type:
+                - string
+                - 'null'
+            lastName:
+              description: 'Last name of the user'
+              type:
+                - string
+                - 'null'
+            authIssuer:
+              type: string
+              description: 'Authentication issuer'
+              enum:
+                - sso-connect
+                - sso-login
+              example: internal
+            type:
+              type: string
+              description: 'Type of user'
+              enum:
+                - internal
+                - external
+              example: internal
+            country:
+              type: string
+              enum:
+                - AFG
+                - ALB
+                - DZA
+                - ASM
+                - AND
+                - AGO
+                - AIA
+                - ATA
+                - ATG
+                - ARG
+                - ARM
+                - ABW
+                - AUS
+                - AUT
+                - AZE
+                - BHS
+                - BHR
+                - BGD
+                - BRB
+                - BLR
+                - BEL
+                - BLZ
+                - BEN
+                - BMU
+                - BTN
+                - BOL
+                - BES
+                - BIH
+                - BWA
+                - BVT
+                - BRA
+                - IOT
+                - BRN
+                - BGR
+                - BFA
+                - BDI
+                - KHM
+                - CMR
+                - CAN
+                - CPV
+                - CYM
+                - CAF
+                - TCD
+                - CHL
+                - CHN
+                - CXR
+                - CCK
+                - COL
+                - COM
+                - COG
+                - COD
+                - COK
+                - CRI
+                - CIV
+                - HRV
+                - CUB
+                - CUW
+                - CYP
+                - CZE
+                - DNK
+                - DJI
+                - DMA
+                - DOM
+                - ECU
+                - EGY
+                - SLV
+                - GNQ
+                - ERI
+                - EST
+                - SWZ
+                - ETH
+                - EUE
+                - FLK
+                - FRO
+                - FJI
+                - FIN
+                - FRA
+                - GUF
+                - PYF
+                - ATF
+                - GAB
+                - GMB
+                - GEO
+                - DEU
+                - GHA
+                - GIB
+                - GRC
+                - GRL
+                - GRD
+                - GLP
+                - GUM
+                - GTM
+                - GGY
+                - GIN
+                - GNB
+                - GUY
+                - HTI
+                - HMD
+                - VAT
+                - HND
+                - HKG
+                - HUN
+                - ISL
+                - IND
+                - IDN
+                - IRN
+                - IRQ
+                - IRL
+                - IMN
+                - ISR
+                - ITA
+                - JAM
+                - JPN
+                - JEY
+                - JOR
+                - KAZ
+                - KEN
+                - KIR
+                - PRK
+                - KOR
+                - KWT
+                - KGZ
+                - LAO
+                - LVA
+                - LBN
+                - LSO
+                - LBR
+                - LBY
+                - LIE
+                - LTU
+                - LUX
+                - MAC
+                - MDG
+                - MWI
+                - MYS
+                - MDV
+                - MLI
+                - MLT
+                - MHL
+                - MTQ
+                - MRT
+                - MUS
+                - MYT
+                - MEX
+                - FSM
+                - MDA
+                - MCO
+                - MNG
+                - MNE
+                - MSR
+                - MAR
+                - MOZ
+                - MMR
+                - NAM
+                - NRU
+                - NPL
+                - NLD
+                - NCL
+                - NZL
+                - NIC
+                - NER
+                - NGA
+                - NIU
+                - NFK
+                - MKD
+                - MNP
+                - NOR
+                - OMN
+                - PAK
+                - PLW
+                - PSE
+                - PAN
+                - PNG
+                - PRY
+                - PER
+                - PHL
+                - PCN
+                - POL
+                - PRT
+                - PRI
+                - QAT
+                - REU
+                - ROU
+                - RUS
+                - RWA
+                - BLM
+                - SHN
+                - KNA
+                - LCA
+                - MAF
+                - SPM
+                - VCT
+                - WSM
+                - SMR
+                - STP
+                - SAU
+                - SEN
+                - SRB
+                - SYC
+                - SLE
+                - SGP
+                - SXM
+                - SVK
+                - SVN
+                - SLB
+                - SOM
+                - ZAF
+                - SGS
+                - SSD
+                - ESP
+                - LKA
+                - SDN
+                - SUR
+                - SJM
+                - SWE
+                - CHE
+                - SYR
+                - TWN
+                - TJK
+                - TZA
+                - THA
+                - TLS
+                - TGO
+                - TKL
+                - TON
+                - TTO
+                - TUN
+                - TUR
+                - TKM
+                - TCA
+                - TUV
+                - UGA
+                - UKR
+                - ARE
+                - GBR
+                - USA
+                - UMI
+                - URY
+                - UZB
+                - VUT
+                - VEN
+                - VNM
+                - VGB
+                - VIR
+                - WLF
+                - ESH
+                - YEM
+                - ZMB
+                - ZWE
+              example: BEL
+            institution:
+              type:
+                - string
+                - 'null'
+            phone:
+              type:
+                - string
+                - 'null'
+            roles:
+              type: array
+              items:
+                type:
+                  - string
+                  - 'null'
+            createdAt:
+              readOnly: true
+              type: string
+              format: date-time
+            updatedAt:
+              readOnly: true
+              type: string
+              format: date-time
+            isActive:
+              default: true
+              type: boolean
+            lastLoginAt:
+              readOnly: true
+              type: string
+              format: date-time
+            fullName:
+              readOnly: true
+              type: string
+          required:
+            - email
+            - username
+  responses: {}
+  parameters: {}
+  examples: {}
+  requestBodies: {}
+  headers: {}
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      description: 'Value for the Authorization header parameter.'
+      name: Authorization
+      in: header
+    provider:
+      type: apiKey
+      description: 'Value for the provider header parameter.'
+      name: provider
+      in: header
+security:
+  -
+    apiKey: []
+  -
+    provider: []
+tags:
+  -
+    name: Category
+    description: 'A thematic category used to group related topics.'
+  -
+    name: Country
+    description: 'A country, identified by its ISO code.'
+  -
+    name: Region
+    description: 'A region, optionally nested under a parent region, grouping countries.'
+  -
+    name: Common
+    description: "Resource 'Common' operations."
+  -
+    name: Topic
+    description: 'A topic, optionally grouped under a category.'
+  -
+    name: User
+    description: "Resource 'User' operations."
+  -
+    name: Acl
+    description: "Resource 'Acl' operations."
+webhooks: {}
