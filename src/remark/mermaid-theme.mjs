@@ -88,7 +88,7 @@ const RULE_SOLID = '#9aa3b2'; // stronger hairline, baselines — 3.0:1
 const INK_05 = 'rgba(45, 49, 66, 0.07)'; // "store" role: data stores, activations
 const INK_03 = 'rgba(45, 49, 66, 0.045)'; // "external" role: out of scope
 const GRID = '#ccd2dc'; // axis gridlines (Gantt, XY chart)
-const ACCENT = '#eb6c36'; // tangerine: the one accent
+export const ACCENT = '#eb6c36'; // tangerine: the one accent (also lights the PlantUML steps, plantuml-steps.mjs)
 const ACCENT_TINT = 'rgba(235, 108, 54, 0.08)'; // fill behind accented elements
 
 // Categorical series, reserved for the types that genuinely distinguish several
@@ -309,7 +309,12 @@ const themeCSS = `
      cycle). The 0% and 100% frames are left implicit on purpose: CSS then
      takes them from the element's own computed values, so one set of
      keyframes serves an edge (stroke in MUTED) and a node (stroke in INK)
-     alike, each returning to its own colour.
+     alike, each returning to its own colour. The 14% frame carries
+     step-start: without it the way back to the implicit 100% is a fade over
+     the rest of the round, and on a long round every step is still tinted
+     when the next lights — the diagram turns orange. With it the light
+     leaves as the next one arrives, and the ramp in (0% to 4%) is the only
+     transition.
 
      Authors reach this through Mermaid's classDef, which lands on an edge's
      path and a node's shape as an inline style; there is no class an author
@@ -331,16 +336,25 @@ const themeCSS = `
      them — both read as an order. A dotted edge given a step loses the drift
      above (the inline animation replaces it) but keeps its dashes. */
   @keyframes diagram-step {
-    4%, 14% {
+    4% {
       stroke: ${ACCENT};
       stroke-width: 2px;
+    }
+    14% {
+      stroke: ${ACCENT};
+      stroke-width: 2px;
+      animation-timing-function: step-start;
     }
   }
   /* The same beat for text, which is drawn by its fill: a message's label in a
      stepped sequence diagram lights with its arrow (see mermaid-steps.mjs). */
   @keyframes diagram-step-ink {
-    4%, 14% {
+    4% {
       fill: ${ACCENT};
+    }
+    14% {
+      fill: ${ACCENT};
+      animation-timing-function: step-start;
     }
   }
 

@@ -1,5 +1,6 @@
 @startuml
 !include _shared/eeas-skin.puml
+' steps
 
 actor User
 participant "Auth.js" as Auth

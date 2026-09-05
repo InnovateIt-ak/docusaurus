@@ -273,9 +273,10 @@ flowchart LR
 ```
 ````
 
-The highlight lasts a fixed tenth of the cycle, so a long chain overlaps its
-steps into a wave and a short one leaves a beat between them; both read as an
-order. Several elements on one step is how a branch or a fan-out is told:
+The highlight ramps up over the first 4% of the cycle, holds until 14%, then
+leaves at once; on a cycle of up to ten steps that keeps one step lit at a
+time, with a beat between two on a short chain. Several elements on one step
+is how a branch or a fan-out is told:
 they light together. A dotted edge given a step keeps its dashes but not its
 drift — the step's animation takes the slot. Mermaid's `classDef` accepts no
 comma inside a value, which is why the edge needs an `id@` and a class rather
@@ -442,7 +443,9 @@ a `par` block for good measure: eleven messages, a round of 18 seconds. The
 steps follow the order the messages are *written* in — through the `alt`,
 both branches one after the other, then the two `par` legs, then the loop —
 which is also the order `autonumber` counts them in, so the number on the
-page is the step. Notes, blocks and activations sit between the steps without
+page is the step. Because the renderer knows the count, each step's light is
+set in seconds (0.3s in, held to 1.2s, then off), the same on a long round as
+on a short one. Notes, blocks and activations sit between the steps without
 shifting them. As everywhere else, nothing is hidden: the PDF shows the full
 exchange at rest, and `prefers-reduced-motion` stills it.
 

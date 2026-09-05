@@ -1,6 +1,7 @@
 import {visit} from 'unist-util-visit';
 import plantumlEncoder from 'plantuml-encoder';
 import {readFile} from 'node:fs/promises';
+import {withSteps} from './plantuml-steps.mjs';
 import {dirname, isAbsolute, resolve} from 'node:path';
 import {createHash} from 'node:crypto';
 import http from 'node:http';
@@ -359,7 +360,10 @@ async function fetchSvg(source, label) {
 
 async function toDataUrlImage(node, source, baseDir, label) {
     const resolved = await resolveIncludes(source, baseDir);
-    const svg = await fetchSvg(resolved, label);
+    // A "' steps" diagram gets its messages or links animated in turn, by a
+    // <style> written into the SVG (plantuml-steps.mjs). Applied after the
+    // cache: the cache key is the resolved source, which carries the marker.
+    const svg = withSteps(source, await fetchSvg(resolved, label));
     const base64 = Buffer.from(svg, 'utf8').toString('base64');
     node.type = 'image';
     node.url = `data:image/svg+xml;base64,${base64}`;

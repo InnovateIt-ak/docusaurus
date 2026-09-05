@@ -27,9 +27,39 @@
 // Timing is the flowchart's: one slot per step, and one slot of rest at the end
 // of the round, so the last step is not chased by the first.
 
+import {ACCENT} from './mermaid-theme.mjs';
+
 // One step per slot, in seconds. Mirrors the rule authors apply by hand on a
 // flowchart (cycle = 1.5s × steps, delay = 1.5s × (k − 1)).
 export const STEP_SLOT_S = 1.5;
+
+// How a step lights: a short ramp up, a hold, then straight back — in seconds,
+// not in a share of the round. The theme's own keyframes are written in
+// percent because a classDef author sets the cycle and the theme cannot know
+// it; here the cycle is known, so the window is fixed in time and a step on an
+// eighteen-second round looks exactly like one on a six-second round. The
+// hold ends before the slot does, so two steps never light together.
+const STEP_RAMP_S = 0.3;
+const STEP_HOLD_END_S = 1.2;
+
+/**
+ * Keyframes for a round of `cycle` seconds, for the three ways a diagram is
+ * painted — a line by its stroke, a text by its fill, an arrowhead by both.
+ * 0% and 100% are implicit (each element returns to its own colour); the end
+ * of the hold carries step-start, so the light leaves at once rather than
+ * fading over the rest of the round. Redefining the theme's names is on
+ * purpose: the last definition wins, and this one knows the cycle.
+ */
+export function stepKeyframes(cycle, accent) {
+    const pct = (seconds) => `${((100 * seconds) / cycle).toFixed(3)}%`;
+    const frames = (lit) =>
+        `${pct(STEP_RAMP_S)} { ${lit} } ${pct(STEP_HOLD_END_S)} { ${lit} animation-timing-function: step-start; }`;
+    return [
+        `@keyframes diagram-step { ${frames(`stroke: ${accent}; stroke-width: 2px;`)} }`,
+        `@keyframes diagram-step-ink { ${frames(`fill: ${accent};`)} }`,
+        `@keyframes diagram-step-mark { ${frames(`fill: ${accent}; stroke: ${accent};`)} }`,
+    ];
+}
 
 const SEQUENCE_DIAGRAM = /^\s*(?:%%\{[^]*?\}%%\s*)*sequenceDiagram\b/;
 const STEPS_MARKER = /^\s*%%\s*steps\s*$/m;
@@ -58,9 +88,9 @@ export function countSequenceMessages(source) {
  * The per-diagram CSS for a "%% steps" sequence diagram, or '' when the
  * diagram is not one (not a sequence diagram, no marker, or nothing to step).
  *
- * The keyframes themselves (`diagram-step` for strokes, `diagram-step-ink` for
- * text) come from the theme; this only sets them going with the cycle this
- * diagram needs, and staggers the messages along it. The `of` form of
+ * The keyframes (`diagram-step` for strokes, `diagram-step-ink` for text) are
+ * the theme's names, redefined here with this diagram's cycle (stepKeyframes),
+ * then set going and staggered along the messages. The `of` form of
  * :nth-child counts only the elements matching the selector, so notes,
  * lifelines and activation boxes drawn between two messages do not shift the
  * numbering. Attribute selectors rather than `.messageLine0, .messageLine1`:
@@ -75,6 +105,7 @@ export function sequenceStepsCss(source) {
 
     const cycle = STEP_SLOT_S * (steps + 1);
     const rules = [
+        ...stepKeyframes(cycle, ACCENT),
         `[class^="messageLine"] { animation: diagram-step ${cycle}s linear infinite; }`,
         `.messageText { animation: diagram-step-ink ${cycle}s linear infinite; }`,
     ];
