@@ -207,50 +207,79 @@ here, each step lights the arrow and the node it reaches. Cycle = 1.5s ×
 number of steps (one more for a pause, if you like); delay of step *k* = 1.5s
 × (*k* − 1).
 
+The example is the flowchart from the top of the page, told as a request: a
+decision whose **two branches light together** (step 3 holds both the accepted
+and the rejected path), a fan-out inside a subgraph (step 4, both stores at
+once), and a dotted, asynchronous last hop. The `focal` node is left out of
+the steps on purpose: it already wears the accent, and a `classDef` that sets
+the stroke with `!important` — as `focal` does — outranks any animation, so a
+step on it would show nothing.
+
 ```mermaid
 flowchart LR
-    U[User] e1@--> W[Web app]
-    W e2@--> A[API]
-    A e3@-.->|event| Q[Queue]
-    Q e4@--> D[(Store)]
-    classDef step1 animation: diagram-step 7.5s linear infinite 0s
-    classDef step2 animation: diagram-step 7.5s linear infinite 1.5s
-    classDef step3 animation: diagram-step 7.5s linear infinite 3s
-    classDef step4 animation: diagram-step 7.5s linear infinite 4.5s
-    classDef step5 animation: diagram-step 7.5s linear infinite 6s
-    class U step1
-    class e1,W step2
-    class e2,A step3
-    class e3,Q step4
-    class e4,D step5
+    classDef focal fill:#fdece4,stroke:#eb6c36,stroke-width:1.2px
+
+    Client[HTTP client] e1@--> GW{Gateway}
+    GW e2@-->|valid token| API[API service]
+    GW e3@-->|rejected| Log[(Audit log)]
+
+    subgraph Backend
+        API e4@--> DB[(PostgreSQL)]
+        API e5@--> Cache[(Redis)]
+    end
+
+    DB e6@-.->|nightly| Export([PDF export])
+    Export:::focal
+
+    classDef step1 animation: diagram-step 9s linear infinite 0s
+    classDef step2 animation: diagram-step 9s linear infinite 1.5s
+    classDef step3 animation: diagram-step 9s linear infinite 3s
+    classDef step4 animation: diagram-step 9s linear infinite 4.5s
+    classDef step5 animation: diagram-step 9s linear infinite 6s
+    class Client step1
+    class e1,GW step2
+    class e2,API,e3,Log step3
+    class e4,DB,e5,Cache step4
+    class e6 step5
 ```
 
 ````markdown
 ```mermaid
 flowchart LR
-    U[User] e1@--> W[Web app]
-    W e2@--> A[API]
-    A e3@-.->|event| Q[Queue]
-    Q e4@--> D[(Store)]
-    classDef step1 animation: diagram-step 7.5s linear infinite 0s
-    classDef step2 animation: diagram-step 7.5s linear infinite 1.5s
-    classDef step3 animation: diagram-step 7.5s linear infinite 3s
-    classDef step4 animation: diagram-step 7.5s linear infinite 4.5s
-    classDef step5 animation: diagram-step 7.5s linear infinite 6s
-    class U step1
-    class e1,W step2
-    class e2,A step3
-    class e3,Q step4
-    class e4,D step5
+    classDef focal fill:#fdece4,stroke:#eb6c36,stroke-width:1.2px
+
+    Client[HTTP client] e1@--> GW{Gateway}
+    GW e2@-->|valid token| API[API service]
+    GW e3@-->|rejected| Log[(Audit log)]
+
+    subgraph Backend
+        API e4@--> DB[(PostgreSQL)]
+        API e5@--> Cache[(Redis)]
+    end
+
+    DB e6@-.->|nightly| Export([PDF export])
+    Export:::focal
+
+    classDef step1 animation: diagram-step 9s linear infinite 0s
+    classDef step2 animation: diagram-step 9s linear infinite 1.5s
+    classDef step3 animation: diagram-step 9s linear infinite 3s
+    classDef step4 animation: diagram-step 9s linear infinite 4.5s
+    classDef step5 animation: diagram-step 9s linear infinite 6s
+    class Client step1
+    class e1,GW step2
+    class e2,API,e3,Log step3
+    class e4,DB,e5,Cache step4
+    class e6 step5
 ```
 ````
 
 The highlight lasts a fixed tenth of the cycle, so a long chain overlaps its
 steps into a wave and a short one leaves a beat between them; both read as an
-order. A dotted edge given a step keeps its dashes but not its drift — the
-step's animation takes the slot. Mermaid's `classDef` accepts no comma inside
-a value, which is why the edge needs an `id@` and a class rather than a
-`linkStyle`.
+order. Several elements on one step is how a branch or a fan-out is told:
+they light together. A dotted edge given a step keeps its dashes but not its
+drift — the step's animation takes the slot. Mermaid's `classDef` accepts no
+comma inside a value, which is why the edge needs an `id@` and a class rather
+than a `linkStyle`.
 
 ---
 
@@ -340,15 +369,35 @@ of rest); `autonumber` puts the step numbers on the page too.
 sequenceDiagram
     %% steps
     autonumber
-    participant U as User
+    actor U as User
     participant W as Web app
     participant A as API
-    U->>W: Sign in
-    W->>+A: POST /token
-    Note over A: validates the credentials
-    A-->>-W: 200 token
-    W->>W: store session
-    W-->>U: Redirect
+    participant D as Database
+
+    U->>W: Opens the dashboard
+    W->>+A: GET /widgets
+    A->>D: SELECT …
+    D-->>A: 42 rows
+    A-->>-W: 200 OK
+
+    Note over W,A: The response is cached for 5 minutes
+
+    alt Cache is fresh
+        W-->>U: Renders immediately
+    else Cache expired
+        W->>A: Revalidate
+        A-->>W: 304 Not Modified
+    end
+
+    par In parallel
+        W->>A: Session ping
+    and
+        W->>D: Log the view
+    end
+
+    loop Every 30 s
+        W->>A: Session ping
+    end
 ```
 
 ````markdown
@@ -356,21 +405,46 @@ sequenceDiagram
 sequenceDiagram
     %% steps
     autonumber
-    participant U as User
+    actor U as User
     participant W as Web app
     participant A as API
-    U->>W: Sign in
-    W->>+A: POST /token
-    Note over A: validates the credentials
-    A-->>-W: 200 token
-    W->>W: store session
-    W-->>U: Redirect
+    participant D as Database
+
+    U->>W: Opens the dashboard
+    W->>+A: GET /widgets
+    A->>D: SELECT …
+    D-->>A: 42 rows
+    A-->>-W: 200 OK
+
+    Note over W,A: The response is cached for 5 minutes
+
+    alt Cache is fresh
+        W-->>U: Renders immediately
+    else Cache expired
+        W->>A: Revalidate
+        A-->>W: 304 Not Modified
+    end
+
+    par In parallel
+        W->>A: Session ping
+    and
+        W->>D: Log the view
+    end
+
+    loop Every 30 s
+        W->>A: Session ping
+    end
 ```
 ````
 
-Notes, loops and activations sit between the steps without shifting them.
-As everywhere else, nothing is hidden: the PDF shows the full exchange at
-rest, and `prefers-reduced-motion` stills it.
+This is the exchange from the top of the section, with the marker added and
+a `par` block for good measure: eleven messages, a round of 18 seconds. The
+steps follow the order the messages are *written* in — through the `alt`,
+both branches one after the other, then the two `par` legs, then the loop —
+which is also the order `autonumber` counts them in, so the number on the
+page is the step. Notes, blocks and activations sit between the steps without
+shifting them. As everywhere else, nothing is hidden: the PDF shows the full
+exchange at rest, and `prefers-reduced-motion` stills it.
 
 ---
 
