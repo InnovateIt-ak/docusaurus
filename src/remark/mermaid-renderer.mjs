@@ -15,7 +15,7 @@ import readline from 'node:readline';
 import puppeteer from 'puppeteer';
 import {renderMermaid} from '@mermaid-js/mermaid-cli';
 import {MERMAID_CONFIG} from './mermaid-theme.mjs';
-import {stepsCss} from './mermaid-steps.mjs';
+import {withSteps} from './diagram-steps.mjs';
 
 const CHROMIUM_PATH = process.env.PUPPETEER_EXECUTABLE_PATH || undefined;
 
@@ -58,14 +58,6 @@ function enqueue(request) {
     queue = queue.then(async () => {
         try {
             const browser = await getBrowser();
-            // A "%% steps" diagram gets, for this render only, the CSS that
-            // staggers its messages (a sequence diagram) or recolours its steps
-            // (a flowchart) appended to the theme's — see mermaid-steps.mjs;
-            // every other diagram gets the theme as it is.
-            const extraCss = stepsCss(request.source);
-            const mermaidConfig = extraCss
-                ? {...MERMAID_CONFIG, themeCSS: MERMAID_CONFIG.themeCSS + extraCss}
-                : MERMAID_CONFIG;
             const {data} = await renderMermaid(browser, request.source, 'svg', {
                 backgroundColor: 'transparent',
                 // Palette, typography and diagram skin: see mermaid-theme.mjs.
@@ -73,9 +65,13 @@ function enqueue(request) {
                 // SVG is inlined in an <img>, which page CSS does not cross. It
                 // also carries `htmlLabels: false`, required by the WeasyPrint
                 // PDF, which does not render <foreignObject>.
-                mermaidConfig,
+                mermaidConfig: MERMAID_CONFIG,
             });
-            send({id: request.id, ok: true, svg: Buffer.from(data).toString('utf8')});
+            // A "%% steps" or "%% still" diagram gets its motion written into the
+            // SVG here, after the render (diagram-steps.mjs); the others go
+            // out as Mermaid drew them.
+            const svg = withSteps(request.source, Buffer.from(data).toString('utf8'), '%%');
+            send({id: request.id, ok: true, svg});
         } catch (err) {
             send({id: request.id, ok: false, error: String((err && err.message) || err)});
         }

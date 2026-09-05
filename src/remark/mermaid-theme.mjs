@@ -88,7 +88,7 @@ const RULE_SOLID = '#9aa3b2'; // stronger hairline, baselines — 3.0:1
 const INK_05 = 'rgba(45, 49, 66, 0.07)'; // "store" role: data stores, activations
 const INK_03 = 'rgba(45, 49, 66, 0.045)'; // "external" role: out of scope
 const GRID = '#ccd2dc'; // axis gridlines (Gantt, XY chart)
-export const ACCENT = '#eb6c36'; // tangerine: the one accent (also lights the PlantUML steps, plantuml-steps.mjs)
+export const ACCENT = '#eb6c36'; // tangerine: the one accent (also the default colour of the steps, diagram-steps.mjs)
 const ACCENT_TINT = 'rgba(235, 108, 54, 0.08)'; // fill behind accented elements
 
 // Categorical series, reserved for the types that genuinely distinguish several
@@ -328,10 +328,11 @@ const themeCSS = `
        class e3,D step3
 
      Cycle = 1.5s x number of steps (add a slot for a pause), delay of step k
-     = 1.5s x (k - 1). A sequence diagram has no classDef to carry this, so it
-     gets it from the renderer instead: a "%% steps" comment makes
-     mermaid-steps.mjs count the messages and append the cycle and the delays
-     to this CSS for that one diagram. The window is a fraction of the cycle, so a long chain
+     = 1.5s x (k - 1). This is the by-hand way, for lighting nodes as well as
+     edges. The other way needs no classDef: a "%% steps" comment makes
+     diagram-steps.mjs step the arrows in source order, after the render, for
+     a flowchart or a sequence diagram alike — and "%% steps reveal" makes
+     them appear one by one instead. The window is a fraction of the cycle, so a long chain
      overlaps its steps into a wave, and a short one leaves a gap between
      them — both read as an order. A dotted edge given a step loses the drift
      above (the inline animation replaces it) but keeps its dashes. */
@@ -346,8 +347,8 @@ const themeCSS = `
       animation-timing-function: step-start;
     }
   }
-  /* The same beat for text, which is drawn by its fill: a message's label in a
-     stepped sequence diagram lights with its arrow (see mermaid-steps.mjs). */
+  /* The same beat for text, which is drawn by its fill: an edge label or a
+     message lights with its arrow (see diagram-steps.mjs). */
   @keyframes diagram-step-ink {
     4% {
       fill: ${ACCENT};

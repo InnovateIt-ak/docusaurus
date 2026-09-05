@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useMemo,
   useState,
   type ComponentProps,
   type MouseEvent,
@@ -205,6 +206,75 @@ function CloseIcon(): ReactNode {
   );
 }
 
+function PauseIcon(): ReactNode {
+  return (
+    <svg
+      className={styles.icon}
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      aria-hidden="true">
+      <path d="M9 5v14" />
+      <path d="M15 5v14" />
+    </svg>
+  );
+}
+
+function PlayIcon(): ReactNode {
+  return (
+    <svg
+      className={styles.icon}
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+      aria-hidden="true">
+      <path d="M7 5l12 7-12 7z" />
+    </svg>
+  );
+}
+
+const SVG_DATA_URL = 'data:image/svg+xml;base64,';
+
+// The SVG behind a diagram's data URL, decoded — or undefined for any other
+// image. The base64 is bytes, so it goes through TextDecoder rather than
+// straight from atob(), which would mangle anything outside ASCII.
+function decodeSvg(src: string): string | undefined {
+  if (!src.startsWith(SVG_DATA_URL)) return undefined;
+  try {
+    const bytes = Uint8Array.from(atob(src.slice(SVG_DATA_URL.length)), (c) =>
+      c.charCodeAt(0),
+    );
+    return new TextDecoder().decode(bytes);
+  } catch {
+    return undefined;
+  }
+}
+
+// The same diagram with every animation switched off: a <style> after the
+// opening tag, the one thing that reaches inside an <img>. What the reader
+// gets is exactly what the PDF and a reduced-motion system get (see
+// src/remark/diagram-steps.mjs) — the diagram complete, at rest.
+function stillVersion(svg: string): string {
+  const still = svg.replace(
+    /<svg\b[^>]*>/,
+    (tag) => `${tag}<style>* { animation: none !important; }</style>`,
+  );
+  const bytes = new TextEncoder().encode(still);
+  let binary = '';
+  bytes.forEach((b) => {
+    binary += String.fromCharCode(b);
+  });
+  return `${SVG_DATA_URL}${btoa(binary)}`;
+}
+
 // Adds a small caption under each image with a link to download it — including
 // build-time diagrams, so a reader can grab the SVG. Structured with <span>s
 // (not <figure>/<figcaption>) because a markdown image renders as <p><img></p>,
@@ -223,6 +293,12 @@ export default function ImgWrapper({
   // The full-size viewer a diagram opens on click. See the viewer markup at the
   // end of this component for why it is not the site's medium-zoom.
   const [viewing, setViewing] = useState(false);
+  // A diagram that moves (stepped, or with the theme's drifting dotted edges)
+  // offers a Pause. Whether it moves is read from the SVG itself, after mount:
+  // the server and the first client render agree on "no button", then the
+  // button appears where there is something for it to do.
+  const [animated, setAnimated] = useState(false);
+  const [paused, setPaused] = useState(false);
   const {siteConfig} = useDocusaurusContext();
   // Escape closes the viewer, as any overlay should.
   useEffect(() => {
@@ -251,7 +327,21 @@ export default function ImgWrapper({
   const src = typeof props.src === 'string' ? props.src : undefined;
   const alt = typeof props.alt === 'string' ? props.alt : undefined;
 
-  if (!src) {
+  useEffect(() => {
+    const svg = src ? decodeSvg(src) : undefined;
+    setAnimated(svg !== undefined && /animation\s*:|@keyframes/.test(svg));
+    setPaused(false);
+  }, [src]);
+  // The image actually shown: the still rewrite while paused, the original
+  // otherwise. Open and Download keep the original — a saved file that moves
+  // is the file the author published.
+  const shownSrc = useMemo(() => {
+    if (!src || !paused) return src;
+    const svg = decodeSvg(src);
+    return svg ? stillVersion(svg) : src;
+  }, [src, paused]);
+
+  if (!src || !shownSrc) {
     return <Img {...props} />;
   }
 
@@ -286,6 +376,7 @@ export default function ImgWrapper({
         // the SVG again — the larger the diagram, the blurrier the zoom.
         <Img
           {...props}
+          src={shownSrc}
           data-diagram={diagramLang ?? 'diagram'}
           className={styles.zoomable}
           onClick={() => setViewing(true)}
@@ -300,6 +391,33 @@ export default function ImgWrapper({
           <span className={styles.spacer} />
         )}
         <span className={`${styles.actions} pdf-hide`}>
+          {animated ? (
+            <button
+              type="button"
+              className={styles.action}
+              aria-pressed={paused}
+              title={translate({
+                id: 'theme.image.pause.tooltip',
+                message: 'Stop or resume this diagram\'s animation',
+                description: "Tooltip of the button that pauses or resumes a diagram's animation",
+              })}
+              onClick={() => setPaused((p) => !p)}>
+              {paused ? <PlayIcon /> : <PauseIcon />}
+              {paused ? (
+                <Translate
+                  id="theme.image.play"
+                  description="Label of the button that resumes a paused diagram animation">
+                  Play
+                </Translate>
+              ) : (
+                <Translate
+                  id="theme.image.pause"
+                  description="Label of the button that pauses a diagram animation">
+                  Pause
+                </Translate>
+              )}
+            </button>
+          ) : null}
           {canShowSource ? (
             <button
               type="button"
@@ -391,7 +509,7 @@ export default function ImgWrapper({
           })}
           className={styles.viewer}
           onClick={() => setViewing(false)}>
-          <img className={styles.viewerImage} src={src} alt={alt ?? ''} />
+          <img className={styles.viewerImage} src={shownSrc} alt={alt ?? ''} />
           <button
             type="button"
             className={styles.viewerClose}
