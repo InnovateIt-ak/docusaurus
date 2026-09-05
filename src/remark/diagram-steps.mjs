@@ -15,7 +15,12 @@
 //   highlight (the default)  each arrow takes the accent for a moment, in turn;
 //                            the diagram is complete throughout.
 //   reveal                   each arrow appears in turn; once all are there the
-//                            diagram holds, then starts over.
+//                            diagram holds, then starts over. In a sequence
+//                            diagram, what sits between two arrows goes with
+//                            the next one: a note, an activation bar, the
+//                            frame of an alt / loop / par and its dividers,
+//                            the autonumber — all appear with the first arrow
+//                            they precede, never ahead of it.
 //
 // The order is the author's. A Mermaid sequence diagram and a Mermaid flowchart
 // draw their messages and edges in source order, as siblings (of the root, of
@@ -201,12 +206,125 @@ function plantuml(svg) {
 
 /** The steppable items of a rendered SVG, or null for a diagram that has none. */
 export function stepTargets(svg) {
-    if (/\bdata-diagram-type="/.test(svg)) return plantuml(svg);
+    if (/\bdata-diagram-type="/.test(svg)) {
+        const targets = plantuml(svg);
+        targets.sequence = /\bdata-diagram-type="SEQUENCE"/.test(svg) ? {depth: 2, skip: /\bparticipant/} : null;
+        return targets;
+    }
     const role = /\baria-roledescription="([^"]+)"/.exec(svg)?.[1] ?? '';
-    if (role === 'sequence') return mermaidSequence(svg);
+    if (role === 'sequence') return {...mermaidSequence(svg), sequence: {depth: 1, skip: /\bactor/}};
     if (role.startsWith('flowchart')) return mermaidFlowchart(svg);
     // Activity diagrams, C4_Sequence, class diagrams…: nothing named to step.
     return null;
+}
+
+// --- Sequence diagrams: everything between two arrows goes with the next -------
+// A reveal that showed the frame of an `alt` — or a note, an activation bar,
+// the autonumber — before the arrow inside it would give the story away. The
+// SVG offers no grouping for that (PlantUML draws frames as loose rects, paths
+// and texts between the messages; Mermaid draws them as groups before all the
+// messages), but it offers geometry: an arrow is a horizontal line at a known
+// y, and whatever is drawn between two arrows sits between their ys. So every
+// element of the drawing that is not a participant is given the step of the
+// first arrow at its height or below it, as data-step="k"; what lies below the
+// last arrow (the bottom row of participants) is left alone.
+
+// The lowest y an element (or a group's content) touches: y/y1/y2/cy attributes,
+// polygon points, path coordinates.
+function topY(markup) {
+    let min = Infinity;
+    for (const m of markup.matchAll(/\s(?:y|y1|y2|cy)="(-?[\d.]+)"/g)) min = Math.min(min, Number(m[1]));
+    for (const m of markup.matchAll(/\spoints="([^"]+)"/g)) {
+        for (const pair of m[1].trim().split(/\s+/)) {
+            const y = Number(pair.split(',')[1]);
+            if (Number.isFinite(y)) min = Math.min(min, y);
+        }
+    }
+    for (const m of markup.matchAll(/\sd="([^"]+)"/g)) {
+        const numbers = m[1].match(/-?[\d.]+(?:e-?\d+)?/g) ?? [];
+        for (let i = 1; i < numbers.length; i += 2) min = Math.min(min, Number(numbers[i]));
+    }
+    return min;
+}
+
+// The elements at `depth` below the root (1: children of <svg>, Mermaid; 2:
+// children of PlantUML's one wrapping <g>), each with the offsets of its
+// opening tag and its full markup. <style> bodies are skipped whole — CSS may
+// carry a '>' — and so are comments.
+function elementsAt(svg, depth) {
+    const out = [];
+    const re = /<!--[^]*?-->|<(\/?)([a-zA-Z][\w:-]*)([^>]*?)(\/?)>/g;
+    const open = []; // stack of {tag, start}
+    let match;
+    while ((match = re.exec(svg)) !== null) {
+        if (match[0].startsWith('<!--')) continue;
+        const [whole, closing, tag, , selfClosing] = match;
+        if (tag === 'style' && !closing) {
+            re.lastIndex = svg.indexOf('</style>', match.index) + 8;
+            continue;
+        }
+        if (closing) {
+            const el = open.pop();
+            if (el && open.length === depth) out.push({...el, end: match.index + whole.length});
+            continue;
+        }
+        if (selfClosing) {
+            if (open.length === depth) out.push({tag, start: match.index, tagEnd: match.index + whole.length, end: match.index + whole.length});
+            continue;
+        }
+        open.push({tag, start: match.index, tagEnd: match.index + whole.length});
+    }
+    return out;
+}
+
+/**
+ * The sequence SVG with data-step="k" on every element of its drawing, k being
+ * the step of the first arrow at its height or below. Arrow ys come from the
+ * targets' own selection (Mermaid: the messageLine elements; PlantUML: the
+ * message groups), so the k here is the k the highlight uses.
+ */
+function annotateSequence(svg, targets) {
+    const {depth, skip} = targets.sequence;
+    const elements = elementsAt(svg, depth).map((el) => ({...el, markup: svg.slice(el.start, el.end)}));
+    const isArrow = (el) =>
+        depth === 1 ? /^<(?:line|path)\b[^>]*class="[^"]*\bmessageLine/.test(el.markup) : /^<g class="message"/.test(el.markup);
+    // The arrows, in step order — for PlantUML that is the id's number, not the
+    // DOM's (see plantuml()); a message's y is that of its line, the lowest
+    // point of a group that also holds its text.
+    const arrows = elements.filter(isArrow);
+    if (depth === 2) {
+        const order = new Map();
+        for (let k = 1; k <= targets.count; k += 1) order.set(targets.select(k).whole[0].slice(1), k);
+        arrows.forEach((el) => (el.step = order.get(/\bid="([^"]+)"/.exec(el.markup)[1])));
+    } else {
+        arrows.forEach((el, i) => (el.step = i + 1));
+    }
+    const arrowY = (el) => {
+        let max = -Infinity;
+        for (const m of el.markup.matchAll(/\s(?:y|y1|y2)="(-?[\d.]+)"/g)) max = Math.max(max, Number(m[1]));
+        return max;
+    };
+    const byY = arrows.map((el) => ({y: arrowY(el), step: el.step})).sort((a, b) => a.y - b.y);
+    // An arrow claims what starts up to 6px below it: Mermaid hangs the
+    // autonumber 4px under its line, and the next message's text starts a good
+    // 15px further down — no element between two arrows starts that close.
+    const stepAt = (y) => byY.find((a) => a.y >= y - 6)?.step;
+
+    const marks = [];
+    for (const el of elements) {
+        if (/^(?:defs|style|title|desc|symbol|marker|metadata)$/.test(el.tag)) continue; // not drawn
+        if (skip.test(el.markup)) continue; // participants, lifelines, actors
+        const y = topY(el.markup);
+        if (!Number.isFinite(y)) continue; // defs, markers, empty groups
+        const step = isArrow(el) ? el.step : stepAt(y);
+        if (step) marks.push({at: el.start + el.tag.length + 1, step});
+    }
+    // Written back to front, so the offsets stay true.
+    let out = svg;
+    for (const {at, step} of marks.sort((a, b) => b.at - a.at)) {
+        out = `${out.slice(0, at)} data-step="${step}"${out.slice(at)}`;
+    }
+    return out;
 }
 
 // --- The stylesheet ------------------------------------------------------------
@@ -259,10 +377,13 @@ function revealRules(targets) {
         const at = STEP_SLOT_S * (k - 1) + REVEAL_OFFSET_S;
         // Hidden from the top of the round until its moment, then in. 100% is
         // implicit: the element's own opacity, i.e. shown — which is also what
-        // the PDF and a reduced-motion reader get.
+        // the PDF and a reduced-motion reader get. A sequence diagram's
+        // elements were given their step (annotateSequence); a flowchart's
+        // edges and labels are found by position.
+        const what = targets.sequence ? [`[data-step="${k}"]`] : targets.select(k).whole;
         rules.push(
             `@keyframes diagram-reveal-${k} { 0%, ${pct(at)} { opacity: 0; } ${pct(at + REVEAL_FADE_S)} { opacity: 1; } }`,
-            `${targets.select(k).whole.join(', ')} { animation: diagram-reveal-${k} ${cycle}s linear infinite !important; }`,
+            `${what.join(', ')} { animation: diagram-reveal-${k} ${cycle}s linear infinite !important; }`,
         );
     }
     return {cycle, rules};
@@ -298,9 +419,10 @@ function applyMarker(source, svg, comment) {
 
     const targets = stepTargets(svg);
     if (!targets || targets.count === 0) return svg;
-    const {cycle, rules} = marker.mode === 'reveal' ? revealRules(targets) : highlightRules(targets, marker.color);
+    const reveal = marker.mode === 'reveal';
+    const {cycle, rules} = reveal ? revealRules(targets) : highlightRules(targets, marker.color);
     return insertStyle(
-        svg,
+        reveal && targets.sequence ? annotateSequence(svg, targets) : svg,
         `<style>/* steps ${marker.mode}: ${targets.count} steps, ${cycle}s round */\n${rules.join('\n')}\n${REDUCED_MOTION}</style>`,
     );
 }
