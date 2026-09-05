@@ -202,9 +202,10 @@ again. Nothing is hidden and revealed — that would leave the PDF with a blank
 where steps 2 and 3 belong — so at rest the figure is the complete diagram.
 
 The theme provides the `diagram-step` animation; a `classDef` per step gives
-it its delay, and `class` puts nodes and edges (by their `id@`) on that step.
-Cycle = 1.5s × number of steps (one more for a pause, if you like); delay of
-step *k* = 1.5s × (*k* − 1).
+it its delay, and `class` puts nodes and edges (by their `id@`) on that step —
+here, each step lights the arrow and the node it reaches. Cycle = 1.5s ×
+number of steps (one more for a pause, if you like); delay of step *k* = 1.5s
+× (*k* − 1).
 
 ```mermaid
 flowchart LR
@@ -216,10 +217,12 @@ flowchart LR
     classDef step2 animation: diagram-step 7.5s linear infinite 1.5s
     classDef step3 animation: diagram-step 7.5s linear infinite 3s
     classDef step4 animation: diagram-step 7.5s linear infinite 4.5s
-    class U,e1 step1
-    class e2 step2
-    class e3 step3
-    class e4,D step4
+    classDef step5 animation: diagram-step 7.5s linear infinite 6s
+    class U step1
+    class e1,W step2
+    class e2,A step3
+    class e3,Q step4
+    class e4,D step5
 ```
 
 ````markdown
@@ -233,10 +236,12 @@ flowchart LR
     classDef step2 animation: diagram-step 7.5s linear infinite 1.5s
     classDef step3 animation: diagram-step 7.5s linear infinite 3s
     classDef step4 animation: diagram-step 7.5s linear infinite 4.5s
-    class U,e1 step1
-    class e2 step2
-    class e3 step3
-    class e4,D step4
+    classDef step5 animation: diagram-step 7.5s linear infinite 6s
+    class U step1
+    class e1,W step2
+    class e2,A step3
+    class e3,Q step4
+    class e4,D step5
 ```
 ````
 
