@@ -33,6 +33,13 @@
 // of their own. To realign them with the site, swap ACCENT for the EU blue —
 // the rest of the system holds untouched.
 //
+// MOTION
+// ------
+// The same reasoning makes animation possible: CSS animations written into the
+// SVG's own <style> run inside an <img>, where no script and no page CSS can.
+// See the "Motion" section of themeCSS for what moves, and why only dash
+// offsets are ever animated (the PDF paints frame zero).
+//
 // FONTS ARE NOT EMBEDDED
 // ----------------------
 // Geist / Instrument Serif cannot be embedded in the SVG: Mermaid strips
@@ -249,6 +256,58 @@ const themeCSS = `
   .er.attributeBoxEven {
     stroke: ${RULE_SOLID};
     stroke-width: 1px;
+  }
+
+  /* --- Motion --------------------------------------------------------------
+     The SVG sits in an <img>, which runs no script and takes no CSS from the
+     page — but it does run the CSS baked into its own <style>, and that is
+     where these rules end up. So a diagram can move, provided the motion is
+     described here and needs nothing from outside.
+
+     Two sources of motion, one rule for both:
+
+       * an author asks for it on one edge: "A e1@--> B" followed by
+         "e1@{ animate: true }" (or "animation: slow"). Mermaid adds the class
+         edge-animation-fast/-slow and its own keyframes; nothing to do here
+         but respect the reader's motion preference below.
+       * a dotted flowchart link flows on its own. Dotted is how these diagrams
+         draw the asynchronous and the eventual — a message on a queue, a
+         sync that runs later — and a slow drift of the dots along the line
+         says "this moves" without a second colour or a label.
+
+     What is animated is only the dash offset: the dashes slide, nothing fades
+     or appears. That is what keeps the PDF right — WeasyPrint plays no
+     animation and paints frame zero, which here is a plain dotted line, the
+     same the page shows between two frames. Never animate opacity or a
+     transform from a hidden state: the PDF would keep the blank.
+
+     The dash pattern is marked important, as Mermaid's own edge-animation
+     classes mark theirs: whatever dash an edge carries as an attribute or an
+     inline style, the flowing one wins. 8px per 0.6s is a slow drift
+     (~13px/s), close to Mermaid's "animation: slow", so an author's explicit
+     choice and the theme's default read as one family. An edge the author did
+     animate is left out of the default: the two-class selector would otherwise
+     outrank Mermaid's single class and replace the speed they asked for. */
+  @keyframes diagram-flow {
+    to {
+      stroke-dashoffset: -8;
+    }
+  }
+  .flowchart-link.edge-pattern-dotted:not(.edge-animation-slow):not(.edge-animation-fast) {
+    stroke-dasharray: 4 4 !important;
+    stroke-dashoffset: 0;
+    animation: diagram-flow 0.6s linear infinite;
+  }
+  /* A reader who asked their system for less motion gets still diagrams: the
+     theme's flow and the author's edge animations alike. The dash pattern is
+     kept, so the figure is the one the PDF has. Media queries are evaluated
+     inside an <img> too — user preferences are not page context. */
+  @media (prefers-reduced-motion: reduce) {
+    .flowchart-link.edge-pattern-dotted,
+    .edge-animation-slow,
+    .edge-animation-fast {
+      animation: none;
+    }
   }
 `;
 

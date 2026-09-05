@@ -151,6 +151,49 @@ flowchart LR
     G --x H
 ```
 
+### Animated links
+
+A diagram here is an `<img>`: the page's CSS and scripts stop at its border,
+but the CSS **baked into the SVG** runs — and that is where its motion lives.
+Two ways to get some, both settled at build time:
+
+- **Per link, on request.** Name the link with `id@`, then give it `animate`
+  or an `animation` speed. This is Mermaid's own syntax (11.4+), and it works
+  on any link type.
+- **Dotted links flow by default.** Dotted is how these diagrams draw the
+  asynchronous — a message on a queue, a sync that runs later — so the site
+  theme (`src/remark/mermaid-theme.mjs`) gives every dotted flowchart link a
+  slow drift of its dashes. Nothing to write; a link the author animated
+  keeps the speed they asked for.
+
+```mermaid
+flowchart LR
+    Client e1@--> API
+    API e2@-.->|event| Queue
+    Queue -.-> Worker
+    Worker --> Store
+    e1@{ animate: true }
+    e2@{ animation: slow }
+```
+
+````markdown
+```mermaid
+flowchart LR
+    Client e1@--> API
+    API e2@-.->|event| Queue
+    Queue -.-> Worker
+    Worker --> Store
+    e1@{ animate: true }
+    e2@{ animation: slow }
+```
+````
+
+Two things hold this together. Only the **dash offset** moves — nothing fades
+in or appears — so the PDF, which plays no animation and paints the first
+frame, shows a plain dashed line and not a blank. And a reader whose system
+asks for reduced motion gets the still figure: the theme switches every
+animation off under `prefers-reduced-motion`, the author's included.
+
 ---
 
 ## Sequence diagram
