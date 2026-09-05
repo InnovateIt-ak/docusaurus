@@ -122,16 +122,23 @@
 [data-theme='light'] .navbar__inner .navbar__link--active {
   font-weight: var(--ifm-font-weight-bold);
 }
-/* Theme toggle + mobile hamburger icons inherit currentColor. */
-[data-theme='light'] .navbar .clean-btn,
+/* Theme toggle + mobile hamburger icons inherit currentColor. Aimed at the bar
+   and at the drawer's blue header only: the drawer's own buttons ("back to main
+   menu") sit on white, and a blanket `.navbar .clean-btn` would paint those
+   white too — invisible, and with enough specificity to outrank the rule that
+   sets their colour further down. */
+[data-theme='light'] .navbar__inner .clean-btn,
+[data-theme='light'] .navbar-sidebar__brand .clean-btn,
 [data-theme='light'] .navbar__toggle {
   color: #ffffff;
 }
 /* The theme-toggle button's hover/focus fill defaults to a light grey
    (--ifm-color-emphasis-200), which reads as a jarring solid white disc on the
    blue navbar. Replace it with a subtle translucent-white overlay. */
-[data-theme='light'] .navbar .clean-btn:hover,
-[data-theme='light'] .navbar .clean-btn:focus-visible,
+[data-theme='light'] .navbar__inner .clean-btn:hover,
+[data-theme='light'] .navbar__inner .clean-btn:focus-visible,
+[data-theme='light'] .navbar-sidebar__brand .clean-btn:hover,
+[data-theme='light'] .navbar-sidebar__brand .clean-btn:focus-visible,
 [data-theme='light'] .navbar__toggle:hover {
   background: rgba(255, 255, 255, 0.15);
 }
@@ -159,7 +166,8 @@
 [data-theme='light'] .navbar-sidebar__brand .clean-btn {
   color: #ffffff;
 }
-/* "Back to main menu" sits on the white list, not on the blue header. */
+/* "Back to main menu" sits on the white list, not on the blue header, so it
+   takes the page's ink on the theme's own active-item grey. */
 [data-theme='light'] .navbar-sidebar__back {
   color: var(--ifm-font-color-base);
   background: var(--ifm-color-emphasis-100);
