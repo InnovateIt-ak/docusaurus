@@ -327,6 +327,51 @@ sequenceDiagram
 The `Note` takes the tangerine accent: it is the one element of a sequence
 diagram an author adds *to draw the eye*.
 
+### Steps, in a sequence diagram
+
+A sequence diagram has no `classDef` and no id on a message, so the flowchart
+recipe does not apply — and is not needed: the messages are already in order.
+One comment, `%% steps`, and each message lights in turn with its label, the
+arrow first, the next one a beat later, then the round starts again. The
+renderer counts the messages and sets the cycle (1.5s per message, plus one
+of rest); `autonumber` puts the step numbers on the page too.
+
+```mermaid
+sequenceDiagram
+    %% steps
+    autonumber
+    participant U as User
+    participant W as Web app
+    participant A as API
+    U->>W: Sign in
+    W->>+A: POST /token
+    Note over A: validates the credentials
+    A-->>-W: 200 token
+    W->>W: store session
+    W-->>U: Redirect
+```
+
+````markdown
+```mermaid
+sequenceDiagram
+    %% steps
+    autonumber
+    participant U as User
+    participant W as Web app
+    participant A as API
+    U->>W: Sign in
+    W->>+A: POST /token
+    Note over A: validates the credentials
+    A-->>-W: 200 token
+    W->>W: store session
+    W-->>U: Redirect
+```
+````
+
+Notes, loops and activations sit between the steps without shifting them.
+As everywhere else, nothing is hidden: the PDF shows the full exchange at
+rest, and `prefers-reduced-motion` stills it.
+
 ---
 
 ## Class diagram

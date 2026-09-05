@@ -323,7 +323,10 @@ const themeCSS = `
        class e3,D step3
 
      Cycle = 1.5s x number of steps (add a slot for a pause), delay of step k
-     = 1.5s x (k - 1). The window is a fraction of the cycle, so a long chain
+     = 1.5s x (k - 1). A sequence diagram has no classDef to carry this, so it
+     gets it from the renderer instead: a "%% steps" comment makes
+     mermaid-steps.mjs count the messages and append the cycle and the delays
+     to this CSS for that one diagram. The window is a fraction of the cycle, so a long chain
      overlaps its steps into a wave, and a short one leaves a gap between
      them — both read as an order. A dotted edge given a step loses the drift
      above (the inline animation replaces it) but keeps its dashes. */
@@ -331,6 +334,13 @@ const themeCSS = `
     4%, 14% {
       stroke: ${ACCENT};
       stroke-width: 2px;
+    }
+  }
+  /* The same beat for text, which is drawn by its fill: a message's label in a
+     stepped sequence diagram lights with its arrow (see mermaid-steps.mjs). */
+  @keyframes diagram-step-ink {
+    4%, 14% {
+      fill: ${ACCENT};
     }
   }
 
@@ -354,6 +364,8 @@ const themeCSS = `
     @keyframes diagram-flow {
     }
     @keyframes diagram-step {
+    }
+    @keyframes diagram-step-ink {
     }
   }
 `;

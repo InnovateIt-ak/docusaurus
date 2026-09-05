@@ -15,6 +15,7 @@ import readline from 'node:readline';
 import puppeteer from 'puppeteer';
 import {renderMermaid} from '@mermaid-js/mermaid-cli';
 import {MERMAID_CONFIG} from './mermaid-theme.mjs';
+import {sequenceStepsCss} from './mermaid-steps.mjs';
 
 const CHROMIUM_PATH = process.env.PUPPETEER_EXECUTABLE_PATH || undefined;
 
@@ -57,6 +58,13 @@ function enqueue(request) {
     queue = queue.then(async () => {
         try {
             const browser = await getBrowser();
+            // A "%% steps" sequence diagram gets, for this render only, the CSS
+            // that staggers its messages (mermaid-steps.mjs) appended to the
+            // theme's; every other diagram gets the theme as it is.
+            const stepsCss = sequenceStepsCss(request.source);
+            const mermaidConfig = stepsCss
+                ? {...MERMAID_CONFIG, themeCSS: MERMAID_CONFIG.themeCSS + stepsCss}
+                : MERMAID_CONFIG;
             const {data} = await renderMermaid(browser, request.source, 'svg', {
                 backgroundColor: 'transparent',
                 // Palette, typography and diagram skin: see mermaid-theme.mjs.
@@ -64,7 +72,7 @@ function enqueue(request) {
                 // SVG is inlined in an <img>, which page CSS does not cross. It
                 // also carries `htmlLabels: false`, required by the WeasyPrint
                 // PDF, which does not render <foreignObject>.
-                mermaidConfig: MERMAID_CONFIG,
+                mermaidConfig,
             });
             send({id: request.id, ok: true, svg: Buffer.from(data).toString('utf8')});
         } catch (err) {
