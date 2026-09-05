@@ -33,6 +33,13 @@
 // of their own. To realign them with the site, swap ACCENT for the EU blue —
 // the rest of the system holds untouched.
 //
+// MOTION
+// ------
+// The same reasoning makes animation possible: CSS animations written into the
+// SVG's own <style> run inside an <img>, where no script and no page CSS can.
+// See the "Motion" section of themeCSS for what moves, and why only dash
+// offsets are ever animated (the PDF paints frame zero).
+//
 // FONTS ARE NOT EMBEDDED
 // ----------------------
 // Geist / Instrument Serif cannot be embedded in the SVG: Mermaid strips
@@ -81,7 +88,7 @@ const RULE_SOLID = '#9aa3b2'; // stronger hairline, baselines — 3.0:1
 const INK_05 = 'rgba(45, 49, 66, 0.07)'; // "store" role: data stores, activations
 const INK_03 = 'rgba(45, 49, 66, 0.045)'; // "external" role: out of scope
 const GRID = '#ccd2dc'; // axis gridlines (Gantt, XY chart)
-const ACCENT = '#eb6c36'; // tangerine: the one accent
+export const ACCENT = '#eb6c36'; // tangerine: the one accent (also the default colour of the steps, diagram-steps.mjs)
 const ACCENT_TINT = 'rgba(235, 108, 54, 0.08)'; // fill behind accented elements
 
 // Categorical series, reserved for the types that genuinely distinguish several
@@ -249,6 +256,132 @@ const themeCSS = `
   .er.attributeBoxEven {
     stroke: ${RULE_SOLID};
     stroke-width: 1px;
+  }
+
+  /* --- Motion --------------------------------------------------------------
+     The SVG sits in an <img>, which runs no script and takes no CSS from the
+     page — but it does run the CSS baked into its own <style>, and that is
+     where these rules end up. So a diagram can move, provided the motion is
+     described here and needs nothing from outside.
+
+     Two sources of motion, one rule for both:
+
+       * an author asks for it on one edge: "A e1@--> B" followed by
+         "e1@{ animate: true }" (or "animation: slow"). Mermaid adds the class
+         edge-animation-fast/-slow and its own keyframes; nothing to do here
+         but respect the reader's motion preference below.
+       * a dotted flowchart link flows on its own. Dotted is how these diagrams
+         draw the asynchronous and the eventual — a message on a queue, a
+         sync that runs later — and a slow drift of the dots along the line
+         says "this moves" without a second colour or a label.
+
+     What is animated is only the dash offset: the dashes slide, nothing fades
+     or appears. That is what keeps the PDF right — WeasyPrint plays no
+     animation and paints frame zero, which here is a plain dotted line, the
+     same the page shows between two frames. Never animate opacity or a
+     transform from a hidden state: the PDF would keep the blank.
+
+     The dash pattern is marked important, as Mermaid's own edge-animation
+     classes mark theirs: whatever dash an edge carries as an attribute or an
+     inline style, the flowing one wins. 8px per 0.6s is a slow drift
+     (~13px/s), close to Mermaid's "animation: slow", so an author's explicit
+     choice and the theme's default read as one family. An edge the author did
+     animate is left out of the default: the two-class selector would otherwise
+     outrank Mermaid's single class and replace the speed they asked for. */
+  @keyframes diagram-flow {
+    to {
+      stroke-dashoffset: -8;
+    }
+  }
+  .flowchart-link.edge-pattern-dotted:not(.edge-animation-slow):not(.edge-animation-fast) {
+    stroke-dasharray: 4 4 !important;
+    stroke-dashoffset: 0;
+    animation: diagram-flow 0.6s linear infinite;
+  }
+
+  /* Steps: 1, then 2, then 3. A sequence is told by a highlight that travels
+     from one element to the next — the accent, and a heavier stroke, held for
+     a moment on each in turn, then the whole thing again. Nothing is hidden
+     and revealed: that would leave the PDF's frame zero with a blank where
+     steps 2 and 3 belong. The frame zero here is every element at rest.
+
+     The keyframes below name only the highlighted state (4% to 14% of the
+     cycle). The 0% and 100% frames are left implicit on purpose: CSS then
+     takes them from the element's own computed values, so one set of
+     keyframes serves an edge (stroke in MUTED) and a node (stroke in INK)
+     alike, each returning to its own colour. The 14% frame carries
+     step-start: without it the way back to the implicit 100% is a fade over
+     the rest of the round, and on a long round every step is still tinted
+     when the next lights — the diagram turns orange. With it the light
+     leaves as the next one arrives, and the ramp in (0% to 4%) is the only
+     transition.
+
+     Authors reach this through Mermaid's classDef, which lands on an edge's
+     path and a node's shape as an inline style; there is no class an author
+     can put on an edge, so the timing has to travel with the style:
+
+       classDef step1 animation: diagram-step 4.5s linear infinite 0s
+       classDef step2 animation: diagram-step 4.5s linear infinite 1.5s
+       classDef step3 animation: diagram-step 4.5s linear infinite 3s
+       class e1,U step1
+       class e2 step2
+       class e3,D step3
+
+     Cycle = 1.5s x number of steps (add a slot for a pause), delay of step k
+     = 1.5s x (k - 1). This is the by-hand way, for lighting nodes as well as
+     edges. The other way needs no classDef: a "%% steps" comment makes
+     diagram-steps.mjs step the arrows in source order, after the render, for
+     a flowchart or a sequence diagram alike — and "%% steps reveal" makes
+     them appear one by one instead. The window is a fraction of the cycle, so a long chain
+     overlaps its steps into a wave, and a short one leaves a gap between
+     them — both read as an order. A dotted edge given a step loses the drift
+     above (the inline animation replaces it) but keeps its dashes. */
+  @keyframes diagram-step {
+    4% {
+      stroke: ${ACCENT};
+      stroke-width: 2px;
+    }
+    14% {
+      stroke: ${ACCENT};
+      stroke-width: 2px;
+      animation-timing-function: step-start;
+    }
+  }
+  /* The same beat for text, which is drawn by its fill: an edge label or a
+     message lights with its arrow (see diagram-steps.mjs). */
+  @keyframes diagram-step-ink {
+    4% {
+      fill: ${ACCENT};
+    }
+    14% {
+      fill: ${ACCENT};
+      animation-timing-function: step-start;
+    }
+  }
+
+  /* A reader who asked their system for less motion gets still diagrams: the
+     theme's flow, the author's edge animations and the steps alike. Media
+     queries are evaluated inside an <img> too — user preferences are not page
+     context.
+
+     Two locks, because one is not enough. The blanket rule stops every
+     animation set by a class (Mermaid's edge-animation-*, the drift above) and
+     an edge's inline step, which Mermaid writes without !important. A node's
+     step it cannot stop: Mermaid writes that inline style WITH !important, and
+     an important inline declaration beats an important stylesheet one. So the
+     keyframes are redefined empty here as well — the animation still runs, on
+     a track with nothing on it — and that no inline style can undo. The dash
+     patterns are kept, so the figure is the one the PDF has. */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation: none !important;
+    }
+    @keyframes diagram-flow {
+    }
+    @keyframes diagram-step {
+    }
+    @keyframes diagram-step-ink {
+    }
   }
 `;
 

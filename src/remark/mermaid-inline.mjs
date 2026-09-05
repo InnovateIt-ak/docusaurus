@@ -168,6 +168,9 @@ async function toDataUrlImage(node, source) {
             ...node.data?.hProperties,
             'data-diagram-source': source,
             'data-diagram-lang': 'mermaid',
+            // Set by diagram-steps.mjs when something in the SVG moves; the
+            // figure shows its Stop button on this, and on nothing else.
+            ...(/<svg\b[^>]*\bdata-animated="true"/.test(svg) ? {'data-diagram-animated': 'true'} : {}),
         },
     };
     delete node.lang;

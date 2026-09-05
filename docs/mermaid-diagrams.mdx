@@ -151,6 +151,157 @@ flowchart LR
     G --x H
 ```
 
+### Animated links
+
+A diagram here is an `<img>`: the page's CSS and scripts stop at its border,
+but the CSS **baked into the SVG** runs — and that is where its motion lives.
+Two ways to get some, both settled at build time:
+
+- **Per link, on request.** Name the link with `id@`, then give it `animate`
+  or an `animation` speed. This is Mermaid's own syntax (11.4+), and it works
+  on any link type.
+- **Dotted links flow by default.** Dotted is how these diagrams draw the
+  asynchronous — a message on a queue, a sync that runs later — so the site
+  theme (`src/remark/mermaid-theme.mjs`) gives every dotted flowchart link a
+  slow drift of its dashes. Nothing to write; a link the author animated
+  keeps the speed they asked for.
+
+```mermaid
+flowchart LR
+    Client e1@--> API
+    API e2@-.->|event| Queue
+    Queue -.-> Worker
+    Worker --> Store
+    e1@{ animate: true }
+    e2@{ animation: slow }
+```
+
+````markdown
+```mermaid
+flowchart LR
+    Client e1@--> API
+    API e2@-.->|event| Queue
+    Queue -.-> Worker
+    Worker --> Store
+    e1@{ animate: true }
+    e2@{ animation: slow }
+```
+````
+
+Two things hold this together. Only the **dash offset** moves — nothing fades
+in or appears — so the PDF, which plays no animation and paints the first
+frame, shows a plain dashed line and not a blank. And a reader whose system
+asks for reduced motion gets the still figure: the theme switches every
+animation off under `prefers-reduced-motion`, the author's included.
+
+### Stopping the motion
+
+Three switches, one per audience. An author writes `%% still` in a diagram
+and nothing in it moves — not even the theme's drift on dotted edges. A
+reader presses **Stop** under a diagram that moves — the button appears only
+there — and gets the diagram as drawn, in its own colours, the same figure
+the PDF prints; **Play** starts the round again, and Open and Download keep
+the published file. And a build run with `DIAGRAM_MOTION=off` in its
+environment stills every diagram of the site at once.
+
+### Steps: 1, then 2, then 3
+
+A sequence is told by a **highlight that travels**: each step takes the
+accent and a heavier stroke for a moment, in order, then the round starts
+again. Nothing is hidden and revealed — that would leave the PDF with a blank
+where steps 2 and 3 belong — so at rest the figure is the complete diagram.
+
+Two ways. The quick one is a comment, `%% steps` (or `%% steps reveal`):
+the edges then light — or appear — one by one in the order they are written,
+nodes staying put, exactly as for the sequence diagram further down. The
+by-hand one, used below because it also lights the **nodes**: the theme
+provides the `diagram-step` animation; a `classDef` per step gives it its
+delay, and `class` puts nodes and edges (by their `id@`) on that step — here,
+each step lights the arrow and the node it reaches. Cycle = 1.5s ×
+number of steps (one more for a pause, if you like); delay of step *k* = 1.5s
+× (*k* − 1).
+
+The example is the flowchart from the top of the page, told as a request: a
+decision whose **two branches light together** (step 3 holds both the accepted
+and the rejected path), a fan-out inside a subgraph (step 4, both stores at
+once), and a dotted, asynchronous last hop. The `focal` node is left out of
+the steps on purpose: it already wears the accent, and a `classDef` that sets
+the stroke with `!important` — as `focal` does — outranks any animation, so a
+step on it would show nothing.
+
+```mermaid
+flowchart LR
+    %% steps #004494
+    classDef focal fill:#fdece4,stroke:#eb6c36,stroke-width:1.2px
+
+    Client[HTTP client] e1@--> GW{Gateway}
+    GW e2@-->|valid token| API[API service]
+    GW e3@-->|rejected| Log[(Audit log)]
+
+    subgraph Backend
+        API e4@--> DB[(PostgreSQL)]
+        API e5@--> Cache[(Redis)]
+    end
+
+    DB e6@-.->|nightly| Export([PDF export])
+    Export:::focal
+
+    classDef step1 animation: diagram-step 9s linear infinite 0s
+    classDef step2 animation: diagram-step 9s linear infinite 1.5s
+    classDef step3 animation: diagram-step 9s linear infinite 3s
+    classDef step4 animation: diagram-step 9s linear infinite 4.5s
+    classDef step5 animation: diagram-step 9s linear infinite 6s
+    class Client step1
+    class e1,GW step2
+    class e2,API,e3,Log step3
+    class e4,DB,e5,Cache step4
+    class e6 step5
+```
+
+````markdown
+```mermaid
+flowchart LR
+    %% steps #004494
+    classDef focal fill:#fdece4,stroke:#eb6c36,stroke-width:1.2px
+
+    Client[HTTP client] e1@--> GW{Gateway}
+    GW e2@-->|valid token| API[API service]
+    GW e3@-->|rejected| Log[(Audit log)]
+
+    subgraph Backend
+        API e4@--> DB[(PostgreSQL)]
+        API e5@--> Cache[(Redis)]
+    end
+
+    DB e6@-.->|nightly| Export([PDF export])
+    Export:::focal
+
+    classDef step1 animation: diagram-step 9s linear infinite 0s
+    classDef step2 animation: diagram-step 9s linear infinite 1.5s
+    classDef step3 animation: diagram-step 9s linear infinite 3s
+    classDef step4 animation: diagram-step 9s linear infinite 4.5s
+    classDef step5 animation: diagram-step 9s linear infinite 6s
+    class Client step1
+    class e1,GW step2
+    class e2,API,e3,Log step3
+    class e4,DB,e5,Cache step4
+    class e6 step5
+```
+````
+
+The steps light in the theme's tangerine accent by default. A `%% steps`
+comment with a colour — `%% steps #004494` above, the EU blue — recolours
+them for that diagram, which is how this one keeps its steps apart from the
+`focal` node; a hex value or a CSS colour name, nothing else, is accepted.
+The highlight ramps up over the first 4% of the cycle, holds until 14%, then
+leaves at once; on a cycle of up to ten steps that keeps one step lit at a
+time, with a beat between two on a short chain. Several elements on one step
+is how a branch or a fan-out is told:
+they light together. A dotted edge given a step keeps its dashes but not its
+drift — the step's animation takes the slot. Mermaid's `classDef` accepts no
+comma inside a value, which is why the edge needs an `id@` and a class rather
+than a `linkStyle`.
+
 ---
 
 ## Sequence diagram
@@ -225,6 +376,108 @@ sequenceDiagram
 
 The `Note` takes the tangerine accent: it is the one element of a sequence
 diagram an author adds *to draw the eye*.
+
+### Steps, in a sequence diagram
+
+A sequence diagram has no `classDef` and no id on a message, so the by-hand
+recipe does not apply — and is not needed: the messages are already in order.
+One comment, `%% steps`, and each message lights in turn with its label, the
+arrow first, the next one a beat later, then the round starts again. The
+renderer counts the messages and sets the cycle (1.5s per message, plus one
+of rest); `autonumber` puts the step numbers on the page too. Add a colour to
+the comment (`%% steps #004494`) to light in something other than the accent.
+
+Or ask for the other telling: `%% steps reveal`, as below, and the messages
+**appear one by one** instead of lighting up. What sits between two messages
+goes with the next one — a note, an activation bar, the frame of an `alt`,
+`par` or `loop` and its dividers, the autonumber — so nothing gives the story
+away before its arrow. Once the last is in, the exchange holds for a moment,
+then the round starts over. The PDF is unaffected either way — it plays no
+animation and prints every message — and so is a reader whose system asks
+for reduced motion.
+
+```mermaid
+sequenceDiagram
+    %% steps reveal
+    autonumber
+    actor U as User
+    participant W as Web app
+    participant A as API
+    participant D as Database
+
+    U->>W: Opens the dashboard
+    W->>+A: GET /widgets
+    A->>D: SELECT …
+    D-->>A: 42 rows
+    A-->>-W: 200 OK
+
+    Note over W,A: The response is cached for 5 minutes
+
+    alt Cache is fresh
+        W-->>U: Renders immediately
+    else Cache expired
+        W->>A: Revalidate
+        A-->>W: 304 Not Modified
+    end
+
+    par In parallel
+        W->>A: Session ping
+    and
+        W->>D: Log the view
+    end
+
+    loop Every 30 s
+        W->>A: Session ping
+    end
+```
+
+````markdown
+```mermaid
+sequenceDiagram
+    %% steps reveal
+    autonumber
+    actor U as User
+    participant W as Web app
+    participant A as API
+    participant D as Database
+
+    U->>W: Opens the dashboard
+    W->>+A: GET /widgets
+    A->>D: SELECT …
+    D-->>A: 42 rows
+    A-->>-W: 200 OK
+
+    Note over W,A: The response is cached for 5 minutes
+
+    alt Cache is fresh
+        W-->>U: Renders immediately
+    else Cache expired
+        W->>A: Revalidate
+        A-->>W: 304 Not Modified
+    end
+
+    par In parallel
+        W->>A: Session ping
+    and
+        W->>D: Log the view
+    end
+
+    loop Every 30 s
+        W->>A: Session ping
+    end
+```
+````
+
+This is the exchange from the top of the section, with the marker added and
+a `par` block for good measure: eleven messages, a round of 19.5 seconds. The
+steps follow the order the messages are *written* in — through the `alt`,
+both branches one after the other, then the two `par` legs, then the loop —
+which is also the order `autonumber` counts them in, so the number on the
+page is the step. Because the renderer knows the count, each step's timing is
+set in seconds (a highlight ramps in over 0.3s and holds to 1.2s; a reveal
+fades in over 0.3s), the same on a long round as on a short one. Notes,
+blocks and activations sit between the steps without shifting them. As everywhere else, nothing is hidden: the PDF shows the full
+exchange at rest, and `prefers-reduced-motion` stills it.
 
 ---
 

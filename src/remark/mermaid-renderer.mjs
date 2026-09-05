@@ -15,6 +15,7 @@ import readline from 'node:readline';
 import puppeteer from 'puppeteer';
 import {renderMermaid} from '@mermaid-js/mermaid-cli';
 import {MERMAID_CONFIG} from './mermaid-theme.mjs';
+import {withSteps} from './diagram-steps.mjs';
 
 const CHROMIUM_PATH = process.env.PUPPETEER_EXECUTABLE_PATH || undefined;
 
@@ -66,7 +67,11 @@ function enqueue(request) {
                 // PDF, which does not render <foreignObject>.
                 mermaidConfig: MERMAID_CONFIG,
             });
-            send({id: request.id, ok: true, svg: Buffer.from(data).toString('utf8')});
+            // A "%% steps" or "%% still" diagram gets its motion written into the
+            // SVG here, after the render (diagram-steps.mjs); the others go
+            // out as Mermaid drew them.
+            const svg = withSteps(request.source, Buffer.from(data).toString('utf8'), '%%');
+            send({id: request.id, ok: true, svg});
         } catch (err) {
             send({id: request.id, ok: false, error: String((err && err.message) || err)});
         }
