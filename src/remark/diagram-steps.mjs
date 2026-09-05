@@ -3,7 +3,9 @@
 // A diagram is baked to SVG at build time and inlined as a data-URL <img>. No
 // script runs in there and no page CSS reaches in — but CSS written INTO the
 // SVG does run, and that is where the motion below is written: a <style>
-// inserted right after the opening <svg> tag, once the diagram is rendered.
+// appended at the end of the SVG, just before </svg>, once the diagram is
+// rendered — after Mermaid's own <style>, so that for @keyframes, where the
+// last definition wins, ours is the last word.
 //
 // WHAT MOVES
 // ----------
@@ -56,8 +58,28 @@
 // ----------------
 // Per diagram: `%% still`. Site-wide: DIAGRAM_MOTION=off in the build's
 // environment stills every diagram, stepped or not. Per reader: the figure's
-// Pause button (src/theme/MDXComponents/Img) rewrites the image with the same
+// Stop button (src/theme/MDXComponents/Img) rewrites the image with the same
 // still style, in the browser.
+//
+// Stopping is two things, because one is not enough. `animation: none
+// !important` on everything stops what a class or a plain inline style set —
+// but Mermaid writes a classDef node's animation inline WITH !important, and an
+// important inline declaration beats an important stylesheet one. So every
+// @keyframes the SVG defines is also redefined empty, last: the animation
+// still runs, on a track with nothing on it, and the element shows its own
+// colour. That is what "stopped" has to mean — the diagram as drawn, in its
+// own colours, not a frame of the animation.
+//
+// WHICH DIAGRAMS MOVE
+// -------------------
+// Every Mermaid SVG carries animation rules — the theme's drift for dotted
+// edges, Mermaid's own edge-animation classes — whether or not anything in
+// the picture matches them. A Stop button on a diagram that does not move
+// would be noise, so the build settles the question here, where the SVG is
+// in hand: isAnimated() looks for a live animation (a keyframes name that is
+// defined, on a selector whose classes are actually worn, or in an inline
+// style) and the answer is written on the root as data-animated="true". The
+// remark plugins pass it to the figure as a prop.
 import {ACCENT} from './mermaid-theme.mjs';
 
 // One step per slot, in seconds. Also the rule a classDef author applies by
@@ -73,8 +95,22 @@ const STEP_HOLD_END_S = 1.2;
 const REVEAL_FADE_S = 0.3;
 const REVEAL_OFFSET_S = 0.3;
 
-const STILL_STYLE = '<style>/* still */ * { animation: none !important; }</style>';
 const COLOR = '(#[0-9a-fA-F]{3,8}|[a-zA-Z]{3,30})';
+
+/** Every @keyframes name the SVG defines. */
+function keyframeNames(svg) {
+    return [...new Set([...svg.matchAll(/@keyframes\s+([\w-]+)/g)].map((m) => m[1]))];
+}
+
+/**
+ * The <style> that stills an SVG: every animation off, every keyframes it
+ * defines emptied (see "Stopping is two things" above). Mirrored in the
+ * browser by the figure's Stop button.
+ */
+export function stillStyle(svg) {
+    const empties = keyframeNames(svg).map((name) => `@keyframes ${name} {}`).join(' ');
+    return `<style>/* still */ * { animation: none !important; } ${empties}</style>`;
+}
 
 /** True when the build is asked to still every diagram (DIAGRAM_MOTION=off). */
 export function motionDisabled() {
@@ -233,13 +269,18 @@ function revealRules(targets) {
 }
 
 /**
- * The SVG with its marker honoured: stepped (highlight or reveal), stilled, or
- * — no marker, or nothing in it to step — untouched. `comment` is the
- * diagram language's comment sign, "%%" for Mermaid and "'" for PlantUML.
+ * The SVG with its marker honoured — stepped (highlight or reveal), stilled,
+ * or (no marker, or nothing in it to step) left as drawn — and flagged
+ * data-animated="true" on its root when something in it moves. `comment` is
+ * the diagram language's comment sign, "%%" for Mermaid and "'" for PlantUML.
  */
 export function withSteps(source, svg, comment = '%%') {
+    return flagAnimated(applyMarker(source, svg, comment));
+}
+
+function applyMarker(source, svg, comment) {
     const marker = readStepsMarker(source, comment);
-    if (motionDisabled() || marker?.still) return insertStyle(svg, STILL_STYLE);
+    if (motionDisabled() || marker?.still) return insertStyle(svg, stillStyle(svg));
     if (!marker) return svg;
 
     // A flowchart stepped by hand keeps its classDef steps; the marker only
@@ -264,8 +305,47 @@ export function withSteps(source, svg, comment = '%%') {
     );
 }
 
-// Right after the opening <svg …> tag, before <defs> and the drawing; a later
-// <style> wins ties with the one the renderer wrote, which is the point.
+/**
+ * Whether anything in the SVG moves: a live animation — one whose keyframes
+ * are defined in the SVG — set on a selector whose classes are actually worn
+ * by an element, or in an inline style. A stilled SVG never does.
+ */
+export function isAnimated(svg) {
+    if (svg.includes('<style>/* still */')) return false;
+    const names = new Set(keyframeNames(svg));
+    if (names.size === 0) return false;
+    const live = (value) => value.split(/[\s,]+/).some((token) => names.has(token));
+    // Inline: a classDef on an edge, or PlantUML — none of it in a media query.
+    for (const match of svg.matchAll(/style="[^"]*\banimation(?:-name)?:\s*([^;"]+)/g)) {
+        if (live(match[1])) return true;
+    }
+    // Rules: `selector{declarations}` in the <style> blocks. The reduced-motion
+    // block's `animation: none` names no keyframes, so `live` skips it.
+    const css = [...svg.matchAll(/<style[^>]*>([^]*?)<\/style>/g)].map((m) => m[1]).join('\n');
+    for (const match of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+        const [, selector, declarations] = match;
+        if (selector.trim().startsWith('@keyframes')) continue;
+        const animation = /\banimation(?:-name)?:\s*([^;]+)/.exec(declarations)?.[1];
+        if (!animation || !live(animation)) continue;
+        // Every class the selector requires (outside :not(…)) must be worn by
+        // something; a selector without classes (`*`, an element, an id) counts.
+        const required = [...selector.replace(/:not\([^)]*\)/g, '').matchAll(/\.([\w-]+)/g)].map((m) => m[1]);
+        if (required.every((cls) => new RegExp(`class="[^"]*\\b${cls}\\b`).test(svg))) return true;
+    }
+    return false;
+}
+
+function flagAnimated(svg) {
+    if (!isAnimated(svg)) return svg;
+    return svg.replace(/<svg\b/, '<svg data-animated="true"');
+}
+
+// Last in the document, just before </svg>. Mermaid writes its own <style>
+// inside the SVG right after the opening tag, and for @keyframes the LAST
+// definition wins: a recolour or an emptying placed before it would lose to
+// the theme's tangerine, animated keyframes. (Learnt the hard way — inserted
+// after the opening tag, Stop left the classDef nodes lit.)
 function insertStyle(svg, style) {
-    return svg.replace(/<svg\b[^>]*>/, (openTag) => `${openTag}${style}`);
+    const end = svg.lastIndexOf('</svg>');
+    return end === -1 ? `${svg}${style}` : `${svg.slice(0, end)}${style}${svg.slice(end)}`;
 }

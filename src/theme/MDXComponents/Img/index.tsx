@@ -19,6 +19,10 @@ import styles from './styles.module.css';
 type Props = ComponentProps<'img'> & {
   'data-diagram-source'?: string;
   'data-diagram-lang'?: string;
+  // Set by the remark plugins when the build found a live animation in the
+  // SVG (src/remark/diagram-steps.mjs, isAnimated). The Stop button hangs on
+  // it: a diagram that does not move gets no button.
+  'data-diagram-animated'?: string;
   // Set by src/remark/unwrap-diagrams.mjs on diagrams it lifted out of their
   // paragraph. Its presence is the guarantee that this figure may contain block
   // content — see the toggle below.
@@ -206,7 +210,7 @@ function CloseIcon(): ReactNode {
   );
 }
 
-function PauseIcon(): ReactNode {
+function StopIcon(): ReactNode {
   return (
     <svg
       className={styles.icon}
@@ -216,10 +220,9 @@ function PauseIcon(): ReactNode {
       fill="none"
       stroke="currentColor"
       strokeWidth="1.5"
-      strokeLinecap="round"
+      strokeLinejoin="round"
       aria-hidden="true">
-      <path d="M9 5v14" />
-      <path d="M15 5v14" />
+      <rect x="6" y="6" width="12" height="12" rx="1.5" />
     </svg>
   );
 }
@@ -258,15 +261,26 @@ function decodeSvg(src: string): string | undefined {
   }
 }
 
-// The same diagram with every animation switched off: a <style> after the
-// opening tag, the one thing that reaches inside an <img>. What the reader
-// gets is exactly what the PDF and a reduced-motion system get (see
-// src/remark/diagram-steps.mjs) — the diagram complete, at rest.
+// The same diagram with every animation switched off: a <style> at the very
+// end of the SVG, the one thing that reaches inside an <img>. Two locks, as in
+// src/remark/diagram-steps.mjs (stillStyle), because one is not enough:
+// `animation: none !important` stops what a class or a plain inline style
+// set, but Mermaid writes a classDef node's animation inline WITH !important,
+// which no stylesheet rule beats — so every @keyframes the SVG defines is also
+// redefined empty, last. And "last" is literal: for @keyframes the last
+// definition in the document wins, so the block goes just before </svg>,
+// after the <style> Mermaid wrote. The animation then runs on a track with
+// nothing on it, and every element shows its own colour: the diagram as
+// drawn, which is also what the PDF and a reduced-motion system get.
 function stillVersion(svg: string): string {
-  const still = svg.replace(
-    /<svg\b[^>]*>/,
-    (tag) => `${tag}<style>* { animation: none !important; }</style>`,
+  const names = new Set(
+    [...svg.matchAll(/@keyframes\s+([\w-]+)/g)].map((m) => m[1]),
   );
+  const empties = [...names].map((name) => `@keyframes ${name} {}`).join(' ');
+  const block = `<style>* { animation: none !important; } ${empties}</style>`;
+  const end = svg.lastIndexOf('</svg>');
+  const still =
+    end === -1 ? `${svg}${block}` : `${svg.slice(0, end)}${block}${svg.slice(end)}`;
   const bytes = new TextEncoder().encode(still);
   let binary = '';
   bytes.forEach((b) => {
@@ -284,6 +298,7 @@ export default function ImgWrapper({
   'data-diagram-source': diagramSource,
   'data-diagram-lang': diagramLang,
   'data-diagram-block': diagramBlock,
+  'data-diagram-animated': diagramAnimated,
   ...props
 }: Props): ReactNode {
   // The source lives on the <img> only to travel from the build to the browser.
@@ -294,10 +309,9 @@ export default function ImgWrapper({
   // end of this component for why it is not the site's medium-zoom.
   const [viewing, setViewing] = useState(false);
   // A diagram that moves (stepped, or with the theme's drifting dotted edges)
-  // offers a Pause. Whether it moves is read from the SVG itself, after mount:
-  // the server and the first client render agree on "no button", then the
-  // button appears where there is something for it to do.
-  const [animated, setAnimated] = useState(false);
+  // offers a Stop. Whether it moves was settled by the build (the
+  // data-diagram-animated prop), so the button is in the server markup too.
+  const animated = diagramAnimated === 'true';
   const [paused, setPaused] = useState(false);
   const {siteConfig} = useDocusaurusContext();
   // Escape closes the viewer, as any overlay should.
@@ -327,12 +341,9 @@ export default function ImgWrapper({
   const src = typeof props.src === 'string' ? props.src : undefined;
   const alt = typeof props.alt === 'string' ? props.alt : undefined;
 
-  useEffect(() => {
-    const svg = src ? decodeSvg(src) : undefined;
-    setAnimated(svg !== undefined && /animation\s*:|@keyframes/.test(svg));
-    setPaused(false);
-  }, [src]);
-  // The image actually shown: the still rewrite while paused, the original
+  // A new image (hot reload in dev) starts moving again.
+  useEffect(() => setPaused(false), [src]);
+  // The image actually shown: the still rewrite while stopped, the original
   // otherwise. Open and Download keep the original — a saved file that moves
   // is the file the author published.
   const shownSrc = useMemo(() => {
@@ -397,23 +408,23 @@ export default function ImgWrapper({
               className={styles.action}
               aria-pressed={paused}
               title={translate({
-                id: 'theme.image.pause.tooltip',
-                message: 'Stop or resume this diagram\'s animation',
-                description: "Tooltip of the button that pauses or resumes a diagram's animation",
+                id: 'theme.image.stop.tooltip',
+                message: 'Stop or restart this diagram\'s animation',
+                description: "Tooltip of the button that stops or restarts a diagram's animation",
               })}
               onClick={() => setPaused((p) => !p)}>
-              {paused ? <PlayIcon /> : <PauseIcon />}
+              {paused ? <PlayIcon /> : <StopIcon />}
               {paused ? (
                 <Translate
                   id="theme.image.play"
-                  description="Label of the button that resumes a paused diagram animation">
+                  description="Label of the button that restarts a stopped diagram animation">
                   Play
                 </Translate>
               ) : (
                 <Translate
-                  id="theme.image.pause"
-                  description="Label of the button that pauses a diagram animation">
-                  Pause
+                  id="theme.image.stop"
+                  description="Label of the button that stops a diagram animation, showing it at rest">
+                  Stop
                 </Translate>
               )}
             </button>

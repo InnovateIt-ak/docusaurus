@@ -24,8 +24,8 @@ deployment diagram further down runs its `Rel()` calls in order, in the EU
 blue rather than the default tangerine, from `' steps #004494`: a hex value
 or a CSS colour name after the word picks the colour. The PDF plays no
 animation and prints the whole exchange; a reader who asked for reduced
-motion gets the same still figure, and the **Pause** button under a diagram
-gives it to anyone. Activity diagrams and C4 *sequence* diagrams are not
+motion gets the same still figure, and the **Stop** button under a moving
+diagram gives it to anyone. Activity diagrams and C4 *sequence* diagrams are not
 grouped by PlantUML and stay still.
 
 Refresh token detail:
