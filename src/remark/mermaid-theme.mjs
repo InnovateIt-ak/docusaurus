@@ -298,15 +298,62 @@ const themeCSS = `
     stroke-dashoffset: 0;
     animation: diagram-flow 0.6s linear infinite;
   }
+
+  /* Steps: 1, then 2, then 3. A sequence is told by a highlight that travels
+     from one element to the next — the accent, and a heavier stroke, held for
+     a moment on each in turn, then the whole thing again. Nothing is hidden
+     and revealed: that would leave the PDF's frame zero with a blank where
+     steps 2 and 3 belong. The frame zero here is every element at rest.
+
+     The keyframes below name only the highlighted state (4% to 14% of the
+     cycle). The 0% and 100% frames are left implicit on purpose: CSS then
+     takes them from the element's own computed values, so one set of
+     keyframes serves an edge (stroke in MUTED) and a node (stroke in INK)
+     alike, each returning to its own colour.
+
+     Authors reach this through Mermaid's classDef, which lands on an edge's
+     path and a node's shape as an inline style; there is no class an author
+     can put on an edge, so the timing has to travel with the style:
+
+       classDef step1 animation: diagram-step 4.5s linear infinite 0s
+       classDef step2 animation: diagram-step 4.5s linear infinite 1.5s
+       classDef step3 animation: diagram-step 4.5s linear infinite 3s
+       class e1,U step1
+       class e2 step2
+       class e3,D step3
+
+     Cycle = 1.5s x number of steps (add a slot for a pause), delay of step k
+     = 1.5s x (k - 1). The window is a fraction of the cycle, so a long chain
+     overlaps its steps into a wave, and a short one leaves a gap between
+     them — both read as an order. A dotted edge given a step loses the drift
+     above (the inline animation replaces it) but keeps its dashes. */
+  @keyframes diagram-step {
+    4%, 14% {
+      stroke: ${ACCENT};
+      stroke-width: 2px;
+    }
+  }
+
   /* A reader who asked their system for less motion gets still diagrams: the
-     theme's flow and the author's edge animations alike. The dash pattern is
-     kept, so the figure is the one the PDF has. Media queries are evaluated
-     inside an <img> too — user preferences are not page context. */
+     theme's flow, the author's edge animations and the steps alike. Media
+     queries are evaluated inside an <img> too — user preferences are not page
+     context.
+
+     Two locks, because one is not enough. The blanket rule stops every
+     animation set by a class (Mermaid's edge-animation-*, the drift above) and
+     an edge's inline step, which Mermaid writes without !important. A node's
+     step it cannot stop: Mermaid writes that inline style WITH !important, and
+     an important inline declaration beats an important stylesheet one. So the
+     keyframes are redefined empty here as well — the animation still runs, on
+     a track with nothing on it — and that no inline style can undo. The dash
+     patterns are kept, so the figure is the one the PDF has. */
   @media (prefers-reduced-motion: reduce) {
-    .flowchart-link.edge-pattern-dotted,
-    .edge-animation-slow,
-    .edge-animation-fast {
-      animation: none;
+    * {
+      animation: none !important;
+    }
+    @keyframes diagram-flow {
+    }
+    @keyframes diagram-step {
     }
   }
 `;

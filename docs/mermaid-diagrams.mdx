@@ -194,6 +194,59 @@ frame, shows a plain dashed line and not a blank. And a reader whose system
 asks for reduced motion gets the still figure: the theme switches every
 animation off under `prefers-reduced-motion`, the author's included.
 
+### Steps: 1, then 2, then 3
+
+A sequence is told by a **highlight that travels**: each step takes the
+accent and a heavier stroke for a moment, in order, then the round starts
+again. Nothing is hidden and revealed — that would leave the PDF with a blank
+where steps 2 and 3 belong — so at rest the figure is the complete diagram.
+
+The theme provides the `diagram-step` animation; a `classDef` per step gives
+it its delay, and `class` puts nodes and edges (by their `id@`) on that step.
+Cycle = 1.5s × number of steps (one more for a pause, if you like); delay of
+step *k* = 1.5s × (*k* − 1).
+
+```mermaid
+flowchart LR
+    U[User] e1@--> W[Web app]
+    W e2@--> A[API]
+    A e3@-.->|event| Q[Queue]
+    Q e4@--> D[(Store)]
+    classDef step1 animation: diagram-step 7.5s linear infinite 0s
+    classDef step2 animation: diagram-step 7.5s linear infinite 1.5s
+    classDef step3 animation: diagram-step 7.5s linear infinite 3s
+    classDef step4 animation: diagram-step 7.5s linear infinite 4.5s
+    class U,e1 step1
+    class e2 step2
+    class e3 step3
+    class e4,D step4
+```
+
+````markdown
+```mermaid
+flowchart LR
+    U[User] e1@--> W[Web app]
+    W e2@--> A[API]
+    A e3@-.->|event| Q[Queue]
+    Q e4@--> D[(Store)]
+    classDef step1 animation: diagram-step 7.5s linear infinite 0s
+    classDef step2 animation: diagram-step 7.5s linear infinite 1.5s
+    classDef step3 animation: diagram-step 7.5s linear infinite 3s
+    classDef step4 animation: diagram-step 7.5s linear infinite 4.5s
+    class U,e1 step1
+    class e2 step2
+    class e3 step3
+    class e4,D step4
+```
+````
+
+The highlight lasts a fixed tenth of the cycle, so a long chain overlaps its
+steps into a wave and a short one leaves a beat between them; both read as an
+order. A dotted edge given a step keeps its dashes but not its drift — the
+step's animation takes the slot. Mermaid's `classDef` accepts no comma inside
+a value, which is why the edge needs an `id@` and a class rather than a
+`linkStyle`.
+
 ---
 
 ## Sequence diagram
