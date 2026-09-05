@@ -94,28 +94,83 @@
    Overriding the Infima navbar variables (rather than .navbar directly) keeps
    links, the brand title, the theme toggle and the mobile hamburger legible,
    since they all read from these tokens. Scoped to light mode only, so dark
-   mode and the (light) PDF are untouched. */
+   mode and the (light) PDF are untouched.
+
+   Everything on the bar is white — including the hovered and the active
+   section, which are marked by an underline rather than by a second colour.
+   The gold (#ffcc00) this used to hover and mark with was the loudest thing on
+   a page that is otherwise blue-and-white; the underline says the same thing
+   without shouting, and it is what the section already gets in the sidebar. */
 [data-theme='light'] .navbar {
   --ifm-navbar-background-color: rgb(0, 68, 148);
   --ifm-navbar-link-color: #ffffff;
-  --ifm-navbar-link-hover-color: #ffcc00; /* EU gold on hover */
+  --ifm-navbar-link-hover-color: #ffffff;
 }
 [data-theme='light'] .navbar__title,
 [data-theme='light'] .navbar__brand:hover .navbar__title {
   color: #ffffff;
 }
-/* Theme toggle + mobile hamburger icons inherit currentColor. */
-[data-theme='light'] .navbar .clean-btn,
+/* Underline offset below the text baseline, so it reads as a marker under the
+   item and not as a link decoration. No border, no fill: nothing here moves the
+   item by a pixel when it becomes current. */
+[data-theme='light'] .navbar__inner .navbar__link:hover,
+[data-theme='light'] .navbar__inner .navbar__link--active {
+  text-decoration: underline;
+  text-underline-offset: 7px;
+  text-decoration-thickness: 2px;
+}
+[data-theme='light'] .navbar__inner .navbar__link--active {
+  font-weight: var(--ifm-font-weight-bold);
+}
+/* Theme toggle + mobile hamburger icons inherit currentColor. Aimed at the bar
+   and at the drawer's blue header only: the drawer's own buttons ("back to main
+   menu") sit on white, and a blanket `.navbar .clean-btn` would paint those
+   white too — invisible, and with enough specificity to outrank the rule that
+   sets their colour further down. */
+[data-theme='light'] .navbar__inner .clean-btn,
+[data-theme='light'] .navbar-sidebar__brand .clean-btn,
 [data-theme='light'] .navbar__toggle {
   color: #ffffff;
 }
 /* The theme-toggle button's hover/focus fill defaults to a light grey
    (--ifm-color-emphasis-200), which reads as a jarring solid white disc on the
    blue navbar. Replace it with a subtle translucent-white overlay. */
-[data-theme='light'] .navbar .clean-btn:hover,
-[data-theme='light'] .navbar .clean-btn:focus-visible,
+[data-theme='light'] .navbar__inner .clean-btn:hover,
+[data-theme='light'] .navbar__inner .clean-btn:focus-visible,
+[data-theme='light'] .navbar-sidebar__brand .clean-btn:hover,
+[data-theme='light'] .navbar-sidebar__brand .clean-btn:focus-visible,
 [data-theme='light'] .navbar__toggle:hover {
   background: rgba(255, 255, 255, 0.15);
+}
+
+/* The mobile drawer lives INSIDE .navbar, so it inherited the whole blue
+   treatment above and opened as a full-height slab of EU blue. Only the bar is
+   meant to carry the colour: the drawer keeps a blue header — continuous with
+   the bar it slides out of — and gives its list back the page's own ground and
+   ink. The tokens are reset on the drawer rather than the colours overridden
+   item by item, so links, categories and the collapse chevrons all follow. */
+[data-theme='light'] .navbar-sidebar {
+  --ifm-navbar-link-color: var(--ifm-font-color-base);
+  --ifm-navbar-link-hover-color: var(--ifm-color-primary);
+  --ifm-menu-color: var(--ifm-font-color-base);
+  /* --ifm-background-color is `transparent` in light mode (the body paints the
+     page); the drawer is an overlay and needs a real surface under it. */
+  background-color: var(--ifm-background-surface-color);
+  color: var(--ifm-font-color-base);
+}
+/* Header of the drawer: the bar, continued. */
+[data-theme='light'] .navbar-sidebar__brand {
+  background-color: rgb(0, 68, 148);
+}
+[data-theme='light'] .navbar-sidebar__brand .navbar__title,
+[data-theme='light'] .navbar-sidebar__brand .clean-btn {
+  color: #ffffff;
+}
+/* "Back to main menu" sits on the white list, not on the blue header, so it
+   takes the page's ink on the theme's own active-item grey. */
+[data-theme='light'] .navbar-sidebar__back {
+  color: var(--ifm-font-color-base);
+  background: var(--ifm-color-emphasis-100);
 }
 
 /* ---- Enriched provenance block -------------------------------------------
@@ -150,8 +205,8 @@
    Style only the input of the local-search bar (@easyops-cn/docusaurus-search-
    local renders the global `.navbar__search-input`). Rounded pill, soft border,
    an EU-blue focus ring, and a gentle widen on focus. On the EU-blue light
-   navbar the field is a translucent-white pill (white text) that turns solid
-   white on focus; dark mode keeps a surface field with a blue focus ring. */
+   navbar the field is a solid white pill (dark text); dark mode keeps a surface
+   field with a blue focus ring. */
 .navbar__search-input {
   height: 2.15rem;
   width: 12rem;
@@ -188,5 +243,144 @@
   .navbar__search-input,
   .navbar__search-input:focus {
     width: auto;
+  }
+}
+
+
+/* ---- Crowded navbar: one line, never a broken label -----------------------
+   A site with a long project title and a dozen sections used to give a navbar
+   that wrapped onto two rows and split labels mid-phrase ("LikeC4 Architecture
+   / Diagrams"). Two things fix that, and they work together:
+
+     * here: nothing in the bar is allowed to wrap, and the brand title gives
+       way (ellipsis) instead of stealing the room the items need;
+     * src/theme/Navbar/Content: the left items that no longer fit on the line
+       are folded into a "More" dropdown, measured on resize.
+
+   Without the no-wrap rules the fold would measure labels that have already
+   broken in two, so these are what make the row's width mean what it says. */
+.navbar__item,
+.navbar__link,
+.navbar__title {
+  white-space: nowrap;
+}
+/* The brand is the one thing that may be shortened, and only once the bar has
+   nothing left to give: the items row yields its space first (it may fold into
+   "More"), so the title is ellipsed rather than wrapped only when even that is
+   not enough. A title that fits is never cut. */
+.navbar__title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Search and theme toggle keep their size; the items row absorbs the shortage
+   (see .leftItems in the swizzled Navbar/Content). */
+.navbar__items--right {
+  flex-shrink: 0;
+}
+/* A folded navbar can hand the "More" menu a dozen entries — more than a short
+   viewport has room for. Cap it and let it scroll rather than run off-screen.
+   Applies to every navbar dropdown, the "📄 PDF" one included. */
+.navbar .dropdown__menu {
+  max-height: min(70vh, 32rem);
+  overflow-y: auto;
+}
+
+@media (max-width: 996px) {
+  /* The mobile drawer is a vertical list: labels have the full width and wrap
+     naturally, so the no-wrap above would only truncate them for nothing. */
+  .navbar-sidebar .menu__link,
+  .navbar-sidebar .navbar__link {
+    white-space: normal;
+  }
+}
+
+
+/* ---- Navbar at 90% ---------------------------------------------------------
+   The bar reads better a notch smaller than the page: shorter, with tighter
+   items and a ~10% smaller type, which is the scale the site was judged best
+   at. Everything below is scoped to `.navbar` (and its mobile drawer) — the
+   page, the sidebar and the PDF keep their own scale — and is expressed by
+   overriding the Infima navbar tokens, so links, the brand, the dropdowns and
+   the search field all follow from one place.
+
+   Working smaller here also buys the items room: ten sections that needed a
+   fold into "More" at full size often fit on the line at this one. */
+.navbar {
+  font-size: 0.9rem;
+  --ifm-navbar-height: 3.4rem;
+  --ifm-navbar-item-padding-horizontal: 0.6rem;
+}
+.navbar__logo {
+  height: 1.75rem;
+}
+.navbar__title {
+  font-size: 1.1rem;
+}
+/* The search pill follows the same 10%: the widths above were set against the
+   full-size bar and would now sit taller than the links beside them. */
+.navbar__search-input {
+  height: 1.95rem;
+  width: 10.5rem;
+}
+.navbar__search-input:focus {
+  width: 13rem;
+}
+/* The mobile drawer inherits `.navbar`'s size through `.navbar-sidebar`; give
+   its list back a comfortable touch size. */
+.navbar-sidebar {
+  font-size: 0.95rem;
+}
+
+
+/* ---- Very wide screens: use the width instead of centring in it -----------
+   A doc page is a `.container` capped at --ifm-container-width-xl (1320px),
+   centred in whatever the sidebar leaves. Past ~1620px of viewport that cap
+   starts costing: the whole page drifts to the middle, leaving a margin on the
+   right while the table of contents sits pinned against the prose rather than
+   near the edge the reader's eye goes to.
+
+   Above 1600px the row is given the full width instead, and the two columns
+   then take the space that means something to each: the article keeps a
+   readable measure (64rem, close to the ~960px it gets at 1440px, so line
+   length does not grow with the monitor) and starts right after the sidebar,
+   and the table of contents is pushed to the right edge. The space that used
+   to be split into two margins ends up between them.
+
+   The cap is set on the column's inner container, not on the column: the
+   theme's own `.docItemCol` carries `max-width: 75% !important` from a cascade
+   layer, which no unlayered rule of ours can outrank. */
+@media (min-width: 1600px) {
+  .docs-wrapper .container {
+    --ifm-container-width-xl: 100%;
+  }
+  .docs-wrapper .row > .col:first-child > div {
+    max-width: 64rem;
+  }
+  /* Pushed to the right edge, and kept to a column width: at 25% of a 2560px
+     screen the table of contents would otherwise be 530px of mostly air. */
+  .docs-wrapper .row > .col--3 {
+    margin-left: auto;
+    max-width: 22rem;
+  }
+
+  /* Collapsing the sidebar must not re-lay-out the page. The theme widens the
+     container by the sidebar's width and re-centres it, which at this size
+     slides the article left and pulls the table of contents back in from the
+     edge — the reader hides the sidebar and the two columns they were reading
+     move. Here the reclaimed strip is left as margin instead: the row keeps the
+     width and the position it had, and only the sidebar disappears.
+
+     The widening is `max-width: calc(var(--ifm-container-width) +
+     var(--doc-sidebar-width)) !important` from a cascade layer, which no
+     unlayered rule can outrank — so it is defused through the variable it
+     computes from rather than by fighting the declaration. */
+  .docs-wrapper .container {
+    --ifm-container-width: 100%;
+  }
+  .docs-wrapper main[class*='docMainContainerEnhanced'] > .container {
+    padding-left: calc(
+      var(--doc-sidebar-width) - var(--doc-sidebar-hidden-width) +
+        var(--ifm-spacing-horizontal)
+    );
   }
 }

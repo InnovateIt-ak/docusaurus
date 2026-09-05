@@ -89,3 +89,63 @@
   flex: 0 0 auto;
   opacity: 0.8;
 }
+
+/* ---- Full-size diagram viewer --------------------------------------------
+   A diagram is a data-URL SVG in an <img>. The site's click-to-zoom
+   (medium-zoom) enlarges with `transform: scale()`, which stretches the bitmap
+   the browser rasterised at column width — an SVG that could have been drawn
+   sharp at any size comes out soft, and the wider the diagram the worse it is.
+   This viewer instead lays the same image out at the size it will be seen at,
+   so the browser draws the vector again at that size.
+
+   Backdrop is white in both themes, like the paper the diagram already sits on:
+   these SVGs are baked light-only (dark strokes on transparent), so a dark
+   backdrop would swallow them. */
+.zoomable {
+  cursor: zoom-in;
+}
+
+.viewer {
+  position: fixed;
+  inset: 0;
+  /* Above the navbar (z-index 200 in Infima) and its dropdowns. */
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2vmin;
+  /* Opaque: at 97% the page read through the drawing and competed with it. */
+  background: #ffffff;
+  cursor: zoom-out;
+}
+
+.viewerImage {
+  /* Sized to the viewport, not scaled to it: this is the whole point. */
+  max-width: 96vw;
+  max-height: 92vh;
+  width: auto;
+  height: auto;
+  background: #ffffff;
+  border-radius: 6px;
+}
+
+.viewerClose {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 1px solid rgba(45, 49, 66, 0.12);
+  border-radius: 999px;
+  background: #ffffff;
+  color: rgb(45, 49, 66);
+  cursor: pointer;
+}
+
+.viewerClose:hover {
+  background: var(--ifm-color-emphasis-100);
+}

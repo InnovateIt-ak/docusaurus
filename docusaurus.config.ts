@@ -242,19 +242,27 @@ const config: Config = {
             ],
         },
         zoom: {
+            // Photographs and screenshots only. A build-time diagram is excluded
+            // (`:not([data-diagram])`, set by src/theme/MDXComponents/Img):
+            // medium-zoom enlarges with `transform: scale()`, and a transform
+            // scales the bitmap the browser already rasterised at column width —
+            // on an SVG, which could have been drawn sharp at any size, that is
+            // pure blur. Diagrams get their own viewer instead, which lays the
+            // image out at the size it will be seen at.
+            // `.md-figure > img`, not `p > img`: every image is wrapped in the
+            // caption figure (src/theme/MDXComponents/Img), so it has not been
+            // a child of its paragraph for a while and the old selector matched
+            // nothing but the diagrams named explicitly beside it.
             selector: [
-                'article.theme-doc-markdown p > img',
+                'article.theme-doc-markdown .md-figure > img:not([data-diagram])',
                 'article.theme-doc-markdown a > img.allow-zoom',
-                'article.theme-doc-markdown img[alt="Mermaid diagram"]',
-                '.markdown p > img',
+                '.markdown .md-figure > img:not([data-diagram])',
                 '.markdown a > img.allow-zoom',
-                '.markdown img[alt="Mermaid diagram"]',
             ].join(', '),
             background: {
-                // White in both themes: the zoom targets are mostly Mermaid
-                // diagrams (dark strokes/text on a transparent background), which
-                // are illegible on a dark backdrop. White keeps them readable —
-                // consistent with the light card they already get in dark mode.
+                // White in both themes: what is zoomed here is mostly light
+                // artwork, and a dark backdrop would fight it — consistent with
+                // the white paper diagrams already get in dark mode.
                 light: 'rgb(255, 255, 255)',
                 dark: 'rgb(255, 255, 255)',
             },
