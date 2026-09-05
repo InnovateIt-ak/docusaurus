@@ -1,4 +1,10 @@
-import {useState, type ComponentProps, type MouseEvent, type ReactNode} from 'react';
+import {
+  useEffect,
+  useState,
+  type ComponentProps,
+  type MouseEvent,
+  type ReactNode,
+} from 'react';
 import Img from '@theme-original/MDXComponents/Img';
 import CodeBlock from '@theme/CodeBlock';
 import Translate, {translate} from '@docusaurus/Translate';
@@ -181,6 +187,24 @@ function ImageIcon(): ReactNode {
   );
 }
 
+function CloseIcon(): ReactNode {
+  return (
+    <svg
+      className={styles.icon}
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      aria-hidden="true">
+      <path d="M6 6l12 12" />
+      <path d="M18 6L6 18" />
+    </svg>
+  );
+}
+
 // Adds a small caption under each image with a link to download it — including
 // build-time diagrams, so a reader can grab the SVG. Structured with <span>s
 // (not <figure>/<figcaption>) because a markdown image renders as <p><img></p>,
@@ -196,7 +220,23 @@ export default function ImgWrapper({
   // It is read here and dropped from the props, so the same few kilobytes are
   // not also emitted as an attribute on every diagram in the page.
   const [showSource, setShowSource] = useState(false);
+  // The full-size viewer a diagram opens on click. See the viewer markup at the
+  // end of this component for why it is not the site's medium-zoom.
+  const [viewing, setViewing] = useState(false);
   const {siteConfig} = useDocusaurusContext();
+  // Escape closes the viewer, as any overlay should.
+  useEffect(() => {
+    if (!viewing) {
+      return undefined;
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setViewing(false);
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [viewing]);
   const {base: chatBase, ask} = useOpenWebUi();
   // The source renders as a CodeBlock, which is `<div><pre>`. A markdown image
   // normally sits inside a `<p>`, and a `<p>` is closed by the parser at its
@@ -239,6 +279,17 @@ export default function ImgWrapper({
               is nothing to highlight. */}
           <CodeBlock language={diagramLang ?? 'text'}>{diagramSource}</CodeBlock>
         </span>
+      ) : diagram ? (
+        // `data-diagram` is what keeps medium-zoom off this image
+        // (docusaurus.config.ts): it enlarges with a transform, which stretches
+        // the bitmap the browser rasterised at column width instead of drawing
+        // the SVG again — the larger the diagram, the blurrier the zoom.
+        <Img
+          {...props}
+          data-diagram={diagramLang ?? 'diagram'}
+          className={styles.zoomable}
+          onClick={() => setViewing(true)}
+        />
       ) : (
         <Img {...props} />
       )}
@@ -323,6 +374,37 @@ export default function ImgWrapper({
           </a>
         </span>
       </span>
+      {viewing ? (
+        // A viewer rather than a zoom: the image is laid out at the size it is
+        // seen at, so the browser draws the SVG at that size — vector-sharp on
+        // any screen, where a scaled bitmap is exactly as sharp as the column
+        // it was rasterised for. Spans only, and no portal: a diagram may still
+        // sit inside a <p>, where a <div> would be invalid and cost hydration.
+        // Fixed positioning takes it out of the flow all the same.
+        <span
+          role="dialog"
+          aria-modal="true"
+          aria-label={translate({
+            id: 'theme.image.viewer.label',
+            message: 'Full-size diagram',
+            description: 'Accessible name of the overlay showing a diagram full size',
+          })}
+          className={styles.viewer}
+          onClick={() => setViewing(false)}>
+          <img className={styles.viewerImage} src={src} alt={alt ?? ''} />
+          <button
+            type="button"
+            className={styles.viewerClose}
+            title={translate({
+              id: 'theme.image.viewer.close',
+              message: 'Close (Esc)',
+              description: 'Tooltip of the button that closes the full-size diagram viewer',
+            })}
+            onClick={() => setViewing(false)}>
+            <CloseIcon />
+          </button>
+        </span>
+      ) : null}
     </Wrapper>
   );
 }
