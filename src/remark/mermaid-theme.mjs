@@ -67,12 +67,20 @@ const PAPER = '#ffffff'; // the paper (laid down by custom.css)
 const WHITE = '#ffffff'; // fill of primary nodes ("backend" role)
 const INK = '#2d3142'; // ink: text and primary hairlines
 const MUTED = '#4f5d75'; // blue-slate: secondary text, edges
-const SOFT = '#7a8399'; // sublabels, lifelines
-const RULE = 'rgba(45, 49, 66, 0.12)'; // quiet hairline
-const RULE_SOLID = '#bfc0c0'; // stronger hairline, baselines
-const INK_05 = 'rgba(45, 49, 66, 0.05)'; // "store" role: data stores, activations
-const INK_03 = 'rgba(45, 49, 66, 0.03)'; // "external" role: out of scope
-const GRID = '#e2e5ea'; // axis gridlines (Gantt, XY chart)
+// Quiet is not the same as faint. These greys were picked for a design mock
+// viewed at full size; in a doc column a wide figure is scaled down to fit, and
+// everything below body weight goes with it. At the values they had, the
+// hairlines that carry the structure — lifelines, table rules, axis lines,
+// subgraph boundaries — sat at about 1.9:1 against the paper, and the small
+// labels on them at 3.6:1: quiet on a mock, unreadable in a figure. Each value
+// below is the quietest tone that still clears ~3:1 as a hairline (WCAG's
+// non-text minimum) and ~4.5:1 where it carries text.
+const SOFT = '#6b7488'; // sublabels, lifelines — 4.9:1, still reads as secondary
+const RULE = 'rgba(45, 49, 66, 0.22)'; // quiet hairline
+const RULE_SOLID = '#9aa3b2'; // stronger hairline, baselines — 3.0:1
+const INK_05 = 'rgba(45, 49, 66, 0.07)'; // "store" role: data stores, activations
+const INK_03 = 'rgba(45, 49, 66, 0.045)'; // "external" role: out of scope
+const GRID = '#ccd2dc'; // axis gridlines (Gantt, XY chart)
 const ACCENT = '#eb6c36'; // tangerine: the one accent
 const ACCENT_TINT = 'rgba(235, 108, 54, 0.08)'; // fill behind accented elements
 
@@ -142,7 +150,7 @@ const themeCSS = `
     font-weight: 500;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    fill: ${SOFT};
+    fill: ${MUTED};
   }
 
   /* Edges: 1px hairline, rounded ends. */
@@ -154,20 +162,30 @@ const themeCSS = `
     stroke-linejoin: round;
   }
 
-  /* Edge annotations: mono, sitting on a paper chip. */
+  /* Edge annotations: mono, sitting on a paper chip. Mermaid ships that chip at
+     half opacity, so the edge it straddles runs straight through the letters —
+     the single worst thing to read in a flowchart. Here it is opaque paper, and
+     the annotation sits on it rather than in the line. */
   .edgeLabel rect,
   .edgeLabel .label-container {
     rx: 4px;
     ry: 4px;
+    fill: ${PAPER};
+    opacity: 1;
   }
+  /* The smallest text in a figure — 10px mono, and smaller still once a wide
+     diagram is scaled into the column — so it takes the full ink rather than
+     the secondary tone; at that size contrast is what is left to read by. The
+     tracking is trimmed with it, which keeps the label no wider than the box
+     Mermaid measured for it. */
   .edgeLabels text,
   .edgeLabel text,
   .edgeLabel text tspan,
   .messageText {
     font-family: ${MONO};
     font-size: 10px;
-    letter-spacing: 0.06em;
-    fill: ${MUTED};
+    letter-spacing: 0.04em;
+    fill: ${INK};
   }
 
   /* Diagram titles (pie, Gantt): serif, size unchanged — Mermaid has already
@@ -333,6 +351,35 @@ const themeVariables = {
     archEdgeWidth: '1',
     archGroupBorderColor: RULE_SOLID,
     archGroupBorderWidth: '1',
+
+    // Git graph: left to itself, Mermaid derives branch colours from the theme
+    // and lands on near-white greys — branch lines, commit dots and the labels
+    // on them all but disappeared on the paper. The branches are named here
+    // instead, in the ink family with the accent third, each dark enough to
+    // carry a white label; commit and tag labels stay ink on paper.
+    git0: INK,
+    git1: MUTED,
+    git2: ACCENT,
+    git3: '#5f7a5a', // sage, darkened for a white label
+    git4: '#4d6b8a', // dusty blue, darkened
+    git5: '#8a6a35', // mustard, darkened
+    git6: '#7a4f3a', // rust brown
+    git7: '#6b6377', // slate
+    gitBranchLabel0: WHITE,
+    gitBranchLabel1: WHITE,
+    gitBranchLabel2: WHITE,
+    gitBranchLabel3: WHITE,
+    gitBranchLabel4: WHITE,
+    gitBranchLabel5: WHITE,
+    gitBranchLabel6: WHITE,
+    gitBranchLabel7: WHITE,
+    commitLabelColor: INK,
+    commitLabelBackground: PAPER,
+    commitLabelFontSize: '11px',
+    tagLabelColor: INK,
+    tagLabelBackground: PAPER,
+    tagLabelBorder: MUTED,
+    tagLabelFontSize: '11px',
 
     // XY chart: Mermaid gives it a palette of its own (a very pale yellow by
     // default, unreadable on white paper). We replace it with the categorical
