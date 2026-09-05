@@ -217,6 +217,7 @@ step on it would show nothing.
 
 ```mermaid
 flowchart LR
+    %% steps #004494
     classDef focal fill:#fdece4,stroke:#eb6c36,stroke-width:1.2px
 
     Client[HTTP client] e1@--> GW{Gateway}
@@ -246,6 +247,7 @@ flowchart LR
 ````markdown
 ```mermaid
 flowchart LR
+    %% steps #004494
     classDef focal fill:#fdece4,stroke:#eb6c36,stroke-width:1.2px
 
     Client[HTTP client] e1@--> GW{Gateway}
@@ -273,6 +275,10 @@ flowchart LR
 ```
 ````
 
+The steps light in the theme's tangerine accent by default. A `%% steps`
+comment with a colour — `%% steps #004494` above, the EU blue — recolours
+them for that diagram, which is how this one keeps its steps apart from the
+`focal` node; a hex value or a CSS colour name, nothing else, is accepted.
 The highlight ramps up over the first 4% of the cycle, holds until 14%, then
 leaves at once; on a cycle of up to ten steps that keeps one step lit at a
 time, with a beat between two on a short chain. Several elements on one step
@@ -364,7 +370,8 @@ recipe does not apply — and is not needed: the messages are already in order.
 One comment, `%% steps`, and each message lights in turn with its label, the
 arrow first, the next one a beat later, then the round starts again. The
 renderer counts the messages and sets the cycle (1.5s per message, plus one
-of rest); `autonumber` puts the step numbers on the page too.
+of rest); `autonumber` puts the step numbers on the page too. Add a colour to
+the comment (`%% steps #004494`) to light in something other than the accent.
 
 ```mermaid
 sequenceDiagram

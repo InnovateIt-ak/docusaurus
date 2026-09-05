@@ -24,6 +24,10 @@
 //       U->>W: Sign in
 //       W-->>U: Redirect
 //
+// The steps light in the theme's accent unless the marker names a colour:
+// `%% steps #004494`. On a flowchart — stepped by classDef, not by this module
+// — the marker does one thing only: it recolours those steps.
+//
 // Timing is the flowchart's: one slot per step, and one slot of rest at the end
 // of the round, so the last step is not chased by the first.
 
@@ -62,7 +66,24 @@ export function stepKeyframes(cycle, accent) {
 }
 
 const SEQUENCE_DIAGRAM = /^\s*(?:%%\{[^]*?\}%%\s*)*sequenceDiagram\b/;
-const STEPS_MARKER = /^\s*%%\s*steps\s*$/m;
+const FLOWCHART = /^\s*(?:%%\{[^]*?\}%%\s*)*(?:flowchart|graph)\b/;
+
+// The marker, with an optional colour: `%% steps` or `%% steps #004494`. The
+// colour is what the steps light in — the theme's accent unless one is given.
+// Only a hex value or a CSS colour name is accepted: the marker ends up in a
+// stylesheet, and this is what keeps it a colour and nothing else.
+const STEPS_MARKER = /^\s*%%\s*steps(?:\s+(#[0-9a-fA-F]{3,8}|[a-zA-Z]{3,30}))?\s*$/m;
+
+/**
+ * Reads the marker: `null` when the source has none, otherwise `{color}` —
+ * the colour the author asked for, or the theme's accent. Shared with the
+ * PlantUML side, whose marker differs only by its comment sign.
+ */
+export function readStepsMarker(source, marker = STEPS_MARKER) {
+    const match = marker.exec(String(source));
+    if (!match) return null;
+    return {color: match[1] ?? ACCENT};
+}
 
 // A message line: a source, an arrow, a target, a colon. The arrows are
 // Mermaid's — solid or dotted, with an open head, a filled head, a cross or a
@@ -99,13 +120,14 @@ export function countSequenceMessages(source) {
  */
 export function sequenceStepsCss(source) {
     const text = String(source);
-    if (!SEQUENCE_DIAGRAM.test(text) || !STEPS_MARKER.test(text)) return '';
+    const marker = readStepsMarker(text);
+    if (!SEQUENCE_DIAGRAM.test(text) || !marker) return '';
     const steps = countSequenceMessages(text);
     if (steps === 0) return '';
 
     const cycle = STEP_SLOT_S * (steps + 1);
     const rules = [
-        ...stepKeyframes(cycle, ACCENT),
+        ...stepKeyframes(cycle, marker.color),
         `[class^="messageLine"] { animation: diagram-step ${cycle}s linear infinite; }`,
         `.messageText { animation: diagram-step-ink ${cycle}s linear infinite; }`,
     ];
@@ -117,4 +139,27 @@ export function sequenceStepsCss(source) {
         );
     }
     return `\n  /* %% steps: ${steps} messages, ${cycle}s round */\n  ${rules.join('\n  ')}\n`;
+}
+
+/**
+ * The per-diagram CSS for a flowchart carrying `%% steps <colour>`: the
+ * theme's percent-based step keyframes, redefined in that colour. A flowchart
+ * is stepped by its author's classDef (see mermaid-theme.mjs), so the marker
+ * changes nothing else there; without a colour it is a no-op.
+ */
+export function flowchartStepsCss(source) {
+    const text = String(source);
+    const marker = readStepsMarker(text);
+    if (!FLOWCHART.test(text) || !marker || marker.color === ACCENT) return '';
+    const lit = (props) => `4% { ${props} } 14% { ${props} animation-timing-function: step-start; }`;
+    return (
+        `\n  /* %% steps ${marker.color}: the classDef steps of this flowchart light in this colour */\n` +
+        `  @keyframes diagram-step { ${lit(`stroke: ${marker.color}; stroke-width: 2px;`)} }\n` +
+        `  @keyframes diagram-step-ink { ${lit(`fill: ${marker.color};`)} }\n`
+    );
+}
+
+/** What the renderer appends to the theme's CSS for one diagram, '' for most. */
+export function stepsCss(source) {
+    return sequenceStepsCss(source) || flowchartStepsCss(source);
 }

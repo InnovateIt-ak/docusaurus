@@ -14,6 +14,8 @@
 //   Auth --> User: session cookie
 //   @enduml
 //
+// `' steps #004494` lights the steps in that colour instead of the accent.
+//
 // WHAT THE SVG OFFERS
 // -------------------
 // PlantUML groups what it draws, and names the groups:
@@ -43,12 +45,13 @@
 // outranks a normal declaration, inline included); nothing here is !important
 // and nothing in PlantUML's output is either.
 import {ACCENT} from './mermaid-theme.mjs';
-import {STEP_SLOT_S, stepKeyframes} from './mermaid-steps.mjs';
+import {STEP_SLOT_S, readStepsMarker, stepKeyframes} from './mermaid-steps.mjs';
 
 // One step per slot: STEP_SLOT_S, the Mermaid diagrams' beat, so a page mixing
 // the two reads as one system. The keyframes are theirs too.
 
-const STEPS_MARKER = /^\s*'\s*steps\s*$/m;
+// `' steps`, or `' steps #004494` to light in another colour than the accent.
+const STEPS_MARKER = /^\s*'\s*steps(?:\s+(#[0-9a-fA-F]{3,8}|[a-zA-Z]{3,30}))?\s*$/m;
 const GROUP = /<g class="(message|link)"([^>]*)>/g;
 
 /** The stepped groups of an SVG, in the order the author wrote them. */
@@ -69,13 +72,13 @@ export function collectStepGroups(svg) {
 }
 
 /** The <style> that steps the given groups, or '' when there is nothing to step. */
-export function stepsStyle(groups) {
+export function stepsStyle(groups, color = ACCENT) {
     if (groups.length === 0) return '';
     const cycle = STEP_SLOT_S * (groups.length + 1);
     // Three keyframes for the three ways PlantUML paints: a line by its stroke,
     // a text by its fill, an arrowhead by both (see stepKeyframes).
     const rules = [
-        ...stepKeyframes(cycle, ACCENT),
+        ...stepKeyframes(cycle, color),
         `.message line, .message path, .link line, .link path { animation: diagram-step ${cycle}s linear infinite; }`,
         `.message text, .link text { animation: diagram-step-ink ${cycle}s linear infinite; }`,
         `.message polygon, .link polygon { animation: diagram-step-mark ${cycle}s linear infinite; }`,
@@ -94,8 +97,9 @@ export function stepsStyle(groups) {
  * and the diagram has messages or links to step; the SVG untouched otherwise.
  */
 export function withSteps(source, svg) {
-    if (!STEPS_MARKER.test(String(source))) return svg;
-    const style = stepsStyle(collectStepGroups(svg));
+    const marker = readStepsMarker(source, STEPS_MARKER);
+    if (!marker) return svg;
+    const style = stepsStyle(collectStepGroups(svg), marker.color);
     if (!style) return svg;
     // Right after the opening <svg …> tag, before <defs> and the drawing.
     return svg.replace(/<svg\b[^>]*>/, (openTag) => `${openTag}${style}`);
