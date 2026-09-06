@@ -21,3 +21,53 @@
   padding: 2rem 1.5rem;
   color: var(--ifm-color-emphasis-700);
 }
+
+/* Dark mode: Redoc 3 builds every dark surface, rule and ink from two ramps
+   declared on <html>.dark — a warm grey (1 darkest … 11 lightest) and a
+   blue for links — and its semantic variables (--bg-color, --layer-color,
+   --text-color-*, --border-color-*) are resolved there, on the same element.
+   So the ramps are re-declared on that element, in the site's navy from
+   custom.css ([data-theme='dark']): page #0a1424, surface #0f1d33, rules
+   #1e3454 / #2c4670, ink #c4d0e0 / #e7edf6, primary #7fb3ea. The class is
+   only on <html> while a reference page is mounted (index.tsx), so nothing
+   else on the site sees these. Specificity beats Redoc's `:root.dark`. */
+:global(html[data-theme='dark'].dark) {
+  --color-warm-grey-1: #071426;
+  --color-warm-grey-2: #0a1424;
+  --color-warm-grey-3: #0f1d33;
+  --color-warm-grey-4: #1e3454;
+  --color-warm-grey-5: #2c4670;
+  --color-warm-grey-6: #5b7aa0;
+  --color-warm-grey-7: #a3b2c7;
+  --color-warm-grey-8: #c4d0e0;
+  --color-warm-grey-9: #d9e2ee;
+  --color-warm-grey-10: #e7edf6;
+  --color-warm-grey-11: #f4f7fb;
+  --color-hover-base: #1e3454;
+  /* Links and primary actions, on the site's dark primary ramp. */
+  --color-blue-1: #0f2f52;
+  --color-blue-2: #1a4a80;
+  --color-blue-3: #1a5fa8;
+  --color-blue-4: #2b82d9;
+  --color-blue-5: #559be2;
+  --color-blue-6: #63a3e5;
+  --color-blue-7: #7fb3ea;
+  --color-blue-8: #a7cbf3;
+  --color-blue-9: #cde0f7;
+  --color-blue-10: #e2edfa;
+  --color-blue-11: #f0f6fc;
+  --color-blueberry-1: #0f2f52;
+  --color-blueberry-2: #1a4a80;
+  --color-blueberry-3: #2b82d9;
+  --color-blueberry-4: #559be2;
+  --color-blueberry-5: #63a3e5;
+  --color-blueberry-6: #7fb3ea;
+  --color-blueberry-7: #9bc3ef;
+  --color-blueberry-8: #a7cbf3;
+  --color-blueberry-9: #cde0f7;
+  --color-blueberry-10: #e2edfa;
+  --color-blueberry-11: #f0f6fc;
+}
+:global([data-theme='dark']) .redoc {
+  --color-primary-base: #7fb3ea;
+}
