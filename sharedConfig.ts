@@ -1,4 +1,4 @@
-// The OpenAPI references Redocly renders (Redocusaurus, docusaurus.config.ts):
+// The OpenAPI references Redoc renders (plugins/redoc, docusaurus.config.ts):
 // one page per spec in openapi/, at /api/<id>. The same specs are also read as
 // data-model pages under docs/api/datamodel (plugins/openapi-schema-doc).
 export const REDOC_SPEC=[
