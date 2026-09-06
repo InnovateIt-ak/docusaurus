@@ -3,10 +3,12 @@ import Translate, {translate} from '@docusaurus/Translate';
 import Icon from '@site/src/components/Icon';
 import styles from './styles.module.css';
 
+// Docusaurus's doc metadata gives `null` (not `undefined`) when a page has
+// no edit URL or no last-update data, so each prop admits both.
 type Props = {
-  editUrl?: string;
-  lastUpdatedAt?: number;
-  lastUpdatedBy?: string;
+  editUrl?: string | null;
+  lastUpdatedAt?: number | null;
+  lastUpdatedBy?: string | null;
 };
 
 // Docusaurus stores `lastUpdatedAt` as a Unix timestamp. Historically that has

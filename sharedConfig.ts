@@ -11,7 +11,7 @@ export const WELCOME_PAGE ={
      message: null,
 }
 export const NAV_BAR={
-    title: process.env.G_PROJECT_NAME
+    title: (process.env.G_PROJECT_NAME ?? 'docusaurus')
         .toLowerCase()
         .split('-')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
