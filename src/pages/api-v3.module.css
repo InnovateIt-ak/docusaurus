@@ -1,0 +1,19 @@
+/* Spike page for Redoc 3 (see api-v3.tsx). */
+.picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0.5rem 1.5rem;
+  font-size: 0.8125rem;
+  color: var(--ifm-color-emphasis-700);
+  border-bottom: 1px solid var(--ifm-color-emphasis-300);
+}
+.picker a[aria-current='page'] {
+  font-weight: 650;
+  color: var(--ifm-color-primary);
+}
+
+/* Redoc 3 lays itself out on the whole viewport height it is given. */
+.redoc {
+  min-height: 80vh;
+}
