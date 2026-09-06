@@ -132,18 +132,11 @@ const config: Config = {
                 },
             } satisfies Preset.Options,
         ],
-        [
-            'redocusaurus',
-            {
-                specs: REDOC_SPEC as any,
-                theme: {
-                    // EU institutional blue, matching the site primary (custom.css).
-                    primaryColor: '#004494',
-                },
-            },
-        ],
     ],
     plugins: [
+        // API references: one page per spec in REDOC_SPEC (sharedConfig.ts),
+        // rendered by Redoc 3 (plugins/redoc, src/components/ApiDoc).
+        ['./plugins/redoc', {specs: REDOC_SPEC}],
         // API data models: render every spec in openapi/ — OpenAPI (.yaml, .yml,
         // .json) or JSON-LD (.jsonld) — as a docs page under docs/api/datamodel
         // (plugins/openapi-schema-doc). Discovered, not listed: dropping a new

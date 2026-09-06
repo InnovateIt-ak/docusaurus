@@ -1,0 +1,23 @@
+/* The reference page (see index.tsx). Redoc 3 is themed through CSS custom
+   properties it reads from its ancestors, so the site's brand and type are
+   set on the wrapper: EU blue as in custom.css, the site's own font stacks. */
+.redoc {
+  min-height: 80vh;
+  --color-primary-base: #004494;
+  --font-family-base: var(--ifm-font-family-base);
+  --font-family-monospaced: var(--ifm-font-family-monospace);
+}
+
+/* Redoc's own light/dark switcher, at the foot of its sidebar: the site's
+   navbar toggle drives the mode (index.tsx), and this one would wipe the
+   classes Docusaurus puts on <html>. Its only stable mark is the aria-label,
+   which names the current mode. */
+.redoc :global(.menu-content) button[aria-label='light'],
+.redoc :global(.menu-content) button[aria-label='dark'] {
+  display: none;
+}
+
+.loading {
+  padding: 2rem 1.5rem;
+  color: var(--ifm-color-emphasis-700);
+}
