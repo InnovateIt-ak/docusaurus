@@ -1,5 +1,4 @@
 import path from 'node:path';
-import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 import {createRequire} from 'node:module';
@@ -10,6 +9,9 @@ import remarkMermaidInline from './src/remark/mermaid-inline.mjs';
 import remarkServiceNowAutolink from './src/remark/servicenow-autolink.mjs';
 import remarkRawSource from './src/remark/raw-source.mjs';
 import remarkUnwrapDiagrams from './src/remark/unwrap-diagrams.mjs';
+import remarkOverviewBlocks from './src/remark/overview-blocks.mjs';
+import remarkPageActions from './src/remark/page-actions.mjs';
+import {lightTheme as prismLight, darkTheme as prismDark} from './src/prism/themes';
 import {FOOTER_CONFIG, NAV_BAR, REDOC_SPEC, WELCOME_PAGE} from './sharedConfig';
 const require = createRequire(import.meta.url);
 import {pdfMenuItems} from './pdfMenu';
@@ -74,6 +76,18 @@ const config: Config = {
             {
                 docs: {
                     sidebarPath: './sidebars.ts',
+                    // The sidebar's top-level folders are its sections: a
+                    // heading with the pages listed under it, never folded
+                    // away (src/css/custom.css draws them). Folders inside a
+                    // section stay collapsible.
+                    sidebarItemsGenerator: async ({defaultSidebarItemsGenerator, ...args}) => {
+                        const items = await defaultSidebarItemsGenerator(args);
+                        return items.map((item) =>
+                            item.type === 'category'
+                                ? {...item, collapsible: false, collapsed: false}
+                                : item,
+                        );
+                    },
                     showLastUpdateTime: true,
                     showLastUpdateAuthor: true,
                     editUrl:
@@ -104,6 +118,13 @@ const config: Config = {
                         // Turn bare ServiceNow refs (INC123, CHG456, …) into links.
                         remarkServiceNowAutolink,
                     ],
+                    // After Docusaurus's own plugins, so the links and images
+                    // inside a block are already resolved: the section-
+                    // overview blocks written as `:::steps`, `:::option`…
+                    // (src/remark/overview-blocks.mjs), then the page actions
+                    // bar placed under the title and its subtitle
+                    // (src/remark/page-actions.mjs).
+                    remarkPlugins: [remarkOverviewBlocks, remarkPageActions],
                 },
                 blog: false,
                 theme: {
@@ -213,7 +234,8 @@ const config: Config = {
                     // Auto-discovered PDF menu (see pdfMenuItems above). Appended
                     // here so sharedConfig's NAV_BAR stays untouched.
                     type: 'dropdown',
-                    label: '📄 PDF',
+                    // Drawn with a file icon in front (src/css/custom.css).
+                    label: 'PDF',
                     position: 'right',
                     items: pdfMenuItems(),
                 },
@@ -221,8 +243,10 @@ const config: Config = {
         } as any,
         footer: FOOTER_CONFIG as any,
         prism: {
-            theme: prismThemes.github,
-            darkTheme: prismThemes.dracula,
+            // The blocks' palettes (src/prism/themes.ts): GitHub's on white,
+            // and a navy one for dark mode, in the page's own blues.
+            theme: prismLight,
+            darkTheme: prismDark,
             // Prism only highlights a small default set (js/ts/bash/json/css/markup…).
             // Load the extra grammars used in the docs so their code blocks are
             // tokenised — otherwise ```php, ```sql, … render as untyped "plain"
@@ -280,6 +304,9 @@ const config: Config = {
         },
         docs: {
             sidebar: {
+                // The design's sidebar has no collapse control, but the user
+                // wants one: the theme's "Collapse sidebar" button at the foot
+                // of the sidebar, and its expand handle once collapsed.
                 hideable: true,
             },
         },

@@ -1,13 +1,21 @@
 /**
- * Any CSS included here will be global. The classic template
- * bundles Infima by default. Infima is a CSS framework designed to
- * work well for content-centric websites.
+ * The site's look, as the "Docusaurus Site" design (claude.ai/design) draws
+ * it: Geist for the text and Geist Mono for the small labels, EU blue for the
+ * accent on white, a navy bar and a navy footer, a 288px sidebar whose top
+ * folders are section headings, and an article on an 820px measure with
+ * "On this page" in a 240px column at its right.
+ *
+ * Everything is expressed through Infima's tokens where a token exists, so
+ * the theme's own components follow without being swizzled; what the design
+ * draws that Infima has no name for gets an --eeas-* token. Dark mode is the
+ * design's dark palette, set through the same tokens.
  */
 
-/* You can override the default Infima variables here.
-   Brand palette: EU institutional blue (#004494, the Europa Component Library
-   primary used across eeas.europa.eu), replacing the Docusaurus default green.
-   The EU gold (#ffcc00) is used as the hover accent on the navbar. */
+@import './fonts.css';
+
+/* ---- Tokens ------------------------------------------------------------------ */
+/* What holds in both themes: the brand blue (lightened in dark mode below),
+   the type, and the bar and footer's own metrics. */
 :root {
   --ifm-color-primary: #004494;
   --ifm-color-primary-dark: #003d85;
@@ -16,24 +24,492 @@
   --ifm-color-primary-light: #004ba3;
   --ifm-color-primary-lighter: #004eab;
   --ifm-color-primary-lightest: #0059c1;
+
+  --ifm-font-family-base: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ifm-font-family-monospace: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --ifm-code-font-size: 95%;
+  --ifm-line-height-base: 1.7;
+  --ifm-heading-font-weight: 700;
+
+  --ifm-navbar-height: 56px;
+  --ifm-navbar-padding-horizontal: 18px;
+  --ifm-navbar-item-padding-horizontal: 12px;
+  --ifm-navbar-item-padding-vertical: 6px;
+  --ifm-navbar-link-color: rgba(255, 255, 255, 0.82);
+  --ifm-navbar-link-hover-color: #ffffff;
+
+  --ifm-footer-padding-vertical: 26px;
+  --ifm-footer-padding-horizontal: 32px;
+
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
 }
 
-/* For readability concerns, a lighter tint of the EU blue is used in dark mode
-   so links and accents stay legible on the dark background. */
-[data-theme='dark'] {
-  --ifm-color-primary: #5c9fe0;
-  --ifm-color-primary-dark: #4593db;
-  --ifm-color-primary-darker: #3a8bd9;
-  --ifm-color-primary-darkest: #3085d4;
-  --ifm-color-primary-light: #72abe5;
-  --ifm-color-primary-lighter: #7cb1e7;
-  --ifm-color-primary-lightest: #96c0ed;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+/* Light mode is the design's palette: its ink, its greys and its tints on
+   white, the navy bar with a blue stripe along its bottom edge. Scoped to
+   the light theme so that none of it reaches the dark one. */
+[data-theme='light'] {
+  --ifm-font-color-base: #414b5c;
+  --ifm-heading-color: #10182a;
+
+  /* The greys: the design's ink and rules, on Infima's scale. 200 and 300
+     are the same hairline on purpose — the design has one rule colour. */
+  --ifm-color-emphasis-0: #ffffff;
+  --ifm-color-emphasis-100: #f7f9fc;
+  --ifm-color-emphasis-200: #dde3ec;
+  --ifm-color-emphasis-300: #dde3ec;
+  --ifm-color-emphasis-400: #c5cdd9;
+  --ifm-color-emphasis-500: #8a95a5;
+  --ifm-color-emphasis-600: #5a6675;
+  --ifm-color-emphasis-700: #4f5a69;
+  --ifm-color-emphasis-800: #2f3947;
+  --ifm-color-emphasis-900: #10182a;
+  --ifm-background-surface-color: #ffffff;
+  --ifm-toc-border-color: #dde3ec;
+  --ifm-hr-background-color: #dde3ec;
+
+  --ifm-link-hover-color: #003a7d;
+  --ifm-link-hover-decoration: underline;
+
+  --ifm-menu-color: #10182a;
+  --ifm-menu-color-active: #10182a;
+  --ifm-menu-color-background-active: #eef3fa;
+  --ifm-menu-color-background-hover: #f2f5f9;
+
+  --ifm-navbar-background-color: #002d5f;
+  --ifm-navbar-shadow: inset 0 -3px 0 #1a5fa8;
+
+  /* The design's blue tint: filled buttons' quiet sibling, the current
+     sidebar entry, the highlighted card. */
+  --eeas-tint: #eef3fa;
+  --eeas-tint-border: #dce7f5;
+  /* The fainter rule under a sidebar section heading. */
+  --eeas-rule-subtle: #eef1f6;
+  /* Filled buttons (the primary call to action, "Ask AI", a badge) and the
+     ink on them. */
+  --eeas-fill: var(--ifm-color-primary);
+  --eeas-fill-ink: #ffffff;
 }
 
+/* Dark mode: the design's desaturated navy — ground #0a1424, surfaces
+   #0f1d33 / #10243d, rules #1e3454 — with one accent blue (#7fb3ea) that is
+   at once the link colour and the fill of a button (dark ink on it). The
+   greys of Infima's dark scale are replaced by the same navies, so rules,
+   cards and hovers all sit in the palette. */
+[data-theme='dark'] {
+  /* The design's dark palette (key-screens/ChangelogDark.dc.html): a
+     desaturated navy, one accent blue, text a step below white. */
+  --ifm-color-primary: #7fb3ea;
+  --ifm-color-primary-dark: #63a3e5;
+  --ifm-color-primary-darker: #559be2;
+  --ifm-color-primary-darkest: #2b82d9;
+  --ifm-color-primary-light: #9bc3ef;
+  --ifm-color-primary-lighter: #a7cbf3;
+  --ifm-color-primary-lightest: #cde0f7;
 
+  --ifm-background-color: #0a1424;
+  --ifm-background-surface-color: #0f1d33;
+  --ifm-font-color-base: #c4d0e0;
+  --ifm-heading-color: #e7edf6;
+
+  --ifm-color-emphasis-0: #0a1424;
+  --ifm-color-emphasis-100: #0f1d33;
+  --ifm-color-emphasis-200: #10243d;
+  --ifm-color-emphasis-300: #1e3454;
+  --ifm-color-emphasis-400: #2c4670;
+  --ifm-color-emphasis-500: #5b7aa0;
+  --ifm-color-emphasis-600: #7ea6d6;
+  --ifm-color-emphasis-700: #a3b2c7;
+  --ifm-color-emphasis-800: #c4d0e0;
+  --ifm-color-emphasis-900: #e7edf6;
+  --ifm-toc-border-color: #1e3454;
+  --ifm-hr-background-color: #1e3454;
+
+  --ifm-link-hover-color: #a7cbf3;
+
+  --ifm-menu-color: #c4d0e0;
+  --ifm-menu-color-active: #e7edf6;
+  --ifm-menu-color-background-active: #10243d;
+  --ifm-menu-color-background-hover: #0f1d33;
+
+  --ifm-navbar-background-color: #071426;
+  --ifm-navbar-shadow: inset 0 -3px 0 #1a5fa8;
+
+  --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.08);
+  --ifm-code-background: #10243d;
+
+  --eeas-tint: #10243d;
+  --eeas-tint-border: #1e3454;
+  --eeas-rule-subtle: #16283f;
+  --eeas-fill: #7fb3ea;
+  --eeas-fill-ink: #04101f;
+}
+
+/* ---- Page text ---------------------------------------------------------------- */
+/* 16.5px on a 16px root: the design's measure, without moving the rem every
+   other size is set in. */
+.theme-doc-markdown {
+  font-size: 1.03125rem;
+  line-height: 1.7;
+}
+/* The title at the design's 42px whether it comes from the front matter
+   (src/theme/DocItem/Content sets the same) or is written in the markdown. */
+.markdown h1 {
+  font-size: clamp(2rem, 4vw, 2.625rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.028em;
+}
+.markdown > h2 {
+  --ifm-h2-font-size: 1.625rem;
+  letter-spacing: -0.022em;
+  line-height: 1.18;
+}
+.markdown > h3 {
+  --ifm-h3-font-size: 1.25rem;
+  letter-spacing: -0.015em;
+}
+.markdown a {
+  text-underline-offset: 2px;
+}
+
+/* The page: 32px above, 48px either side, 72px below, and no cap on the
+   width — the columns cap themselves (src/theme/DocItem/Layout). The
+   utilities on the container carry !important, hence ours. */
+@media (min-width: 997px) {
+  .docs-wrapper main > .container {
+    max-width: none;
+    padding: 32px 48px 72px !important;
+  }
+}
+/* With the sidebar collapsed, the theme caps the page at the container plus
+   the sidebar's width (1428px) and centres it, which on a wide screen leaves
+   the room it just freed empty at the right. No cap: the columns cap
+   themselves here too. The theme's rule is `!important` inside its cascade
+   layer, and an important declaration in a layer beats one outside, so this
+   one goes into the same layer, where specificity decides. The class name is
+   hashed, hence the substring. */
+@layer docusaurus.theme-classic {
+  @media (min-width: 997px) {
+    .docs-wrapper [class*='docItemWrapperEnhanced'] {
+      max-width: none !important;
+    }
+  }
+}
+/* Wide screens: the design opens the page's gutters to 80px past 1560px. */
+@media (min-width: 1560px) {
+  .docs-wrapper main > .container {
+    padding: 32px 80px 72px !important;
+  }
+}
+
+/* ---- Navbar --------------------------------------------------------------------- */
+/* Navy in both themes, a blue stripe along its bottom edge (the shadow
+   token), white brand, and links that mark the current section with a quiet
+   fill rather than an underline. */
+.navbar {
+  font-size: 14.5px;
+}
+.navbar__inner {
+  gap: 0 24px;
+}
+.navbar__items {
+  gap: 4px;
+}
+.navbar__brand {
+  margin-right: 4px;
+}
+.navbar__logo {
+  height: 26px;
+  margin-right: 10px;
+}
+.navbar__title {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+}
+.navbar__brand:hover .navbar__title {
+  color: #ffffff;
+}
+.navbar__link {
+  border-radius: 4px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.navbar__link--active {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  font-weight: 600;
+}
+/* The "PDF" menu wears a file icon; a mask, so it takes the link's colour. */
+.navbar__items--right .dropdown > .navbar__link::before {
+  content: '';
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  margin-right: 6px;
+  vertical-align: -2px;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7z'/%3E%3Cpath d='M14 3v4a2 2 0 0 0 2 2h3'/%3E%3Cpath d='M9 15h1.4a1.1 1.1 0 0 0 0-2.2H9V18'/%3E%3Cpath d='M13.4 12.8V18h1a1.6 1.6 0 0 0 1.6-1.6v-2a1.6 1.6 0 0 0-1.6-1.6z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7z'/%3E%3Cpath d='M14 3v4a2 2 0 0 0 2 2h3'/%3E%3Cpath d='M9 15h1.4a1.1 1.1 0 0 0 0-2.2H9V18'/%3E%3Cpath d='M13.4 12.8V18h1a1.6 1.6 0 0 0 1.6-1.6v-2a1.6 1.6 0 0 0-1.6-1.6z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+/* Theme toggle and mobile hamburger: white, and the toggle in a 30px box
+   with a faint border, as the design draws it. */
+.navbar__inner .clean-btn,
+.navbar-sidebar__brand .clean-btn,
+.navbar__toggle {
+  color: #ffffff;
+}
+.navbar__inner [class*='toggleButton'] {
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 4px;
+}
+.navbar__inner [class*='toggleButton'] svg {
+  width: 17px;
+  height: 17px;
+}
+.navbar__inner .clean-btn:hover,
+.navbar__inner .clean-btn:focus-visible,
+.navbar-sidebar__brand .clean-btn:hover,
+.navbar-sidebar__brand .clean-btn:focus-visible,
+.navbar__toggle:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+/* Search lives in the sidebar ("Find anything"); the navbar's field is kept
+   for the mobile layout, where there is no sidebar on screen. */
+@media (min-width: 997px) {
+  .navbar__search {
+    display: none;
+  }
+}
+
+/* ---- Crowded navbar: one line, never a broken label -----------------------
+   A site with a long project title and a dozen sections used to give a navbar
+   that wrapped onto two rows and split labels mid-phrase. Two things fix
+   that, and they work together:
+
+     * here: nothing in the bar is allowed to wrap, and the brand title gives
+       way (ellipsis) instead of stealing the room the items need;
+     * src/theme/Navbar/Content: the left items that no longer fit on the line
+       are folded into a "More" dropdown, measured on resize. */
+.navbar__item,
+.navbar__link,
+.navbar__title {
+  white-space: nowrap;
+}
+.navbar__title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.navbar__items--right {
+  flex-shrink: 0;
+}
+/* A folded navbar can hand the "More" menu a dozen entries — more than a short
+   viewport has room for. Cap it and let it scroll rather than run off-screen. */
+.navbar .dropdown__menu {
+  max-height: min(70vh, 32rem);
+  overflow-y: auto;
+}
+
+/* The mobile drawer lives INSIDE .navbar and would inherit the navy. Only the
+   bar carries the colour: the drawer keeps a navy header — continuous with
+   the bar it slides out of — and gives its list the page's own ground and
+   ink. The tokens are reset on the drawer rather than the colours overridden
+   item by item, so links, categories and the collapse chevrons all follow. */
+.navbar-sidebar {
+  --ifm-navbar-link-color: var(--ifm-font-color-base);
+  --ifm-navbar-link-hover-color: var(--ifm-color-primary);
+  --ifm-menu-color: var(--ifm-font-color-base);
+  background-color: var(--ifm-background-surface-color);
+  color: var(--ifm-font-color-base);
+}
+.navbar-sidebar__brand {
+  background-color: var(--ifm-navbar-background-color);
+}
+.navbar-sidebar__brand .navbar__title,
+.navbar-sidebar__brand .clean-btn {
+  color: #ffffff;
+}
+.navbar-sidebar__back {
+  color: var(--ifm-font-color-base);
+  background: var(--ifm-color-emphasis-100);
+}
+@media (max-width: 996px) {
+  .navbar-sidebar .menu__link,
+  .navbar-sidebar .navbar__link {
+    white-space: normal;
+  }
+  .navbar-sidebar .navbar__link--active {
+    background: var(--eeas-tint);
+    color: var(--ifm-color-primary);
+  }
+}
+
+/* ---- Sidebar -------------------------------------------------------------------- */
+.docs-wrapper {
+  --doc-sidebar-width: 288px;
+}
+@media (min-width: 997px) {
+  .docs-wrapper .menu {
+    padding: 16px 14px 28px;
+  }
+}
+/* Entries: 14.5px, a 6px radius, and the current page in the tint, bold. */
+.docs-wrapper .menu__link {
+  padding: 7px 8px 7px 6px;
+  border-radius: 6px;
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+.docs-wrapper .menu__link--active:not(.menu__link--sublist) {
+  font-weight: 650;
+}
+.docs-wrapper .menu__list-item:not(:first-child) {
+  margin-top: 1px;
+}
+/* The top-level folders are sections (they are made non-collapsible in
+   docusaurus.config.ts): a small mono heading over a faint rule, no caret,
+   nothing to click into, and the pages listed flush under it. */
+/* Written at the specificity of the entry rule above, which would otherwise
+   take the section's 16px gap down to an entry's 1px. */
+.docs-wrapper .theme-doc-sidebar-item-category-level-1.menu__list-item {
+  margin-top: 16px;
+}
+.docs-wrapper .theme-doc-sidebar-item-category-level-1.menu__list-item:first-child {
+  margin-top: 0;
+}
+.theme-doc-sidebar-item-category-level-1 > .menu__list-item-collapsible {
+  border-bottom: 1px solid var(--eeas-rule-subtle);
+  border-radius: 0;
+}
+.theme-doc-sidebar-item-category-level-1 > .menu__list-item-collapsible:hover,
+.theme-doc-sidebar-item-category-level-1 > .menu__list-item-collapsible--active {
+  background: none;
+}
+.theme-doc-sidebar-item-category-level-1 > .menu__list-item-collapsible > .menu__link {
+  padding: 0 6px 7px;
+  border-radius: 0;
+  background: none;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  line-height: 1.5;
+  text-transform: uppercase;
+  color: var(--ifm-color-emphasis-700);
+}
+.theme-doc-sidebar-item-category-level-1 > .menu__list-item-collapsible > .menu__link:hover {
+  color: var(--ifm-color-primary);
+}
+.theme-doc-sidebar-item-category-level-1 > .menu__list-item-collapsible > .menu__link::after {
+  display: none;
+}
+.theme-doc-sidebar-item-category-level-1 > .menu__list {
+  margin-top: 8px;
+  padding-left: 0;
+}
+/* A folder inside a section keeps its chevron — small, to the right, pointing
+   the way it opens — and its pages on a rail once open. */
+.docs-wrapper .menu__link--sublist-caret::after,
+.docs-wrapper .menu__caret::before {
+  width: 1rem;
+  height: 1rem;
+  min-width: 1rem;
+  background-size: 1.1rem 1.1rem;
+  opacity: 0.75;
+}
+.docs-wrapper .menu__caret {
+  padding: 0 4px;
+}
+.theme-doc-sidebar-item-category-level-2 > .menu__list {
+  margin: 2px 0 6px;
+  padding-left: 8px;
+  border-left: 1px solid var(--ifm-toc-border-color);
+}
+
+/* The "Collapse sidebar" control (themeConfig.docs.sidebar.hideable): the
+   theme's full-width bar, kept, but at 26px instead of 40 — the user wants it
+   lower, not narrower. The class name is hashed, hence the substring match. */
+@media (min-width: 997px) {
+  .theme-doc-sidebar-container button[class*='collapseSidebarButton'] {
+    flex: none;
+    height: 26px;
+    padding: 0;
+    line-height: 24px;
+    text-align: center;
+    color: var(--ifm-color-emphasis-600);
+  }
+  /* The arrow is a 20px SVG without a viewBox: it must keep its 20px, any
+     other size crops it. */
+  .theme-doc-sidebar-container svg[class*='collapseSidebarButtonIcon'] {
+    margin-top: 0;
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+  }
+}
+
+/* ---- Footer ---------------------------------------------------------------------- */
+/* Navy, one line: the copyright at the left, the links at the right. The
+   theme puts links first and centres both; flex reverses and spreads them. */
+.footer--dark {
+  --ifm-footer-background-color: #071426;
+  --ifm-footer-color: #a3b2c7;
+  --ifm-footer-link-color: #a3b2c7;
+  --ifm-footer-link-hover-color: #ffffff;
+  --ifm-footer-title-color: #ffffff;
+}
+[data-theme='dark'] .footer--dark {
+  --ifm-footer-background-color: #050e1c;
+  --ifm-footer-color: #a3b2c7;
+  --ifm-footer-link-color: #c4d0e0;
+  border-top: 1px solid #16283f;
+}
+.footer {
+  font-size: 13.5px;
+}
+.footer > .container {
+  display: flex;
+  flex-direction: row-reverse;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  max-width: 1600px;
+  padding: 0;
+}
+.footer .footer__links {
+  display: flex;
+  gap: 20px;
+  margin: 0;
+  text-align: left;
+}
+.footer .footer__link-separator {
+  display: none;
+}
+.footer .footer__link-item {
+  text-decoration: none;
+}
+.footer .footer__bottom {
+  margin: 0;
+  text-align: left;
+}
+
+/* ---- Code blocks --------------------------------------------------------------
+   The frame (hairline, 6px radius, header bar) is src/theme/CodeBlock, the
+   palette inside src/prism/themes.ts; here only the measure of the code. */
+.theme-code-block {
+  box-shadow: none;
+}
+.theme-code-block pre {
+  font-size: 0.90625rem;
+  line-height: 1.7;
+}
 /* ---- Diagram frame (Mermaid / PlantUML) -----------------------------------
    Diagrams are baked at build time into static, light-themed SVGs, inlined as
    data-URL <img>. An <img> is a replaced element: page CSS stops at its border,
@@ -46,15 +522,10 @@
    page has, so a diagram looks identical in both — and it is what makes dark
    mode work at all: the SVGs have a transparent background (so WeasyPrint
    embeds them cleanly), so without it the diagram's dark text and edges would
-   sit on the dark page. On white paper the nodes, white too, read by their ink
-   hairline rather than by their fill; the theme drops its background fills to
-   match (src/remark/mermaid-theme.mjs).
-
-   Hairline border and 8px radius, no shadow — the diagram system builds depth
-   from rules, never from shadows, and the PDF (WeasyPrint) could not render a
-   shadow anyway. Paper stays white in both themes because the SVG inside is
-   baked light-only. Web-only: the PDF is produced from
-   docker/weasyprint/report.css and never reads this file. */
+   sit on the dark page. Hairline border and 8px radius, no shadow — the
+   diagram system builds depth from rules, never from shadows, and the PDF
+   (WeasyPrint) could not render a shadow anyway. Web-only: the PDF is
+   produced from docker/weasyprint/report.css and never reads this file. */
 .markdown img[alt='Mermaid diagram'],
 .markdown img[alt='PlantUML diagram'] {
   display: block;
@@ -72,105 +543,44 @@
   border-color: rgba(0, 0, 0, 0.4);
 }
 
-
-/* ---- Active table-of-contents link --------------------------------------
-   Docusaurus already sets `--active` on the TOC link for the section currently
-   in view (via an IntersectionObserver). Default styling only recolors it; make
-   the current section unmistakable with a weight bump and a left accent bar
-   that lines up with the TOC's own indentation. Purely visual — no layout
-   shift, since the accent replaces transparent space in the existing padding. */
+/* ---- "On this page" ---------------------------------------------------------
+   A rail with the headings hanging off it, 13.5px; the one in view takes a
+   short accent rule over the rail and the accent colour, bold. A level-3
+   heading is set further in on the same rail rather than on a rail of its
+   own. The theme marks the heading in view with --active; the title above
+   the list is src/theme/TOC. The mobile "On this page" uses the same
+   classes and so reads the same. */
+.table-of-contents {
+  padding: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.table-of-contents li {
+  margin: 0;
+}
+.table-of-contents ul {
+  padding-left: 0;
+}
+.table-of-contents__link {
+  display: block;
+  margin-left: -1px;
+  padding: 6px 0 6px 12px;
+  border-left: 2px solid transparent;
+  color: var(--ifm-color-emphasis-700);
+  font-weight: 500;
+}
+.table-of-contents ul ul .table-of-contents__link {
+  padding-left: 26px;
+}
+.table-of-contents__link:hover,
+.table-of-contents__link:hover code {
+  color: var(--ifm-color-primary);
+}
 .table-of-contents__link--active,
 .table-of-contents__link--active code {
-  font-weight: 600;
-}
-.table-of-contents__link--active {
-  border-left: 2px solid var(--ifm-color-primary);
-  padding-left: calc(var(--ifm-toc-padding-horizontal, 0.5rem) - 2px);
-}
-
-
-/* ---- Light-mode top navbar: EU-blue background ---------------------------
-   In light mode the top navbar (NOT the left sidebar) is painted EU blue.
-   Overriding the Infima navbar variables (rather than .navbar directly) keeps
-   links, the brand title, the theme toggle and the mobile hamburger legible,
-   since they all read from these tokens. Scoped to light mode only, so dark
-   mode and the (light) PDF are untouched.
-
-   Everything on the bar is white — including the hovered and the active
-   section, which are marked by an underline rather than by a second colour.
-   The gold (#ffcc00) this used to hover and mark with was the loudest thing on
-   a page that is otherwise blue-and-white; the underline says the same thing
-   without shouting, and it is what the section already gets in the sidebar. */
-[data-theme='light'] .navbar {
-  --ifm-navbar-background-color: rgb(0, 68, 148);
-  --ifm-navbar-link-color: #ffffff;
-  --ifm-navbar-link-hover-color: #ffffff;
-}
-[data-theme='light'] .navbar__title,
-[data-theme='light'] .navbar__brand:hover .navbar__title {
-  color: #ffffff;
-}
-/* Underline offset below the text baseline, so it reads as a marker under the
-   item and not as a link decoration. No border, no fill: nothing here moves the
-   item by a pixel when it becomes current. */
-[data-theme='light'] .navbar__inner .navbar__link:hover,
-[data-theme='light'] .navbar__inner .navbar__link--active {
-  text-decoration: underline;
-  text-underline-offset: 7px;
-  text-decoration-thickness: 2px;
-}
-[data-theme='light'] .navbar__inner .navbar__link--active {
-  font-weight: var(--ifm-font-weight-bold);
-}
-/* Theme toggle + mobile hamburger icons inherit currentColor. Aimed at the bar
-   and at the drawer's blue header only: the drawer's own buttons ("back to main
-   menu") sit on white, and a blanket `.navbar .clean-btn` would paint those
-   white too — invisible, and with enough specificity to outrank the rule that
-   sets their colour further down. */
-[data-theme='light'] .navbar__inner .clean-btn,
-[data-theme='light'] .navbar-sidebar__brand .clean-btn,
-[data-theme='light'] .navbar__toggle {
-  color: #ffffff;
-}
-/* The theme-toggle button's hover/focus fill defaults to a light grey
-   (--ifm-color-emphasis-200), which reads as a jarring solid white disc on the
-   blue navbar. Replace it with a subtle translucent-white overlay. */
-[data-theme='light'] .navbar__inner .clean-btn:hover,
-[data-theme='light'] .navbar__inner .clean-btn:focus-visible,
-[data-theme='light'] .navbar-sidebar__brand .clean-btn:hover,
-[data-theme='light'] .navbar-sidebar__brand .clean-btn:focus-visible,
-[data-theme='light'] .navbar__toggle:hover {
-  background: rgba(255, 255, 255, 0.15);
-}
-
-/* The mobile drawer lives INSIDE .navbar, so it inherited the whole blue
-   treatment above and opened as a full-height slab of EU blue. Only the bar is
-   meant to carry the colour: the drawer keeps a blue header — continuous with
-   the bar it slides out of — and gives its list back the page's own ground and
-   ink. The tokens are reset on the drawer rather than the colours overridden
-   item by item, so links, categories and the collapse chevrons all follow. */
-[data-theme='light'] .navbar-sidebar {
-  --ifm-navbar-link-color: var(--ifm-font-color-base);
-  --ifm-navbar-link-hover-color: var(--ifm-color-primary);
-  --ifm-menu-color: var(--ifm-font-color-base);
-  /* --ifm-background-color is `transparent` in light mode (the body paints the
-     page); the drawer is an overlay and needs a real surface under it. */
-  background-color: var(--ifm-background-surface-color);
-  color: var(--ifm-font-color-base);
-}
-/* Header of the drawer: the bar, continued. */
-[data-theme='light'] .navbar-sidebar__brand {
-  background-color: rgb(0, 68, 148);
-}
-[data-theme='light'] .navbar-sidebar__brand .navbar__title,
-[data-theme='light'] .navbar-sidebar__brand .clean-btn {
-  color: #ffffff;
-}
-/* "Back to main menu" sits on the white list, not on the blue header, so it
-   takes the page's ink on the theme's own active-item grey. */
-[data-theme='light'] .navbar-sidebar__back {
-  color: var(--ifm-font-color-base);
-  background: var(--ifm-color-emphasis-100);
+  border-left-color: var(--ifm-color-primary);
+  color: var(--ifm-color-primary);
+  font-weight: 650;
 }
 
 /* ---- Enriched provenance block -------------------------------------------
@@ -182,13 +592,11 @@
   display: none;
 }
 
-
-/* ---- Markdown table headers: EU-blue, matching the navbar and the PDF ------
-   The generated PDF paints table headers EU blue (docker/weasyprint/report.css)
-   and the light-mode navbar uses the same institutional blue. Bring that to the
-   site so the header row reads identically across web and PDF, in both themes.
-   The blue is fixed (not var(--ifm-color-primary), which lightens in dark mode)
-   so white-on-blue contrast stays strong everywhere. */
+/* ---- Markdown table headers: EU-blue, matching the PDF -------------------
+   The generated PDF paints table headers EU blue (docker/weasyprint/report.css);
+   bring that to the site so the header row reads identically across web and
+   PDF, in both themes. The blue is fixed (not var(--ifm-color-primary), which
+   lightens in dark mode) so white-on-blue contrast stays strong everywhere. */
 .markdown table thead tr,
 .markdown table th {
   background-color: rgb(0, 68, 148); /* EU institutional blue #004494 */
@@ -199,188 +607,19 @@
   color: #ffffff;
   text-decoration: underline;
 }
-
-
-/* ---- Navbar search input: prettier pill field ----------------------------
-   Style only the input of the local-search bar (@easyops-cn/docusaurus-search-
-   local renders the global `.navbar__search-input`). Rounded pill, soft border,
-   an EU-blue focus ring, and a gentle widen on focus. On the EU-blue light
-   navbar the field is a solid white pill (dark text); dark mode keeps a surface
-   field with a blue focus ring. */
-.navbar__search-input {
-  height: 2.15rem;
-  width: 12rem;
-  border-radius: 999px;
-  border: 1px solid var(--ifm-color-emphasis-300);
-  transition: box-shadow 0.15s ease, border-color 0.15s ease,
-    background-color 0.15s ease, width 0.2s ease;
+/* Dark mode: the EU blue sat on the navy page like the black code card did,
+   so the header takes the same surfaces as the code block (src/theme/CodeBlock):
+   the tint for the header row, the rule blue for the grid, a darker stripe. */
+[data-theme='dark'] {
+  --ifm-table-border-color: #1e3454;
+  --ifm-table-stripe-background: #0f1d33;
+  --ifm-table-head-background: #10243d;
 }
-.navbar__search-input:focus {
-  outline: none;
-  width: 15rem;
-  border-color: var(--ifm-color-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ifm-color-primary) 22%, transparent);
+[data-theme='dark'] .markdown table thead tr,
+[data-theme='dark'] .markdown table th {
+  background-color: #10243d;
+  color: #e7edf6;
 }
-
-/* Solid white pill with dark text on the EU-blue navbar. The search-hint keys
-   (ctrl/K) read their text/background from these same vars, so keeping them
-   dark-on-white (not white-on-white) is what keeps the hint legible. */
-[data-theme='light'] .navbar {
-  --ifm-navbar-search-input-background-color: #ffffff;
-  --ifm-navbar-search-input-color: var(--ifm-font-color-base);
-  --ifm-navbar-search-input-placeholder-color: var(--ifm-color-emphasis-500);
-}
-[data-theme='light'] .navbar__search-input {
-  border-color: rgba(255, 255, 255, 0.55);
-}
-[data-theme='light'] .navbar__search-input:focus {
-  border-color: #ffffff;
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4);
-}
-
-@media (max-width: 996px) {
-  /* On mobile the navbar search collapses; don't force widths. */
-  .navbar__search-input,
-  .navbar__search-input:focus {
-    width: auto;
-  }
-}
-
-
-/* ---- Crowded navbar: one line, never a broken label -----------------------
-   A site with a long project title and a dozen sections used to give a navbar
-   that wrapped onto two rows and split labels mid-phrase ("LikeC4 Architecture
-   / Diagrams"). Two things fix that, and they work together:
-
-     * here: nothing in the bar is allowed to wrap, and the brand title gives
-       way (ellipsis) instead of stealing the room the items need;
-     * src/theme/Navbar/Content: the left items that no longer fit on the line
-       are folded into a "More" dropdown, measured on resize.
-
-   Without the no-wrap rules the fold would measure labels that have already
-   broken in two, so these are what make the row's width mean what it says. */
-.navbar__item,
-.navbar__link,
-.navbar__title {
-  white-space: nowrap;
-}
-/* The brand is the one thing that may be shortened, and only once the bar has
-   nothing left to give: the items row yields its space first (it may fold into
-   "More"), so the title is ellipsed rather than wrapped only when even that is
-   not enough. A title that fits is never cut. */
-.navbar__title {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-/* Search and theme toggle keep their size; the items row absorbs the shortage
-   (see .leftItems in the swizzled Navbar/Content). */
-.navbar__items--right {
-  flex-shrink: 0;
-}
-/* A folded navbar can hand the "More" menu a dozen entries — more than a short
-   viewport has room for. Cap it and let it scroll rather than run off-screen.
-   Applies to every navbar dropdown, the "📄 PDF" one included. */
-.navbar .dropdown__menu {
-  max-height: min(70vh, 32rem);
-  overflow-y: auto;
-}
-
-@media (max-width: 996px) {
-  /* The mobile drawer is a vertical list: labels have the full width and wrap
-     naturally, so the no-wrap above would only truncate them for nothing. */
-  .navbar-sidebar .menu__link,
-  .navbar-sidebar .navbar__link {
-    white-space: normal;
-  }
-}
-
-
-/* ---- Navbar at 90% ---------------------------------------------------------
-   The bar reads better a notch smaller than the page: shorter, with tighter
-   items and a ~10% smaller type, which is the scale the site was judged best
-   at. Everything below is scoped to `.navbar` (and its mobile drawer) — the
-   page, the sidebar and the PDF keep their own scale — and is expressed by
-   overriding the Infima navbar tokens, so links, the brand, the dropdowns and
-   the search field all follow from one place.
-
-   Working smaller here also buys the items room: ten sections that needed a
-   fold into "More" at full size often fit on the line at this one. */
-.navbar {
-  font-size: 0.9rem;
-  --ifm-navbar-height: 3.4rem;
-  --ifm-navbar-item-padding-horizontal: 0.6rem;
-}
-.navbar__logo {
-  height: 1.75rem;
-}
-.navbar__title {
-  font-size: 1.1rem;
-}
-/* The search pill follows the same 10%: the widths above were set against the
-   full-size bar and would now sit taller than the links beside them. */
-.navbar__search-input {
-  height: 1.95rem;
-  width: 10.5rem;
-}
-.navbar__search-input:focus {
-  width: 13rem;
-}
-/* The mobile drawer inherits `.navbar`'s size through `.navbar-sidebar`; give
-   its list back a comfortable touch size. */
-.navbar-sidebar {
-  font-size: 0.95rem;
-}
-
-
-/* ---- Very wide screens: use the width instead of centring in it -----------
-   A doc page is a `.container` capped at --ifm-container-width-xl (1320px),
-   centred in whatever the sidebar leaves. Past ~1620px of viewport that cap
-   starts costing: the whole page drifts to the middle, leaving a margin on the
-   right while the table of contents sits pinned against the prose rather than
-   near the edge the reader's eye goes to.
-
-   Above 1600px the row is given the full width instead, and the two columns
-   then take the space that means something to each: the article keeps a
-   readable measure (64rem, close to the ~960px it gets at 1440px, so line
-   length does not grow with the monitor) and starts right after the sidebar,
-   and the table of contents is pushed to the right edge. The space that used
-   to be split into two margins ends up between them.
-
-   The cap is set on the column's inner container, not on the column: the
-   theme's own `.docItemCol` carries `max-width: 75% !important` from a cascade
-   layer, which no unlayered rule of ours can outrank. */
-@media (min-width: 1600px) {
-  .docs-wrapper .container {
-    --ifm-container-width-xl: 100%;
-  }
-  .docs-wrapper .row > .col:first-child > div {
-    max-width: 64rem;
-  }
-  /* Pushed to the right edge, and kept to a column width: at 25% of a 2560px
-     screen the table of contents would otherwise be 530px of mostly air. */
-  .docs-wrapper .row > .col--3 {
-    margin-left: auto;
-    max-width: 22rem;
-  }
-
-  /* Collapsing the sidebar must not re-lay-out the page. The theme widens the
-     container by the sidebar's width and re-centres it, which at this size
-     slides the article left and pulls the table of contents back in from the
-     edge — the reader hides the sidebar and the two columns they were reading
-     move. Here the reclaimed strip is left as margin instead: the row keeps the
-     width and the position it had, and only the sidebar disappears.
-
-     The widening is `max-width: calc(var(--ifm-container-width) +
-     var(--doc-sidebar-width)) !important` from a cascade layer, which no
-     unlayered rule can outrank — so it is defused through the variable it
-     computes from rather than by fighting the declaration. */
-  .docs-wrapper .container {
-    --ifm-container-width: 100%;
-  }
-  .docs-wrapper main[class*='docMainContainerEnhanced'] > .container {
-    padding-left: calc(
-      var(--doc-sidebar-width) - var(--doc-sidebar-hidden-width) +
-        var(--ifm-spacing-horizontal)
-    );
-  }
+[data-theme='dark'] .markdown table th a {
+  color: #a7cbf3;
 }

@@ -32,6 +32,9 @@ import {
   Search,
   Folder,
   ExternalLink,
+  Sparkles,
+  Copy,
+  Check,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -79,6 +82,10 @@ const REGISTRY = {
   search: Search,
   folder: Folder,
   'external-link': ExternalLink,
+  // Page actions (src/components/PageActions)
+  sparkles: Sparkles,
+  copy: Copy,
+  check: Check,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof REGISTRY;

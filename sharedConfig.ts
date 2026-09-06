@@ -1,4 +1,11 @@
-export const REDOC_SPEC=[]
+// The OpenAPI references Redocly renders (Redocusaurus, docusaurus.config.ts):
+// one page per spec in openapi/, at /api/<id>. The same specs are also read as
+// data-model pages under docs/api/datamodel (plugins/openapi-schema-doc).
+export const REDOC_SPEC=[
+    {id: 'platform', spec: 'openapi/api-platform.yaml', route: '/api/platform'},
+    {id: 'delegations', spec: 'openapi/delegations.yaml', route: '/api/delegations'},
+    {id: 'petstore', spec: 'openapi/petstore.yaml', route: '/api/petstore'},
+]
 export const WELCOME_PAGE ={
     redirectUrl:"/docs/",
      message: null,
@@ -21,6 +28,18 @@ export const NAV_BAR={
             label: 'Guide',
         },
         {
+            // The API references (REDOC_SPEC above), one entry per spec.
+            type: 'dropdown',
+            label: 'API',
+            position: 'left',
+            to: '/api/platform',
+            items: [
+                {label: 'API Platform', to: '/api/platform'},
+                {label: 'Delegations API', to: '/api/delegations'},
+                {label: 'Petstore', to: '/api/petstore'},
+            ],
+        },
+        {
             href: 'https://github.eeas.europa.eu',
             label: 'GitHub',
             position: 'right',
@@ -31,6 +50,8 @@ export const NAV_BAR={
 export const FOOTER_CONFIG={
     style: 'dark',
     links: [
+        {label: 'Repository', href: 'https://github.eeas.europa.eu'},
+        {label: 'PDF exports', href: 'pathname:///documentation.pdf'},
     //     {
     //         title: 'Docs',
     //         items: [

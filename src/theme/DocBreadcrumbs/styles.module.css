@@ -1,0 +1,33 @@
+.nav {
+  margin-bottom: 18px;
+}
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ifm-color-emphasis-700);
+}
+.item {
+  display: contents;
+}
+.separator {
+  color: var(--ifm-color-emphasis-200);
+}
+.link {
+  color: var(--ifm-color-emphasis-700);
+  text-decoration: none;
+}
+.link:hover {
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+}
+.current {
+  color: var(--ifm-heading-color);
+  font-weight: 600;
+}
