@@ -1,6 +1,6 @@
-import {useEffect, useMemo, type ReactNode} from 'react';
+import {useMemo, type ReactNode} from 'react';
 import BrowserOnly from '@docusaurus/BrowserOnly';
-import {useColorMode} from '@docusaurus/theme-common';
+import {HtmlClassNameProvider, useColorMode} from '@docusaurus/theme-common';
 import Layout from '@theme/Layout';
 import styles from './styles.module.css';
 
@@ -15,9 +15,13 @@ import styles from './styles.module.css';
 //
 // Colour mode: Redoc 3 reads its mode from a `light` / `dark` class on <html>
 // while Docusaurus keeps it in `data-theme`; the class is mirrored from
-// Docusaurus's mode while a reference page is mounted. Redoc's own switcher
-// is hidden (styles.module.css): it replaces the whole className of <html>,
-// wiping the classes Docusaurus put there.
+// Docusaurus's mode while a reference page is mounted. It goes through
+// Docusaurus's HtmlClassNameProvider, not classList: Docusaurus rewrites the
+// <html> class attribute (through Helmet) on every route change with the
+// classes it knows about, so a class added by hand survived the first load
+// but not coming back to the page. Redoc's own switcher is hidden
+// (styles.module.css): it replaces the whole className of <html>, wiping the
+// classes Docusaurus put there.
 
 type Spec = {
   id: string;
@@ -43,12 +47,6 @@ export default function ApiDoc({spec}: Props): ReactNode {
 
 function Redoc({spec}: Props): ReactNode {
   const {colorMode} = useColorMode();
-  useEffect(() => {
-    const html = document.documentElement;
-    html.classList.remove('light', 'dark');
-    html.classList.add(colorMode);
-    return () => html.classList.remove('light', 'dark');
-  }, [colorMode]);
 
   // Stable identity on purpose: Redoc rebuilds its store when it is handed a
   // new options object, and sat on "Loading ..." after every colour-mode
@@ -74,13 +72,15 @@ function Redoc({spec}: Props): ReactNode {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const {RedocStandalone} = require('redoc');
   return (
-    <div className={styles.redoc}>
-      <RedocStandalone
-        definition={spec.definition}
-        options={options}
-        router="hash"
-        disableTelemetry
-      />
-    </div>
+    <HtmlClassNameProvider className={colorMode}>
+      <div className={styles.redoc}>
+        <RedocStandalone
+          definition={spec.definition}
+          options={options}
+          router="hash"
+          disableTelemetry
+        />
+      </div>
+    </HtmlClassNameProvider>
   );
 }
