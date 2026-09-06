@@ -7,10 +7,12 @@
 // This replaces Redocusaurus, which wraps Redoc 2 and cannot load 3: it pins
 // redoc 2.4.0 and builds on exports 3 no longer has (AppStore, Redoc with a
 // store). What is kept from it: the same `specs` option and routes, and the
-// bundled spec written next to the page at build time (`<route>.yaml`) so the
-// reference offers its source for download. That file is a build product,
-// so the download link only resolves on the built site, not under
-// `docusaurus start` — as with Redocusaurus.
+// spec written next to its page (`<route>.yaml`) so the reference offers its
+// source for download. The built site gets that file from `postBuild`; under
+// `docusaurus start` nothing builds, so the same file is written under
+// .docusaurus and handed to the dev server as a static directory — otherwise
+// the download link falls into the SPA fallback and lands on the home page
+// (that was the case with Redocusaurus too).
 //
 // The specs are single files (no `$ref` to another file), so a YAML parse is
 // all the bundling needed; Redoc resolves the internal `$ref`s itself.
@@ -31,6 +33,19 @@ module.exports = function redocPlugin(context, options) {
         route: entry.route.replace(/\/$/, ''),
         file: path.resolve(context.siteDir, entry.spec),
     }));
+
+    // The dev server's copy of the specs, laid out as the built site is
+    // (`<route>.yaml` under this directory = `<baseUrl><route>.yaml`).
+    const devDir = path.join(context.generatedFilesDir, 'redoc-specs');
+
+    /** Each spec at `<dir><route>.yaml`, for the download link. */
+    function writeSpecs(dir) {
+        for (const entry of entries) {
+            const target = path.join(dir, `${entry.route}.yaml`);
+            fs.mkdirSync(path.dirname(target), {recursive: true});
+            fs.copyFileSync(entry.file, target);
+        }
+    }
 
     return {
         name: 'redoc',
@@ -68,6 +83,9 @@ module.exports = function redocPlugin(context, options) {
                     modules: {spec},
                 });
             }
+            // Runs again when a spec changes (getPathsToWatch), so the dev
+            // server's copy follows the source.
+            writeSpecs(devDir);
         },
 
         // Re-run loadContent when a spec changes under `docusaurus start`.
@@ -75,13 +93,24 @@ module.exports = function redocPlugin(context, options) {
             return entries.map((entry) => entry.file);
         },
 
-        // The spec next to its page, for the download link.
-        async postBuild({content, outDir}) {
-            for (const entry of content) {
-                const target = path.join(outDir, `${entry.route}.yaml`);
-                fs.mkdirSync(path.dirname(target), {recursive: true});
-                fs.copyFileSync(entry.file, target);
+        // `docusaurus start`: serve the specs at their download URLs. Docusaurus
+        // merges a client `devServer` into its own dev-server config, and its
+        // `static` entries are served before the SPA fallback. Not watched:
+        // the reload already comes from getPathsToWatch.
+        configureWebpack(_config, isServer) {
+            if (isServer) {
+                return {};
             }
+            return {
+                devServer: {
+                    static: [{directory: devDir, publicPath: context.baseUrl, watch: false}],
+                },
+            };
+        },
+
+        // `docusaurus build`: the spec next to its page, for the download link.
+        async postBuild({outDir}) {
+            writeSpecs(outDir);
         },
     };
 };
