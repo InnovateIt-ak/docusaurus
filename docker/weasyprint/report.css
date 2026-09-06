@@ -446,18 +446,20 @@ pre {
   float: none !important;
   min-width: 0 !important;
 }
-/* Light code card in the PDF: a rounded, bordered light panel that matches the
-   on-screen light theme. break-inside: avoid keeps a block that fits on one page
-   from being split across a page boundary; a block taller than a page is still
-   fragmented by the renderer (avoid is best-effort), and the inner <pre> stays
-   break-inside: auto so that split is clean. The swizzled CodeBlock renders its
-   own header (filename + language chip), so no window/title bar is added here. */
+/* Light code card in the PDF: a rounded, bordered panel whose body is white,
+   as on screen (src/theme/CodeBlock/Layout: --cb-body). Only the header strip
+   (filename + language chip) stays tinted; it keeps the light theme's own
+   colours since nothing here restyles it, and no window/title bar is added.
+   break-inside: avoid keeps a block that fits on one page from being split
+   across a page boundary; a block taller than a page is still fragmented by
+   the renderer (avoid is best-effort), and the inner <pre> stays
+   break-inside: auto so that split is clean. */
 .markdown [class*="codeBlockContainer"] {
   box-shadow: none !important;
   break-inside: avoid;
   margin: 1.3rem 0;
   padding: 0 !important;
-  background: #f6f8fa !important;
+  background: #ffffff !important;
   border: 0.2mm solid #d5d9e0 !important;
   border-radius: 3mm;
 }
@@ -465,7 +467,7 @@ pre {
   display: none !important;
 }
 .markdown pre.prism-code {
-  background: #f6f8fa !important;
+  background: #ffffff !important;
   color: #1c1e21 !important;
   border: 0 !important;
   border-radius: 0 0 3mm 3mm !important;
