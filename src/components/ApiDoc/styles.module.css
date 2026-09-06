@@ -1,11 +1,10 @@
 /* The reference page (see index.tsx). Redoc 3 is themed through CSS custom
-   properties it reads from its ancestors, so the site's brand and type are
-   set on the wrapper: EU blue as in custom.css, the site's own font stacks. */
+   properties — but it declares and resolves them on <html> (`:root`), so
+   they are set there too, below, not on this wrapper: a value set here would
+   only reach the few places that read the variable directly, not the many
+   that go through another variable resolved at the root. */
 .redoc {
   min-height: 80vh;
-  --color-primary-base: #004494;
-  --font-family-base: var(--ifm-font-family-base);
-  --font-family-monospaced: var(--ifm-font-family-monospace);
 }
 
 /* Redoc's own light/dark switcher, at the foot of its sidebar: the site's
@@ -70,4 +69,29 @@
 }
 :global([data-theme='dark']) .redoc {
   --color-primary-base: #7fb3ea;
+}
+
+/* Redoc also styles the document itself: `:root { font-family: …; color: … }`
+   from its own variables, which the navbar and footer then inherit — the
+   site's chrome switched to system-ui and a lighter ink on reference pages.
+   Give <html> the site's values back while a reference page is mounted
+   (index.tsx puts the light/dark class there), and point Redoc's own type
+   variables at the site's stacks so the reference is set in them too. */
+:global(html.light),
+:global(html.dark) {
+  font-family: var(--ifm-font-family-base);
+  color: var(--ifm-font-color-base);
+  --font-family-base: var(--ifm-font-family-base);
+  --font-family-monospaced: var(--ifm-font-family-monospace);
+}
+
+/* Light mode: Redoc's primary (buttons, active states) and link blues on
+   the site's EU blue (custom.css :root). Dark mode gets its ramps above. */
+:global(html.light) {
+  --color-blueberry-5: #1a5aa8;
+  --color-blueberry-6: #004494;
+  --color-blueberry-7: #003a7d;
+  --color-blue-6: #004494;
+  --color-blue-7: #004494;
+  --color-blue-8: #003a7d;
 }
