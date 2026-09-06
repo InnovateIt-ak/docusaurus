@@ -25,7 +25,28 @@
   position: relative;
   overflow: hidden;
 }
+/* A faint grid of squares over the hero, fading out towards the edges (the
+   mask), with a soft blur so it reads as a texture rather than as ruled
+   paper; the blue glow sits on top of it. */
 .hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  --grid-line: color-mix(in srgb, var(--ifm-color-primary) 11%, transparent);
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 48px 48px;
+  background-position: center top;
+  -webkit-mask-image: radial-gradient(ellipse 62% 78% at 50% 40%, #000 10%, transparent 100%);
+  mask-image: radial-gradient(ellipse 62% 78% at 50% 40%, #000 10%, transparent 100%);
+  filter: blur(0.7px);
+  pointer-events: none;
+}
+:global([data-theme='dark']) .hero::before {
+  --grid-line: rgba(255, 255, 255, 0.07);
+}
+.hero::after {
   content: '';
   position: absolute;
   inset: -40% 20% auto -10%;

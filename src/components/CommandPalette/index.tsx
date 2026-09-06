@@ -15,6 +15,23 @@ type Item = {title: string; permalink: string; description?: string};
 
 const MAX_RESULTS = 8;
 
+// The event that opens the palette from outside this component.
+const OPEN_EVENT = 'command-palette:open';
+
+/** Opens the palette — from a button, where a keyboard shortcut cannot help. */
+export function openCommandPalette(): void {
+  window.dispatchEvent(new Event(OPEN_EVENT));
+}
+
+/** Whether a keystroke on this target is text being typed, not a shortcut. */
+function isTypingTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  return (
+    target.isContentEditable ||
+    ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)
+  );
+}
+
 // Score a doc against the query: title prefix > title substring > description.
 function score(item: Item, q: string): number {
   const title = item.title.toLowerCase();
@@ -68,16 +85,34 @@ export default function CommandPalette(): ReactNode {
     setQuery('');
   }, []);
 
-  // Global open/close shortcut: ⌘K / Ctrl-K.
+  // Global open/close shortcut: ⌘K / Ctrl-K, or "/" when nothing is being
+  // typed into — the key the sidebar's "Find anything" button shows. That
+  // button, and anything else, opens the palette with openCommandPalette().
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setOpen((o) => !o);
+      } else if (
+        e.key === '/' &&
+        !e.metaKey &&
+        !e.ctrlKey &&
+        !e.altKey &&
+        !isTypingTarget(e.target)
+      ) {
+        e.preventDefault();
+        setOpen(true);
       }
     }
+    function onOpen() {
+      setOpen(true);
+    }
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener(OPEN_EVENT, onOpen);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener(OPEN_EVENT, onOpen);
+    };
   }, []);
 
   // Focus the input on open; restore focus to the trigger on close.

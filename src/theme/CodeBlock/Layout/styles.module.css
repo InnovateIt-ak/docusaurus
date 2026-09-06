@@ -1,42 +1,44 @@
-/* "pheralb/code-blocks" look, rendered on the stock Prism engine (no Tailwind,
-   no Shiki, PDF pipeline intact). The palette is pinned to the mockup: a
-   near-white card in light, a near-black neutral card in dark, an indigo accent,
-   and a coloured per-language chip next to the filename.
+/* "pheralb/code-blocks" layout (chip, filename, icon buttons), rendered on
+   the stock Prism engine (no Tailwind, no Shiki, PDF pipeline intact), in the
+   site's own palette: the design's white card with a hairline and a 6px
+   radius in light (key-screens/DocPage.dc.html), and the navy surfaces of the
+   dark mode (src/css/custom.css) rather than a black card that sat on the
+   blue page like a hole. The accent is the site's blue in both modes.
 
    Docusaurus always stamps `data-theme` on <html>, so theming via
    [data-theme='dark'] is reliable here. */
 
 .card {
   --cb-body: #ffffff;
-  --cb-head: #fafafa;
-  --cb-border: #e4e4e7;
-  --cb-border-soft: #ececef;
-  --cb-name: #3f3f46;
-  --cb-chip-bg: #e4e4e7;
-  --cb-chip-fg: #3f3f46;
-  --cb-btn: #71717a;
-  --cb-btn-hover-bg: #f4f4f5;
-  --cb-btn-hover-fg: #18181b;
-  --cb-accent: #6366f1;
+  --cb-head: #f7f9fc;
+  --cb-border: #dde3ec;
+  --cb-border-soft: #dde3ec;
+  --cb-name: #4f5a69;
+  --cb-chip-bg: #e8edf4;
+  --cb-chip-fg: #4f5a69;
+  --cb-btn: #4f5a69;
+  --cb-btn-hover-bg: #eef3fa;
+  --cb-btn-hover-fg: #10182a;
+  --cb-accent: #004494;
 
   border: 1px solid var(--cb-border);
-  border-radius: 12px;
+  border-radius: 6px;
   overflow: hidden;
   background: var(--cb-body);
 }
 
 :global([data-theme='dark']) .card {
-  --cb-body: #0c0c0e;
-  --cb-head: #111113;
-  --cb-border: #27272a;
-  --cb-border-soft: #1c1c1f;
-  --cb-name: #e4e4e7;
-  --cb-chip-bg: #27272a;
-  --cb-chip-fg: #d4d4d8;
-  --cb-btn: #a1a1aa;
-  --cb-btn-hover-bg: #1c1c1f;
-  --cb-btn-hover-fg: #fafafa;
-  --cb-accent: #818cf8;
+  --cb-body: #0f1d33;
+  --cb-head: #10243d;
+  --cb-border: #1e3454;
+  --cb-border-soft: #1e3454;
+  --cb-name: #c4d0e0;
+  --cb-chip-bg: #1e3454;
+  --cb-chip-fg: #c4d0e0;
+  --cb-btn: #a3b2c7;
+  --cb-btn-hover-bg: #1e3454;
+  --cb-btn-hover-fg: #e7edf6;
+  --cb-accent: #7fb3ea;
 }
 
 /* Match the card background to the code area, overriding the Prism theme's
@@ -50,48 +52,64 @@
   --ifm-pre-background: var(--cb-body);
 }
 
-/* Dark mode: paint the Prism (dracula) token colours from the very first render,
-   not only after Docusaurus re-mounts the block on hydration. On a full-page
-   load (refresh) the server HTML carries the light-theme ink; on our dark card
-   the plain text would be dark-on-dark (invisible) for a beat until the theme
-   flips. These values match the dracula theme exactly, so there is no colour
-   shift once hydration settles. Light mode already matches (github on white). */
+/* Dark mode: paint the dark token colours from the very first render, not
+   only after Docusaurus re-mounts the block on hydration. On a full-page load
+   (refresh) the server HTML carries the light-theme ink; on our dark card the
+   plain text would be dark-on-dark (invisible) for a beat until the theme
+   flips. These values are the dark theme's (src/prism/themes.ts), so there is
+   no colour shift once hydration settles. Light mode already matches (github
+   on white). */
 :global([data-theme='dark']) .card :global(.prism-code),
 :global([data-theme='dark']) .card :global(.token-line),
 :global([data-theme='dark']) .card :global(.token),
-:global([data-theme='dark']) .card :global(.token.plain),
+:global([data-theme='dark']) .card :global(.token.plain) {
+  color: #c4d0e0 !important;
+}
 :global([data-theme='dark']) .card :global(.token.punctuation),
-:global([data-theme='dark']) .card :global(.token.symbol) {
-  color: #f8f8f2 !important;
+:global([data-theme='dark']) .card :global(.token.operator),
+:global([data-theme='dark']) .card :global(.token.entity),
+:global([data-theme='dark']) .card :global(.token.url) {
+  color: #a3b2c7 !important;
 }
-:global([data-theme='dark']) .card :global(.token.comment) {
-  color: #6272a4 !important;
+:global([data-theme='dark']) .card :global(.token.comment),
+:global([data-theme='dark']) .card :global(.token.prolog),
+:global([data-theme='dark']) .card :global(.token.doctype),
+:global([data-theme='dark']) .card :global(.token.cdata) {
+  color: #7c93b3 !important;
 }
+:global([data-theme='dark']) .card :global(.token.property),
+:global([data-theme='dark']) .card :global(.token.tag),
+:global([data-theme='dark']) .card :global(.token.symbol),
+:global([data-theme='dark']) .card :global(.token.deleted) {
+  color: #f08c86 !important;
+}
+:global([data-theme='dark']) .card :global(.token.boolean),
+:global([data-theme='dark']) .card :global(.token.number),
+:global([data-theme='dark']) .card :global(.token.constant),
+:global([data-theme='dark']) .card :global(.token.changed) {
+  color: #f0a35c !important;
+}
+:global([data-theme='dark']) .card :global(.token.selector),
+:global([data-theme='dark']) .card :global(.token.attr-name),
 :global([data-theme='dark']) .card :global(.token.string),
 :global([data-theme='dark']) .card :global(.token.char),
-:global([data-theme='dark']) .card :global(.token.tag),
-:global([data-theme='dark']) .card :global(.token.selector) {
-  color: #ff79c6 !important;
+:global([data-theme='dark']) .card :global(.token.builtin),
+:global([data-theme='dark']) .card :global(.token.inserted) {
+  color: #8fd4a8 !important;
 }
-:global([data-theme='dark']) .card :global(.token.keyword),
-:global([data-theme='dark']) .card :global(.token.variable),
-:global([data-theme='dark']) .card :global(.token.prolog),
-:global([data-theme='dark']) .card :global(.token.constant),
-:global([data-theme='dark']) .card :global(.token.builtin) {
-  color: #bd93f9 !important;
+:global([data-theme='dark']) .card :global(.token.atrule),
+:global([data-theme='dark']) .card :global(.token.attr-value),
+:global([data-theme='dark']) .card :global(.token.keyword) {
+  color: #a7cbf3 !important;
 }
 :global([data-theme='dark']) .card :global(.token.function),
-:global([data-theme='dark']) .card :global(.token.inserted) {
-  color: #50fa7b !important;
+:global([data-theme='dark']) .card :global(.token.class-name) {
+  color: #d9c2f5 !important;
 }
-:global([data-theme='dark']) .card :global(.token.attr-name) {
-  color: #f1fa8c !important;
-}
-:global([data-theme='dark']) .card :global(.token.deleted) {
-  color: #ff5555 !important;
-}
-:global([data-theme='dark']) .card :global(.token.changed) {
-  color: #ffb86c !important;
+:global([data-theme='dark']) .card :global(.token.regex),
+:global([data-theme='dark']) .card :global(.token.important),
+:global([data-theme='dark']) .card :global(.token.variable) {
+  color: #f0d27c !important;
 }
 
 .header {

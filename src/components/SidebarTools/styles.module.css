@@ -1,0 +1,84 @@
+/* Sits above the menu's own scroll (src/theme/DocSidebar/Desktop/Content), so
+   the bottom padding is the room the menu keeps below it while it scrolls. */
+.tools {
+  display: flex;
+  gap: 8px;
+  padding: 20px 14px 12px;
+}
+
+.find,
+.ask {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.find {
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 7px;
+  padding: 0 7px 0 10px;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  background: var(--ifm-color-emphasis-100);
+  color: var(--ifm-color-emphasis-600);
+  text-align: left;
+}
+.find:hover {
+  border-color: var(--ifm-color-emphasis-400);
+  color: var(--ifm-font-color-base);
+}
+.findLabel {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.kbd {
+  padding: 2px 5px;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 4px;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 10px;
+  line-height: 1;
+  color: var(--ifm-color-emphasis-600);
+  background: none;
+  box-shadow: none;
+}
+
+.ask {
+  flex: none;
+  gap: 5px;
+  padding: 0 10px;
+  border: 1px solid var(--eeas-tint-border);
+  background: var(--eeas-tint);
+  color: var(--ifm-color-primary);
+  font-weight: 650;
+}
+.ask:hover {
+  color: var(--ifm-color-primary);
+  border-color: var(--ifm-color-primary);
+  text-decoration: none;
+}
+/* In dark mode the tint is too close to the page for blue text to carry;
+   the button is filled, as the primary call to action is. */
+[data-theme='dark'] .ask,
+[data-theme='dark'] .ask:hover {
+  background: var(--eeas-fill);
+  border-color: var(--eeas-fill);
+  color: var(--eeas-fill-ink);
+}
+[data-theme='dark'] .ask:hover {
+  filter: brightness(1.12);
+}
+
+.icon {
+  flex: none;
+  display: block;
+}

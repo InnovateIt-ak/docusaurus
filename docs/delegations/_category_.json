@@ -1,0 +1,8 @@
+{
+  "label": "Délégations",
+  "position": 2,
+  "link": {
+    "type": "generated-index",
+    "description": "Modéliser les délégations de l'Union, leurs mandats et leurs titulaires — depuis la console ou par l'API."
+  }
+}
