@@ -54,7 +54,18 @@ function Redoc({spec}: Props): ReactNode {
   // new options object, and sat on "Loading ..." after every colour-mode
   // change while this was an inline literal.
   const options = useMemo(
-    () => ({downloadUrls: [{title: 'OpenAPI (YAML)', url: spec.downloadUrl}]}),
+    () => ({
+      downloadUrls: [{title: 'OpenAPI (YAML)', url: spec.downloadUrl}],
+      // Everything open by default: nested schema properties and the JSON
+      // samples. These are the names the 3.0 bundle reads; the Redoc 2 ones
+      // (schemaExpansionLevel, jsonSampleExpandLevel, expandResponses) are
+      // still accepted by its config schema but not consumed.
+      schemasExpansionLevel: 'all',
+      jsonSamplesExpandLevel: 'all',
+      // Redoc scrolls to an operation itself; tell it how tall the site's
+      // fixed navbar is so the title lands under it, not behind it.
+      scrollYOffset: '.navbar',
+    }),
     [spec.downloadUrl],
   );
 
