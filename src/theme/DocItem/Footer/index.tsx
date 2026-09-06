@@ -14,8 +14,10 @@ type Props = WrapperProps<typeof FooterType>;
 export default function FooterWrapper(props: Props): ReactNode {
     const {metadata, frontMatter} = useDoc();
     // Curated "next steps" links declared in the page's front matter (see
-    // src/components/RelatedDocs). Optional — absent on most pages.
-    const related = frontMatter.related as RelatedItem[] | undefined;
+    // src/components/RelatedDocs). Optional — absent on most pages. It is not
+    // part of Docusaurus's DocFrontMatter (a type alias, so it cannot be
+    // augmented), hence the cast.
+    const {related} = frontMatter as {related?: RelatedItem[]};
 
     return (
         <>
