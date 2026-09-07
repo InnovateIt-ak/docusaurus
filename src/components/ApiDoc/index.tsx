@@ -63,6 +63,13 @@ function Redoc({spec}: Props): ReactNode {
       // Redoc scrolls to an operation itself; tell it how tall the site's
       // fixed navbar is so the title lands under it, not behind it.
       scrollYOffset: '.navbar',
+      // Every schema in `components.schemas` gets a section of its own under
+      // this tag (sidebar entry, properties table, JSON sample), whether or
+      // not an operation references it. Without it, Redoc shows a schema
+      // only inside the request/response that uses it, so a model that is
+      // not wired to an operation yet is invisible. A schema carrying
+      // `x-tags` is listed under those tags instead of this one.
+      schemaDefinitionsTagName: 'Data models',
     }),
     [spec.downloadUrl],
   );
