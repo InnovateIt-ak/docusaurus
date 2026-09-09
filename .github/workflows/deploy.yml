@@ -10,9 +10,9 @@ name: Build and Deploy Docusaurus
 # (Settings -> Environments -> github-pages -> Deployment branches -> No
 # restriction); otherwise non-default branches are blocked by environment rules.
 on:
-  push:
-    branches:
-      - '**'
+  #push:
+    #branches:
+      #- '**'
   workflow_dispatch:
 
 # GitHub Pages has one live deployment. Serialise so concurrent branch pushes
