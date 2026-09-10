@@ -27,7 +27,7 @@ animation and prints the whole exchange; a reader who asked for reduced
 motion gets the same still figure, and the **Stop** button under a moving
 diagram gives it to anyone. Activity diagrams and C4 *sequence* diagrams are not
 grouped by PlantUML and stay still.
-
+vbnvbn
 Refresh token detail:
 
 ```plantuml
