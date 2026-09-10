@@ -1,56 +1,94 @@
 @startuml
+!include _shared/eeas-skin.puml
 !include <C4/C4_Deployment>
 ' steps #004494
 ' uncomment the following line and comment the first to use locally
 ' !include C4_Deployment.puml
 
-AddElementTag("fallback", $bgColor="#c0c0c0")
-AddRelTag("fallback", $textColor="#c0c0c0", $lineColor="#438DD5")
+' Configuration de la disposition pour un flux gauche à droite
+LAYOUT_LEFT_RIGHT()
+
+' Définition des tags personnalisés pour clarté visuelle
+AddElementTag("primary", $bgColor="#E8F5E9", $borderColor="#4CAF50", $fontColor="#1B5E20")
+AddElementTag("web_tier", $bgColor="#E3F2FD", $borderColor="#1976D2", $fontColor="#0D47A1")
+AddElementTag("app_tier", $bgColor="#FFF3E0", $borderColor="#F57C00", $fontColor="#E65100")
+AddElementTag("client", $bgColor="#FAFAFA", $borderColor="#616161", $fontColor="#212121")
+AddElementTag("mobile_device", $bgColor="#FCE4EC", $borderColor="#C2185B", $fontColor="#880E4F")
+AddElementTag("fallback", $bgColor="#E0E0E0", $borderColor="#757575", $fontColor="#424242")
+
+' Tags pour les relations
+AddRelTag("api_call", $lineColor="#1976D2", $textColor="#0D47A1", $lineStyle="bold")
+AddRelTag("jdbc", $lineColor="#388E3C", $textColor="#1B5E20")
+AddRelTag("replication", $lineColor="#7B1FA2", $textColor="#4A148C", $lineStyle="dashed")
+AddRelTag("delivery", $lineColor="#F57C00", $textColor="#E65100")
+AddRelTag("fallback_rel", $textColor="#757575", $lineColor="#BDBDBD", $lineStyle="dashed")
 
 ' calculated legend is used (activated in last line)
-' LAYOUT_WITH_LEGEND()
+LAYOUT_WITH_LEGEND()
 
 title Deployment Diagram for Internet Banking System - Live
 
 Deployment_Node(plc, "Big Bank plc", "Big Bank plc data center"){
-    Deployment_Node(dn, "bigbank-api***\tx8", "Ubuntu 16.04 LTS"){
+    
+    Deployment_Node(dn, "bigbank-api*** (x8)", "Ubuntu 16.04 LTS\nLoad balanced cluster", $tags="app_tier"){
         Deployment_Node(apache, "Apache Tomcat", "Apache Tomcat 8.x"){
-            Container(api, "API Application", "Java and Spring MVC", "Provides Internet Banking functionality via a JSON/HTTPS API.")
+            Container(api, "API Application", "Java 8 + Spring MVC 5.x", "Fournit les fonctionnalités Internet Banking\nvia une API RESTful JSON/HTTPS.\n\n• Authentification JWT\n• Rate limiting: 1000 req/min\n• TLS 1.2+ obligatoire", $tags="app_tier")
         }
     }
-    Deployment_Node(bigbankdb01, "bigbank-db01", "Ubuntu 16.04 LTS"){
-        Deployment_Node(oracle, "Oracle - Primary", "Oracle 12c"){
-            ContainerDb(db, "Database", "Relational Database Schema", "Stores user registration information, hashed authentication credentials, access logs, etc.")
-        }
-    }
-    Deployment_Node(bigbankdb02, "bigbank-db02", "Ubuntu 16.04 LTS", $tags="fallback") {
-        Deployment_Node(oracle2, "Oracle - Secondary", "Oracle 12c", $tags="fallback") {
-            ContainerDb(db2, "Database", "Relational Database Schema", "Stores user registration information, hashed authentication credentials, access logs, etc.", $tags="fallback")
-        }
-    }
-    Deployment_Node(bb2, "bigbank-web***\tx4", "Ubuntu 16.04 LTS"){
+    
+    Deployment_Node(bb2, "bigbank-web*** (x4)", "Ubuntu 16.04 LTS\nLoad balanced cluster", $tags="web_tier"){
         Deployment_Node(apache2, "Apache Tomcat", "Apache Tomcat 8.x"){
-            Container(web, "Web Application", "Java and Spring MVC", "Delivers the static content and the Internet Banking single page application.")
+            Container(web, "Web Application", "Java 8 + Spring MVC 5.x", "Délivre le contenu statique et\nla Single Page Application (SPA)\nInternet Banking.", $tags="web_tier")
         }
     }
+    
+    Deployment_Node(bigbankdb01, "bigbank-db01 (Primary)", "Ubuntu 16.04 LTS\nProduction database server", $tags="primary"){
+        Deployment_Node(oracle, "Oracle - Primary", "Oracle 12c Enterprise Edition"){
+            ContainerDb(db, "Database", "Relational Database Schema", "Stocke les informations utilisateur:\n\n• Données d'enregistrement\n• Credentials hashés (bcrypt)\n• Logs d'accès et audit\n• Données transactionnelles", $tags="primary")
+        }
+    }
+    
+    Deployment_Node(bigbankdb02, "bigbank-db02 (Standby)", "Ubuntu 16.04 LTS\nFailover database server", $tags="fallback") {
+        Deployment_Node(oracle2, "Oracle - Secondary", "Oracle 12c Enterprise Edition", $tags="fallback") {
+            ContainerDb(db2, "Database (Replica)", "Relational Database Schema", "Réplica en lecture seule.\n\n• Réplication asynchrone\n• Failover automatique\n• Backup quotidien", $tags="fallback")
+        }
+    }
+    
+    note right of plc
+        <b>Infrastructure haute disponibilité:</b>
+        
+        • <b>API Tier:</b> 8 serveurs load balanced
+        • <b>Web Tier:</b> 4 serveurs load balanced
+        • <b>Data Tier:</b> Réplication Active-Passive
+        
+        <b>Résilience:</b>
+        • Failover automatique (RTO: 5 min)
+        • Réplication asynchrone (RPO: 1 min)
+        • Monitoring 24/7 avec alertes
+        
+        <b>Sécurité:</b>
+        • Firewall DMZ entre tiers
+        • TLS 1.2+ pour toutes communications
+        • Authentification multi-facteur
+    end note
 }
 
-Deployment_Node(mob, "Customer's mobile device", "Apple IOS or Android"){
-    Container(mobile, "Mobile App", "Xamarin", "Provides a limited subset of the Internet Banking functionality to customers via their mobile device.")
+Deployment_Node(mob, "Customer's mobile device", "Apple iOS or Android", $tags="mobile_device"){
+    Container(mobile, "Mobile App", "Xamarin (C#)", "Fournit un sous-ensemble des fonctionnalités\nInternet Banking sur mobile.\n\n• Authentification biométrique\n• Notifications push\n• Mode hors-ligne limité", $tags="mobile_device")
 }
 
-Deployment_Node(comp, "Customer's computer", "Mircosoft Windows of Apple macOS"){
-    Deployment_Node(browser, "Web Browser", "Google Chrome, Mozilla Firefox, Apple Safari or Microsoft Edge"){
-        Container(spa, "Single Page Application", "JavaScript and Angular", "Provides all of the Internet Banking functionality to customers via their web browser.")
+Deployment_Node(comp, "Customer's computer", "Microsoft Windows or Apple macOS", $tags="client"){
+    Deployment_Node(browser, "Web Browser", "Chrome / Firefox / Safari / Edge"){
+        Container(spa, "Single Page Application", "JavaScript + Angular 12", "Fournit toutes les fonctionnalités\nInternet Banking via navigateur.\n\n• Interface responsive\n• Session timeout: 15 min\n• Local storage chiffré", $tags="client")
     }
 }
 
-Rel(mobile, api, "Makes API calls to", "json/HTTPS")
-Rel(spa, api, "Makes API calls to", "json/HTTPS")
-Rel_U(web, spa, "Delivers to the customer's web browser")
-Rel(api, db, "Reads from and writes to", "JDBC")
-Rel(api, db2, "Reads from and writes to", "JDBC", $tags="fallback")
-Rel_R(db, db2, "Replicates data to")
+Rel(mobile, api, "Makes API calls to", "JSON/HTTPS\nPort 443", $tags="api_call")
+Rel(spa, api, "Makes API calls to", "JSON/HTTPS\nPort 443", $tags="api_call")
+Rel_U(web, spa, "Delivers to customer's\nweb browser", "HTTPS", $tags="delivery")
+Rel(api, db, "Reads from and writes to", "JDBC\nPort 1521", $tags="jdbc")
+Rel(api, db2, "Reads from (failover only)", "JDBC\nPort 1521", $tags="fallback_rel")
+Rel_R(db, db2, "Replicates data to", "Oracle Data Guard\nAsynchronous", $tags="replication")
 
 SHOW_LEGEND()
 @enduml
