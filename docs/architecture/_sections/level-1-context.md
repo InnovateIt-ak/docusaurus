@@ -7,6 +7,6 @@ The main external actors are:
 |---|---|
 | End user | Browses the published documentation |
 | Identity provider | Authenticates internal editors |
-| CI pipeline | Builds, tests and deploys the site |
+| CI pipeline | Builds, tests and deploys the site |,
 
 The context boundary is intentionally small: everything user-facing is static.
